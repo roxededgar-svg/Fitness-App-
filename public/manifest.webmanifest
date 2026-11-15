@@ -1,0 +1,11 @@
+{
+  "name": "Vitalis – Rise of Legends",
+  "short_name": "Vitalis",
+  "description": "Fitness-Battle-App: Trainiere. Kämpfe. Werde legendär.",
+  "start_url": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#08090d",
+  "theme_color": "#08090d",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}
