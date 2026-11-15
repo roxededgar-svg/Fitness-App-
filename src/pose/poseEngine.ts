@@ -8,7 +8,7 @@ const REMOTE_WASM = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.2.3/
 const REMOTE_MODEL =
   'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task';
 
-let enginePromise: Promise<PoseLandmarker> | null = null;
+const engines = new Map<number, Promise<PoseLandmarker>>();
 
 async function urlExists(url: string) {
   try {
@@ -19,7 +19,7 @@ async function urlExists(url: string) {
   }
 }
 
-async function create(delegate: 'GPU' | 'CPU'): Promise<PoseLandmarker> {
+async function create(delegate: 'GPU' | 'CPU', numPoses = 1): Promise<PoseLandmarker> {
   const { FilesetResolver, PoseLandmarker } = await import('@mediapipe/tasks-vision');
   const wasmBase = (await urlExists(`${LOCAL_WASM}/vision_wasm_internal.js`)) ? LOCAL_WASM : REMOTE_WASM;
   const model = (await urlExists(LOCAL_MODEL)) ? LOCAL_MODEL : REMOTE_MODEL;
@@ -27,20 +27,22 @@ async function create(delegate: 'GPU' | 'CPU'): Promise<PoseLandmarker> {
   return PoseLandmarker.createFromOptions(files, {
     baseOptions: { modelAssetPath: model, delegate },
     runningMode: 'VIDEO',
-    numPoses: 1,
+    numPoses,
     minPoseDetectionConfidence: 0.5,
     minPosePresenceConfidence: 0.5,
     minTrackingConfidence: 0.5,
   });
 }
 
-/** Lädt das Pose-Modell einmalig (GPU, Fallback CPU). */
-export function loadPoseEngine(): Promise<PoseLandmarker> {
-  if (!enginePromise) {
-    enginePromise = create('GPU').catch(() => create('CPU'));
-    enginePromise.catch(() => (enginePromise = null));
+/** Lädt das Pose-Modell einmalig pro Personenzahl (GPU, Fallback CPU). */
+export function loadPoseEngine(numPoses = 1): Promise<PoseLandmarker> {
+  let p = engines.get(numPoses);
+  if (!p) {
+    p = create('GPU', numPoses).catch(() => create('CPU', numPoses));
+    p.catch(() => engines.delete(numPoses));
+    engines.set(numPoses, p);
   }
-  return enginePromise;
+  return p;
 }
 
 let lastTs = 0;
@@ -50,6 +52,14 @@ export function detect(engine: PoseLandmarker, video: HTMLVideoElement): Lm[] | 
   lastTs = ts;
   const res = engine.detectForVideo(video, ts);
   return (res.landmarks?.[0] as Lm[] | undefined) ?? null;
+}
+
+/** Alle erkannten Personen (für Zwei-Spieler-Modi) */
+export function detectAll(engine: PoseLandmarker, video: HTMLVideoElement): Lm[][] {
+  const ts = Math.max(performance.now(), lastTs + 1);
+  lastTs = ts;
+  const res = engine.detectForVideo(video, ts);
+  return (res.landmarks as Lm[][] | undefined) ?? [];
 }
 
 export const SKELETON: [number, number][] = [

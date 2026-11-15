@@ -112,6 +112,17 @@ export function ArenaScreen() {
         </div>
       </Section>
 
+      <Section title="Mit Freunden">
+        <button className="card plan-cta friends-cta" onClick={() => nav('/friends')}>
+          <div className="t-ico" style={{ width: 56, height: 56, background: 'linear-gradient(135deg, #3f7bfa33, #ef444433)', color: '#fff' }}><Icon name="users" size={28} /></div>
+          <div style={{ flex: 1 }}>
+            <div className="display" style={{ fontSize: 18 }}>Gegeneinander oder im Team</div>
+            <div className="muted" style={{ fontSize: 13 }}>1 vs 1 oder 2 vs 2 – zu zweit an einem Gerät oder per Team-Link</div>
+          </div>
+          <Icon name="back" size={18} style={{ transform: 'rotate(180deg)' }} />
+        </button>
+      </Section>
+
       <Section title="1v1 Duelle" action={<button className="section-link" onClick={() => setChallengeOpen(true)}>+ Herausfordern</button>}>
         {me.friends.filter((f) => f.duel).length === 0 ? (
           <div className="empty">
