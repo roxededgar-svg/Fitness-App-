@@ -79,6 +79,14 @@ export function SettingsScreen() {
         <div className="setting-row"><div><div className="t">Vibration</div><div className="d">Nicht auf allen Geräten verfügbar</div></div><Switch on={s.haptics} onChange={(v) => updateSettings({ haptics: v })} /></div>
       </div>
 
+      <div className="caps muted" style={{ fontSize: 12, margin: '22px 0 8px' }}>Begleiter</div>
+      <div className="card">
+        <div className="setting-row">
+          <div><div className="t">Einführung mit Flux wiederholen</div><div className="d">Ziel, Fitness-Stand und Trainingstage neu festlegen</div></div>
+          <button className="btn btn-ghost btn-sm" onClick={() => { updateProfile({ onboarded: false }); nav('/', { replace: true }); }}>Starten</button>
+        </div>
+      </div>
+
       <div className="caps muted" style={{ fontSize: 12, margin: '22px 0 8px' }}>Datensicherung</div>
       <div className="card">
         <div className="muted" style={{ fontSize: 13, lineHeight: 1.5, padding: '6px 0 10px' }}>

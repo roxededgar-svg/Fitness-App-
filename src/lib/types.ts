@@ -1,5 +1,6 @@
 import type { ExerciseId } from './exercises';
 import type { Sensitivity } from '../pose/counters';
+import type { Fitness, Goal } from './goals';
 
 export type Mode = 'pvp' | 'dungeon' | 'training' | 'ghost';
 export type Result = 'win' | 'loss' | 'draw';
@@ -98,6 +99,11 @@ export interface Profile {
   season?: { id: string; peak: number };
   /** false = Einführung noch nicht gesehen (nur bei neuen Konten gesetzt) */
   onboarded?: boolean;
+  /** Antworten aus der Einführung */
+  goal?: Goal;
+  fitness?: Fitness;
+  /** Ziel: Einheiten pro Woche */
+  perWeek?: number;
   /** Trainingspläne: Starttest und abgeschlossene Einheiten */
   plans?: Record<string, { startMax: number; done: number; startedAt: number; lastAt?: number }>;
 }

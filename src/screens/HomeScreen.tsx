@@ -10,6 +10,9 @@ import { RankEmblem } from '../components/RankEmblem';
 import { Gems, Gold, LevelRing, PageHeader, Section, Sheet, WeekChart, toast } from '../components/ui';
 import { seasonName } from '../lib/season';
 import { DAYS, PLANS, daySets } from '../lib/plans';
+import { Flux, Speech } from '../components/Flux';
+import { fluxTip, weekDaysTrained } from '../lib/tips';
+import { goalLabel } from '../lib/goals';
 
 function greeting() {
   const h = new Date().getHours();
@@ -35,6 +38,9 @@ export function HomeScreen() {
   const claimed = missions.filter((m) => m.claimed).length;
   const activePlans = PLANS.filter((p) => me.plans?.[p.id] && me.plans[p.id].done < DAYS).map((plan) => ({ plan, st: me.plans![plan.id] }));
   const nextNode = currentNode(me);
+  const tip = fluxTip(me);
+  const weekDays = weekDaysTrained(me);
+  const perWeek = me.perWeek ?? 3;
   const nextWorld = nextNode ? WORLDS.find((w) => w.id === nextNode.worldId) : undefined;
 
   return (
@@ -79,6 +85,21 @@ export function HomeScreen() {
             <div className="s">Arena</div>
           </div>
         </div>
+      </div>
+
+      {/* Flux mit Wochenziel und Tipp */}
+      <div className="card" style={{ marginTop: 22 }}>
+        <button className="flux-tip" style={{ width: '100%', textAlign: 'left' }} onClick={() => activePlans[0] && nav(`/workout?plan=${activePlans[0].plan.id}`)}>
+          <Flux mood={tip.mood} size={74} />
+          <Speech text={tip.text} />
+        </button>
+        <div className="row" style={{ marginTop: 14, fontSize: 13 }}>
+          <span className="caps" style={{ fontSize: 11 }}>Wochenziel</span>
+          {goalLabel(me.goal) && <span className="muted">· {goalLabel(me.goal)}</span>}
+          <span className="spacer" />
+          <b>{Math.min(weekDays, perWeek)} / {perWeek} Tage</b>
+        </div>
+        <div className="week-goal">{Array.from({ length: perWeek }, (_, i) => <span key={i} className={i < weekDays ? 'on' : ''} />)}</div>
       </div>
 
       <Section title="Spielen">
