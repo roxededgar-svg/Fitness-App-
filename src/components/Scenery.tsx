@@ -147,3 +147,144 @@ export function Scenery({ theme, glow, height, seed }: { theme: Theme; glow: str
   }
   return <>{items}</>;
 }
+
+/* ---------- Epische Kulisse: Bergketten, Lichtstrahlen, Nebel, Partikel ---------- */
+
+type Ridge = 'peaks' | 'hills' | 'clouds' | 'spires' | 'pines' | 'reef' | 'temple';
+
+const BACKDROP: Record<Theme, { layers: [Ridge, Ridge, Ridge]; particle: 'firefly' | 'snow' | 'ember' | 'wisp' | 'rain' | 'bubble' | 'spark' }> = {
+  forest: { layers: ['hills', 'pines', 'pines'], particle: 'firefly' },
+  ice: { layers: ['peaks', 'peaks', 'peaks'], particle: 'snow' },
+  fire: { layers: ['peaks', 'hills', 'peaks'], particle: 'ember' },
+  shadow: { layers: ['hills', 'spires', 'spires'], particle: 'wisp' },
+  sky: { layers: ['clouds', 'clouds', 'clouds'], particle: 'rain' },
+  abyss: { layers: ['reef', 'hills', 'reef'], particle: 'bubble' },
+  olymp: { layers: ['hills', 'temple', 'temple'], particle: 'spark' },
+};
+
+function rnd(seed: number) {
+  let s = seed * 9301 + 49297;
+  return () => ((s = (s * 9301 + 49297) % 233280) / 233280);
+}
+
+/** Silhouette einer Bergkette (viewBox 0 0 1000 300) */
+function ridgePath(kind: Ridge, seed: number, base: number, amp: number): string {
+  const r = rnd(seed);
+  const W = 1000;
+  let d = `M0 300 L0 ${base}`;
+  switch (kind) {
+    case 'peaks': {
+      for (let x = 0; x <= W; ) {
+        const w = 50 + r() * 90;
+        const h = amp * (0.4 + r() * 0.6);
+        d += ` L${x + w / 2} ${base - h} L${x + w} ${base - r() * amp * 0.25}`;
+        x += w;
+      }
+      break;
+    }
+    case 'hills': {
+      let x = 0;
+      while (x < W) {
+        const w = 140 + r() * 180;
+        d += ` Q${x + w / 2} ${base - amp * (0.5 + r() * 0.6)} ${x + w} ${base - r() * amp * 0.2}`;
+        x += w;
+      }
+      break;
+    }
+    case 'clouds': {
+      let x = 0;
+      while (x < W) {
+        const w = 70 + r() * 110;
+        d += ` A${w / 2} ${amp * (0.4 + r() * 0.5)} 0 0 1 ${x + w} ${base - r() * 20}`;
+        x += w;
+      }
+      break;
+    }
+    case 'spires': {
+      let x = 0;
+      while (x < W) {
+        const gap = 30 + r() * 60, w = 22 + r() * 26, h = amp * (0.5 + r() * 0.9);
+        d += ` L${x + gap} ${base} L${x + gap} ${base - h} L${x + gap + w / 2} ${base - h - 30 - r() * 30} L${x + gap + w} ${base - h} L${x + gap + w} ${base}`;
+        x += gap + w;
+      }
+      break;
+    }
+    case 'pines': {
+      let x = 0;
+      while (x < W) {
+        const w = 26 + r() * 30, h = amp * (0.5 + r() * 0.7);
+        const y0 = base - r() * 20;
+        d += ` L${x} ${y0} L${x + w / 2} ${y0 - h} L${x + w} ${y0}`;
+        x += w * 0.7;
+      }
+      break;
+    }
+    case 'reef': {
+      let x = 0;
+      while (x < W) {
+        const w = 90 + r() * 120, h = amp * (0.5 + r() * 0.6);
+        d += ` L${x + w * 0.2} ${base} C${x + w * 0.2} ${base - h} ${x + w * 0.8} ${base - h} ${x + w * 0.8} ${base} L${x + w * 0.62} ${base} C${x + w * 0.62} ${base - h * 0.55} ${x + w * 0.38} ${base - h * 0.55} ${x + w * 0.38} ${base} L${x + w} ${base}`;
+        x += w;
+      }
+      break;
+    }
+    case 'temple': {
+      let x = 0;
+      while (x < W) {
+        const gap = 40 + r() * 70, cols = 3 + Math.floor(r() * 4), cw = 10, h = amp * (0.6 + r() * 0.5);
+        d += ` L${x + gap} ${base}`;
+        const left = x + gap, right = left + cols * cw * 2;
+        d += ` L${left} ${base - h} L${(left + right) / 2} ${base - h - 34} L${right} ${base - h} L${right} ${base}`;
+        x = right;
+      }
+      break;
+    }
+  }
+  return `${d} L${W} ${base} L${W} 300 Z`;
+}
+
+export function Backdrop({ theme, sky, glow, seed }: { theme: Theme; sky: string; glow: string; seed: number }) {
+  const cfg = BACKDROP[theme];
+  const shades = [0.32, 0.55, 0.85];
+  return (
+    <div className="backdrop" aria-hidden="true">
+      {/* Lichtstrahlen */}
+      <div className="godrays" style={{ background: `conic-gradient(from 160deg at 50% -10%, transparent 0deg, ${glow}33 8deg, transparent 16deg, transparent 22deg, ${glow}22 28deg, transparent 36deg, transparent 44deg, ${glow}2a 50deg, transparent 58deg)` }} />
+      {cfg.layers.map((kind, i) => (
+        <svg key={i} className={`ridge ridge-${i}`} viewBox="0 0 1000 300" preserveAspectRatio="none" data-depth={0.12 + i * 0.12}>
+          <defs>
+            <linearGradient id={`rg-${seed}-${i}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stopColor={i === 0 ? glow : sky} stopOpacity={i === 0 ? 0.5 : 1} />
+              <stop offset="1" stopColor="#000" stopOpacity={shades[i]} />
+            </linearGradient>
+          </defs>
+          <path d={ridgePath(kind, seed * 7 + i * 13, 150 + i * 55, 90 + i * 20)} fill={i === 0 ? `url(#rg-${seed}-${i})` : `color-mix(in srgb, ${sky} ${70 - i * 25}%, #000)`} />
+          {i === 2 && theme === 'fire' && <path d={ridgePath(kind, seed * 7 + i * 13, 150 + i * 55, 90 + i * 20)} fill="none" stroke={glow} strokeWidth="2" opacity=".55" />}
+          {i < 2 && <path d={ridgePath(kind, seed * 7 + i * 13, 150 + i * 55, 90 + i * 20)} fill="none" stroke={glow} strokeOpacity={0.25 - i * 0.08} strokeWidth="1.5" />}
+        </svg>
+      ))}
+      <div className="fog" style={{ background: `linear-gradient(180deg, transparent, ${sky}cc 60%, transparent)` }} />
+    </div>
+  );
+}
+
+export function Particles({ theme, glow, height, seed }: { theme: Theme; glow: string; height: number; seed: number }) {
+  const kind = BACKDROP[theme].particle;
+  const r = rnd(seed + 11);
+  const n = kind === 'rain' ? 26 : 22;
+  return (
+    <div className="particles" aria-hidden="true" style={{ height }}>
+      {Array.from({ length: n }, (_, i) => {
+        const size = kind === 'snow' ? 3 + r() * 4 : kind === 'bubble' ? 5 + r() * 9 : kind === 'wisp' ? 30 + r() * 50 : kind === 'rain' ? 1.5 : 3 + r() * 3;
+        return (
+          <span key={i} className={`pt pt-${kind}`} style={{
+            left: `${r() * 100}%`, top: `${r() * 100}%`, width: size, height: kind === 'rain' ? 18 + r() * 14 : kind === 'wisp' ? size * 0.35 : size,
+            animationDelay: `${-r() * 12}s`, animationDuration: `${(kind === 'rain' ? 0.9 : 6) + r() * (kind === 'rain' ? 0.6 : 8)}s`,
+            ['--c' as string]: kind === 'snow' ? '#fff' : kind === 'ember' ? (r() < 0.5 ? '#ffb020' : '#ff5a1f') : glow,
+          }} />
+        );
+      })}
+      {kind === 'rain' && <span className="lightning" style={{ animationDelay: `${-r() * 6}s` }} />}
+    </div>
+  );
+}

@@ -9,14 +9,15 @@ import {
 } from '../lib/path';
 import { Icon } from '../components/Icon';
 import { Avatar, Gems, Gold, Sheet, toast } from '../components/ui';
-import { Scenery } from '../components/Scenery';
+import { Backdrop, Particles, Scenery } from '../components/Scenery';
 
-const HEADER = 205;
-const GAP = 128;
-const FOOT = 200;
+const HEADER = 330;
+const GAP = 150;
+const FOOT = 260;
 
 /** Horizontale Lage einer Station (Prozent), schlängelnd je Welt */
-const xOf = (w: number, i: number) => 50 + Math.sin(i * 1.15 + w * 1.7) * 27;
+const xOf = (w: number, i: number) => 50 + Math.sin(i * 1.15 + w * 1.7) * 26;
+const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'];
 const yOf = (i: number) => HEADER + 40 + i * GAP;
 const worldHeight = (w: World) => yOf(w.nodes.length - 1) + FOOT + 40;
 
@@ -68,6 +69,26 @@ export function MapScreen() {
     return () => clearTimeout(t);
   }, []);
 
+  // Parallax: Bergketten verschieben sich beim Scrollen unterschiedlich stark
+  useEffect(() => {
+    let raf = 0;
+    const update = () => {
+      raf = 0;
+      document.querySelectorAll<HTMLElement>('.world').forEach((el) => {
+        const top = el.getBoundingClientRect().top;
+        if (top > window.innerHeight || top < -el.offsetHeight) return;
+        el.querySelectorAll<SVGElement>('.ridge').forEach((r) => {
+          const depth = Number(r.dataset.depth ?? 0.2);
+          r.style.transform = `translateY(${(-top * depth).toFixed(1)}px)`;
+        });
+      });
+    };
+    const onScroll = () => { if (!raf) raf = requestAnimationFrame(update); };
+    update();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => { window.removeEventListener('scroll', onScroll); cancelAnimationFrame(raf); };
+  }, []);
+
   function fight(n: PathNode) {
     const w = WORLDS.find((x) => x.id === n.worldId)!;
     start({
@@ -97,7 +118,7 @@ export function MapScreen() {
         </div>
         <div className="spacer" />
         <div className="currency gold"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M12 2l3 7h7l-5.5 4.5 2 7.5L12 17l-6.5 4 2-7.5L2 9h7z" fill="#ffd23f" /></svg> {stars} / {maxStars}</div>
-        {cur && <button className="btn btn-ghost btn-sm" onClick={() => curRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })}>Zur Station</button>}
+        {cur && <button className="btn btn-ghost btn-sm" onClick={() => curRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })}>Zu mir</button>}
       </div>
 
       {WORLDS.map((w, wi) => {
@@ -110,43 +131,47 @@ export function MapScreen() {
           const my = (y1 + y2) / 2;
           return `M${x1} ${y1} C${x1} ${my} ${x2} ${my} ${x2} ${y2}`;
         };
+        const full = pts.slice(0, -1).map((_, i) => seg(i)).join(' ');
         const bossBeaten = me.dungeonsCleared.includes(w.id);
         const next = WORLDS[wi + 1];
         return (
           <Fragment key={w.id}>
-            <section className={`world ${worldOpen ? '' : 'world-locked'}`} style={{ height: H, background: `radial-gradient(ellipse at 50% 0%, ${w.glow}22, transparent 55%), linear-gradient(180deg, ${w.sky}, ${w.ground})` }}>
+            <section className={`world ${worldOpen ? '' : 'world-locked'}`} style={{ height: H, ['--glow' as string]: w.glow, background: `radial-gradient(ellipse at 50% 18%, ${w.glow}26, transparent 60%), linear-gradient(180deg, ${w.sky} 0%, color-mix(in srgb, ${w.sky} 60%, ${w.ground}) 40%, ${w.ground} 100%)` }}>
+              <Backdrop theme={w.theme} sky={w.sky} glow={w.glow} seed={wi + 1} />
+              <Particles theme={w.theme} glow={w.glow} height={H} seed={wi + 1} />
               <Scenery theme={w.theme} glow={w.glow} height={H} seed={wi + 3} />
               <div className="world-inner" style={{ height: H }}>
 
-              {/* Welten-Banner */}
-              <div className="world-banner" style={{ borderColor: `${w.glow}66`, boxShadow: `0 20px 50px -25px ${w.glow}` }}>
-                <div className="world-num" style={{ background: w.glow }}>{wi + 1}</div>
-                <div style={{ minWidth: 0, flex: 1 }}>
-                  <div className="display" style={{ fontSize: 24 }}>{w.name}</div>
-                  <div className="muted" style={{ fontSize: 13 }}>{w.tagline}</div>
-                  <div className="row" style={{ gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
-                    {[...new Set(w.nodes.filter((n) => n.exercise).map((n) => n.exercise!))].map((e) => (
-                      <span key={e} className="pill" style={{ background: `${w.glow}22`, color: w.glow }}>{EXERCISES[e].name}</span>
-                    ))}
-                  </div>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div className="display" style={{ fontSize: 18, color: '#ffd23f' }}>★ {ws.got}/{ws.max}</div>
-                  <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>Boss: {w.dungeon.boss}</div>
+              {/* Kinoreifer Welttitel */}
+              <div className="world-title">
+                <div className="chapter" style={{ color: w.glow }}>KAPITEL {ROMAN[wi]}</div>
+                <h2 className="world-name" style={{ backgroundImage: `linear-gradient(180deg, #fff 20%, ${w.glow})`, filter: `drop-shadow(0 0 18px ${w.glow}aa)` }}>{w.name.toUpperCase()}</h2>
+                <div className="world-tag">{w.tagline}</div>
+                <div className="row" style={{ justifyContent: 'center', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
+                  <span className="wt-pill" style={{ borderColor: '#ffd23f88', color: '#ffd23f' }}>★ {ws.got} / {ws.max}</span>
+                  <span className="wt-pill" style={{ borderColor: '#ef444488', color: '#fca5a5' }}><Icon name="skull" size={13} /> {w.dungeon.boss}</span>
+                  {[...new Set(w.nodes.filter((n) => n.exercise).map((n) => n.exercise!))].map((e) => (
+                    <span key={e} className="wt-pill" style={{ borderColor: `${w.glow}66`, color: w.glow }}>{EXERCISES[e].name}</span>
+                  ))}
                 </div>
               </div>
 
-              {/* Pfad */}
+              {/* Steinstraße mit fließendem Licht */}
               <svg className="path-svg" viewBox={`0 0 100 ${H}`} preserveAspectRatio="none" style={{ height: H }}>
-                {pts.slice(0, -1).map((_, i) => (
-                  <path key={`b${i}`} d={seg(i)} fill="none" stroke="rgba(0,0,0,.45)" strokeWidth="22" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
-                ))}
+                <path d={full} fill="none" stroke="rgba(0,0,0,.55)" strokeWidth="44" strokeLinecap="round" vectorEffect="non-scaling-stroke" transform="translate(0 6)" />
+                <path d={full} fill="none" style={{ stroke: `color-mix(in srgb, ${w.glow} 18%, #1c1a17)` }} strokeWidth="38" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+                <path d={full} fill="none" style={{ stroke: `color-mix(in srgb, ${w.glow} 10%, #4a443b)` }} strokeWidth="30" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+                <path d={full} fill="none" stroke="#24211c" strokeWidth="30" strokeDasharray="2 17" vectorEffect="non-scaling-stroke" />
+                <path d={full} fill="none" stroke="rgba(255,255,255,.07)" strokeWidth="22" strokeLinecap="round" vectorEffect="non-scaling-stroke" transform="translate(0 -2)" />
                 {pts.slice(0, -1).map((_, i) => {
                   const done = isCleared(me, w.nodes[i]);
+                  if (!done) return <path key={`l${i}`} d={seg(i)} fill="none" stroke="rgba(0,0,0,.35)" strokeWidth="30" vectorEffect="non-scaling-stroke" />;
                   return (
-                    <path key={`p${i}`} d={seg(i)} fill="none" stroke={done ? w.glow : '#3a3e52'} strokeWidth={done ? 9 : 6}
-                      strokeDasharray={done ? undefined : '2 14'} strokeLinecap="round" vectorEffect="non-scaling-stroke"
-                      style={done ? { filter: `drop-shadow(0 0 6px ${w.glow})` } : undefined} />
+                    <g key={`p${i}`}>
+                      <path d={seg(i)} fill="none" stroke={w.glow} strokeOpacity=".22" strokeWidth="34" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+                      <path d={seg(i)} fill="none" stroke={w.glow} strokeWidth="5" strokeLinecap="round" vectorEffect="non-scaling-stroke" style={{ filter: `drop-shadow(0 0 6px ${w.glow})` }} />
+                      <path className="flow" d={seg(i)} fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeDasharray="6 26" vectorEffect="non-scaling-stroke" />
+                    </g>
                   );
                 })}
               </svg>
@@ -162,38 +187,84 @@ export function MapScreen() {
                   <button key={n.id} ref={isCur ? curRef : undefined} className={cls}
                     style={{ left: `${pts[i][0]}%`, top: pts[i][1], ['--glow' as string]: w.glow }}
                     onClick={() => (open ? setSel(n) : toast(n.kind === 'boss' || i > 0 ? 'Schließe zuerst die vorherige Station ab' : `Besiege zuerst ${WORLDS[wi - 1]?.dungeon.boss}`))}>
+                    {(open || done) && <div className="pnode-aura" />}
                     {isCur && (
                       <div className="pnode-me">
-                        <Avatar src={me.avatar} name={me.name} size={34} ring={w.glow} />
-                        <span style={{ background: w.glow }}>{n.kind === 'chest' ? 'ÖFFNEN' : 'LOS!'}</span>
+                        <Avatar src={me.avatar} name={me.name} size={38} ring={w.glow} />
+                        <span style={{ background: w.glow }}>{n.kind === 'chest' ? 'ÖFFNEN' : n.kind === 'boss' ? 'BOSS!' : 'LOS!'}</span>
                       </div>
                     )}
+                    {isCur && n.kind !== 'boss' && (
+                      <svg className="rune-ring" viewBox="0 0 120 120" width="128" height="128">
+                        <circle cx="60" cy="60" r="54" fill="none" stroke={w.glow} strokeWidth="1.5" strokeDasharray="4 6" />
+                        <circle cx="60" cy="60" r="46" fill="none" stroke={w.glow} strokeOpacity=".5" strokeWidth="1" />
+                        {Array.from({ length: 8 }, (_, k) => {
+                          const a = (k * Math.PI) / 4;
+                          return <path key={k} d={`M${60 + Math.cos(a) * 50} ${60 + Math.sin(a) * 50}l3 -3 3 3 -3 3z`} fill={w.glow} />;
+                        })}
+                      </svg>
+                    )}
                     {n.kind === 'chest' ? (
-                      <Chest open={done} glow={w.glow} size={74} />
+                      <div className="chest-wrap">
+                        {open && !done && <div className="chest-rays" style={{ background: `repeating-conic-gradient(${w.glow}55 0 10deg, transparent 10deg 30deg)` }} />}
+                        <Chest open={done} glow={w.glow} size={84} />
+                      </div>
+                    ) : n.kind === 'boss' ? (
+                      <div className="boss-node">
+                        {open && <div className="boss-aura" />}
+                        <svg className="boss-frame" viewBox="0 0 160 160" width="150" height="150">
+                          <defs>
+                            <radialGradient id={`bf${wi}`} cx="50%" cy="40%" r="60%">
+                              <stop offset="0" stopColor={open ? '#ff8a6a' : '#4b4f63'} />
+                              <stop offset=".6" stopColor={open ? '#b91c1c' : '#2a2d3a'} />
+                              <stop offset="1" stopColor={open ? '#2a0303' : '#111218'} />
+                            </radialGradient>
+                          </defs>
+                          {/* Hörner */}
+                          <path d="M44 52C28 44 20 26 24 6c8 14 18 22 32 28zM116 52c16-8 24-26 20-46-8 14-18 22-32 28z" fill={open ? '#e7d3a8' : '#3a3e52'} stroke="#000" strokeOpacity=".5" strokeWidth="2" />
+                          {/* Zackenkranz */}
+                          <polygon points={Array.from({ length: 28 }, (_, k) => { const a = (k * Math.PI) / 14; const r = k % 2 ? 58 : 70; return `${80 + Math.cos(a) * r},${84 + Math.sin(a) * r}`; }).join(' ')} fill={open ? '#3a0a06' : '#1a1b22'} stroke={open ? '#ef4444' : '#3a3e52'} strokeWidth="2" />
+                          <circle cx="80" cy="84" r="52" fill={`url(#bf${wi})`} stroke={open ? '#fca5a5' : '#4b4f63'} strokeWidth="3" />
+                          <circle cx="80" cy="84" r="44" fill="none" stroke="#000" strokeOpacity=".35" strokeWidth="4" />
+                        </svg>
+                        <div className="boss-face">
+                          <Icon name={open ? n.icon : 'lock'} size={54} color={open ? '#fff' : '#6b7085'} />
+                        </div>
+                        <div className="boss-tag">BOSS</div>
+                      </div>
                     ) : (
                       <div className="pnode-stone">
                         <div className="pnode-side" />
                         <div className="pnode-top">
-                          <Icon name={open ? n.icon : 'lock'} size={n.kind === 'boss' ? 40 : 28} color={done || open ? '#fff' : '#6b7085'} />
+                          <div className="pnode-inner">
+                            <Icon name={open ? n.icon : 'lock'} size={32} color={done || open ? '#fff' : '#6b7085'} />
+                          </div>
                         </div>
                       </div>
                     )}
-                    {n.kind !== 'chest' && done && <Stars n={st} />}
-                    {n.kind === 'boss' && <div className="boss-plate" style={{ borderColor: w.glow }}>{n.name}</div>}
+                    {n.kind !== 'chest' && done && <Stars n={st} size={n.kind === 'boss' ? 20 : 16} />}
+                    {n.kind === 'boss' && <div className="boss-plate" style={{ borderColor: '#ef4444' }}>{n.name}</div>}
                     {n.kind === 'fight' && open && !done && <div className="pnode-label">{n.name}</div>}
                   </button>
                 );
               })}
 
-              {/* Portal zur nächsten Welt */}
+              {/* Wirbelndes Portal zur nächsten Welt */}
               {next && (
                 <div className={`portal ${bossBeaten ? 'portal-open' : ''}`} style={{ ['--glow' as string]: next.glow }}>
-                  <svg width="120" height="80" viewBox="0 0 120 80">
-                    <path d="M14 78V40a46 38 0 0 1 92 0v38" fill="none" stroke="#2a2d3a" strokeWidth="12" />
-                    <path d="M14 78V40a46 38 0 0 1 92 0v38" fill="none" stroke={bossBeaten ? next.glow : '#4b4f63'} strokeWidth="4" />
-                    <path d="M24 78V42a36 30 0 0 1 72 0v36z" fill={bossBeaten ? next.glow : '#16171f'} opacity={bossBeaten ? 0.35 : 0.9} />
-                  </svg>
-                  <div className="caps" style={{ fontSize: 11, color: bossBeaten ? next.glow : 'var(--muted)' }}>
+                  <div className="portal-gate">
+                    <div className="portal-vortex" style={{ background: bossBeaten ? `conic-gradient(from 0deg, ${next.glow}, transparent 25%, ${next.glow}aa 40%, transparent 60%, ${next.glow} 80%, transparent)` : 'radial-gradient(circle, #16171f, #07070a)' }} />
+                    <svg viewBox="0 0 180 150" width="180" height="150" className="portal-arch">
+                      <path d="M22 148V70a68 62 0 0 1 136 0v78" fill="none" stroke="#1a1814" strokeWidth="22" />
+                      <path d="M22 148V70a68 62 0 0 1 136 0v78" fill="none" stroke={bossBeaten ? next.glow : '#4b4f63'} strokeWidth="5" />
+                      {Array.from({ length: 9 }, (_, k) => {
+                        const a = Math.PI + (k * Math.PI) / 8;
+                        return <rect key={k} x={90 + Math.cos(a) * 68 - 5} y={70 + Math.sin(a) * 62 - 5} width="10" height="10" transform={`rotate(45 ${90 + Math.cos(a) * 68} ${70 + Math.sin(a) * 62})`} fill={bossBeaten ? next.glow : '#3a3e52'} />;
+                      })}
+                      {!bossBeaten && <path d="M58 100h64M58 116h64M70 92v34M110 92v34" stroke="#4b4f63" strokeWidth="4" strokeLinecap="round" />}
+                    </svg>
+                  </div>
+                  <div className="caps portal-text" style={{ color: bossBeaten ? next.glow : 'var(--muted)' }}>
                     {bossBeaten ? `Portal nach ${next.name} offen` : `Besiege ${w.dungeon.boss}, um das Portal zu öffnen`}
                   </div>
                 </div>
