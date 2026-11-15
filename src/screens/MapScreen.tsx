@@ -6,6 +6,7 @@ import { levelFromXp } from '../lib/progression';
 import { EXERCISES } from '../lib/exercises';
 import { useBattle } from '../lib/battle';
 import { Icon } from '../components/Icon';
+import { PageHeader } from '../components/ui';
 
 export function MapScreen() {
   const me = useMe()!;
@@ -15,9 +16,11 @@ export function MapScreen() {
 
   return (
     <div className="page">
-      <div className="center-head">
-        <h1>Weltkarte</h1>
-        <div className="sub">· STORY MODE ·</div>
+      <PageHeader eyebrow="Story-Modus" title="Weltkarte" />
+      <div className="map-progress">
+        <span className="caps muted" style={{ fontSize: 12 }}>Bosse besiegt</span>
+        <div className="progress"><span style={{ width: `${(me.dungeonsCleared.length / DUNGEONS.length) * 100}%` }} /></div>
+        <span className="display gold">{me.dungeonsCleared.length} / {DUNGEONS.length}</span>
       </div>
       {DUNGEONS.map((d, i) => {
         const locked = level < d.minLevel;
@@ -26,7 +29,18 @@ export function MapScreen() {
         return (
           <Fragment key={d.id}>
             {i > 0 && <div className="connector" />}
-            <div className={`card dungeon ${locked ? 'locked' : ''}`}>
+            {locked ? (
+              <div className="card dungeon-compact dungeon" style={{ opacity: 0.75 }}>
+                <div className="num" style={{ borderColor: rc, color: rc }}>{i + 1}</div>
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div className="display" style={{ fontSize: 18 }}>{d.name}</div>
+                  <div className="muted" style={{ fontSize: 13 }}>{d.boss} · {EXERCISES[d.exercise].name}</div>
+                </div>
+                <span className="chip" style={{ color: d.elementColor, borderColor: d.elementColor }}>{d.element}</span>
+                <span className="pill" style={{ background: '#1d2236', color: '#c7cad8', whiteSpace: 'nowrap' }}>🔒 LVL {d.minLevel}</span>
+              </div>
+            ) : (
+            <div className={`card dungeon`}>
               {cleared && <div className="cleared-badge">👑 BESIEGT</div>}
               <div className="row">
                 <div className="num" style={{ borderColor: locked && d.rarity === 'COMMON' ? '#4b4f63' : rc, color: rc }}>{i + 1}</div>
@@ -49,7 +63,7 @@ export function MapScreen() {
                 <span>+{d.xp} XP</span>
                 <span className="gold">+{d.gold}g</span>
                 <span className="blue">+{d.gems}💎</span>
-                {cleared && <span className="muted" style={{ fontSize: 13 }}>(Wiederholung: 40 %, keine 💎)</span>}
+                {cleared && <span className="muted" style={{ fontSize: 13, marginLeft: 'auto' }}>Wiederholung: 40 % Belohnung, keine 💎</span>}
               </div>
               <button
                 className="btn btn-primary"
@@ -71,9 +85,10 @@ export function MapScreen() {
                   nav('/battle');
                 }}
               >
-                {locked ? `Level ${d.minLevel} erforderlich` : cleared ? 'Erneut betreten' : 'Betreten'}
+                {cleared ? 'Erneut betreten' : 'Betreten'}
               </button>
             </div>
+            )}
           </Fragment>
         );
       })}

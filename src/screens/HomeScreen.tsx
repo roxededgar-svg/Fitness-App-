@@ -1,10 +1,11 @@
 import { useNavigate } from 'react-router-dom';
 import { useMe, useStore } from '../lib/store';
-import { levelFromXp, rankLabel } from '../lib/progression';
+import { levelFromXp, rankFor, rankLabel } from '../lib/progression';
 import { streak, totals, weekStats } from '../lib/stats';
 import { dailyMissions } from '../lib/missions';
+import { DUNGEONS } from '../lib/dungeons';
 import { Icon } from '../components/Icon';
-import { LevelRing, WeekChart, toast } from '../components/ui';
+import { LevelRing, PageHeader, Section, WeekChart, toast } from '../components/ui';
 
 function greeting() {
   const h = new Date().getHours();
@@ -16,87 +17,127 @@ export function HomeScreen() {
   const nav = useNavigate();
   const claim = useStore((s) => s.claimMission);
   const lv = levelFromXp(me.xp);
+  const rank = rankFor(me.arenaPoints);
   const t = totals(me);
+  const st = streak(me.sessions);
   const missions = dailyMissions(me);
-  const done = missions.filter((m) => m.claimed).length;
+  const claimed = missions.filter((m) => m.claimed).length;
+  const nextDungeon = DUNGEONS.find((d) => !me.dungeonsCleared.includes(d.id) && lv.level >= d.minLevel);
 
   return (
     <div className="page">
-      <div className="page-head">
-        <div>
-          <div className="eyebrow caps">{greeting()}</div>
-          <h1>{me.name}</h1>
-        </div>
-        <div className="row" style={{ gap: 18, marginRight: 70, fontFamily: 'var(--display)', fontWeight: 800 }}>
-          <span className="gold">🪙 {me.gold}</span>
-          <span className="blue">💎 {me.gems}</span>
-        </div>
-      </div>
+      <PageHeader
+        eyebrow={greeting()}
+        title={me.name}
+        right={
+          <>
+            <span className="currency gold">🪙 {me.gold}</span>
+            <span className="currency blue">💎 {me.gems}</span>
+          </>
+        }
+      />
 
+      {/* Fortschritt auf einen Blick */}
       <div className="hero">
         <LevelRing level={lv.level} xp={lv.xpInLevel} need={lv.xpNeeded} />
-        <div className="stack">
-          <div className="card stat-card">
-            <div className="label caps">ELO · {rankLabel(me.arenaPoints)}</div>
-            <div className="value blue">{me.elo}</div>
+        <div className="stat-grid">
+          <button className="mini" style={{ textAlign: 'left' }} onClick={() => nav('/career')}>
+            <div className="l">Rang</div>
+            <div className="v" style={{ fontSize: 20, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Icon name="shield" size={22} color={rank.tier.color} />
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{rankLabel(me.arenaPoints)}</span>
+            </div>
+            <div className="s">{me.arenaPoints} Punkte</div>
+          </button>
+          <div className="mini">
+            <div className="l">ELO</div>
+            <div className="v blue">{me.elo}</div>
+            <div className="s">Matchmaking-Wertung</div>
           </div>
-          <div className="card stat-card">
-            <div className="label caps">Streak</div>
-            <div className="value purple">{streak(me.sessions)} {streak(me.sessions) > 0 && <span style={{ fontSize: 24 }}>🔥</span>}</div>
+          <div className="mini">
+            <div className="l">Streak</div>
+            <div className="v purple">{st} {st > 0 && '🔥'}</div>
+            <div className="s">{st === 1 ? 'Tag' : 'Tage'} in Folge</div>
           </div>
-          <div className="card stat-card">
-            <div className="label caps">W / L</div>
-            <div className="value">{me.wins} / {me.losses}</div>
+          <div className="mini">
+            <div className="l">Siege / Niederlagen</div>
+            <div className="v"><span className="green">{me.wins}</span> <span className="muted">/</span> <span className="red">{me.losses}</span></div>
+            <div className="s">Arena</div>
           </div>
         </div>
       </div>
 
-      <div style={{ marginTop: 28 }}><WeekChart data={weekStats(me.sessions)} /></div>
-
-      <div className="grid2" style={{ marginTop: 22 }}>
-        <button className="action-card blue" onClick={() => nav('/matchmaking?q=casual')}>
-          <div className="ico"><Icon name="bolt" size={34} /></div>
-          <h3>Schnellkampf</h3>
-          <p>Match · 1 vs 1</p>
-        </button>
-        <button className="action-card dark" onClick={() => nav('/training')}>
-          <div className="ico"><Icon name="dumbbell" size={34} /></div>
-          <h3>Freies Training</h3>
-          <p>Freie Übungen</p>
-        </button>
-      </div>
-
-      <div className="grid2" style={{ marginTop: 22 }}>
-        <div className="card stat-card"><div className="label caps"><Icon name="repeat" size={18} color="var(--blue)" />Gesamt Wdh.</div><div className="value blue">{t.reps}</div></div>
-        <div className="card stat-card"><div className="label caps"><Icon name="trophy" size={18} color="var(--purple)" />Bester Satz</div><div className="value purple">{t.best}</div></div>
-        <div className="card stat-card"><div className="label caps"><Icon name="dumbbell" size={18} color="var(--blue)" />Trainings</div><div className="value blue">{t.trainings}</div></div>
-        <div className="card stat-card"><div className="label caps"><Icon name="bolt" size={18} color="var(--purple)" />PvP-Kämpfe</div><div className="value purple">{t.pvp}</div></div>
-      </div>
-
-      <div className="section-title">
-        <div className="caps">Tägliche Missionen</div>
-        <div className="display purple" style={{ fontSize: 18 }}>{done}/3</div>
-      </div>
-      <div className="stack">
-        {missions.map((m) => (
-          <div key={m.id} className={`card mission ${m.done ? 'done' : ''}`}>
-            <div className="flag"><Icon name={m.claimed ? 'star' : 'flag'} size={26} /></div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div className="title">{m.title}</div>
-              <div className="reward">+{m.xp} XP · +{m.gold}g</div>
-              <div className="progress"><span style={{ width: `${(m.current / m.target) * 100}%` }} /></div>
-              <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>{m.current} / {m.target}</div>
+      <Section title="Spielen">
+        <div className="tiles">
+          <button className="tile primary" onClick={() => nav('/matchmaking?q=ranked')}>
+            <div className="t-ico"><Icon name="shield" size={24} /></div>
+            <div>
+              <div className="t-title">Ranked</div>
+              <div className="t-sub">Um Rang-Punkte kämpfen</div>
             </div>
-            <button
-              className="btn btn-primary solid btn-sm"
-              disabled={!m.done || m.claimed}
-              onClick={() => { claim(m.id); toast(`+${m.xp} XP · +${m.gold} Gold eingefordert!`); }}
-            >
-              {m.claimed ? 'Erledigt' : 'Einfordern'}
-            </button>
-          </div>
-        ))}
-      </div>
+          </button>
+          <button className="tile" onClick={() => nav('/matchmaking?q=casual')}>
+            <div className="t-ico" style={{ background: '#221d3a', color: 'var(--purple)' }}><Icon name="bolt" size={24} /></div>
+            <div>
+              <div className="t-title">Schnellkampf</div>
+              <div className="t-sub">1 vs 1 ohne Rang-Punkte</div>
+            </div>
+          </button>
+          <button className="tile" onClick={() => nav('/training')}>
+            <div className="t-ico" style={{ background: '#2a2108', color: 'var(--gold)' }}><Icon name="dumbbell" size={24} /></div>
+            <div>
+              <div className="t-title">Training</div>
+              <div className="t-sub">Frei üben, mit Test-Bot</div>
+            </div>
+          </button>
+          <button className="tile" onClick={() => nav('/map')}>
+            <div className="t-ico" style={{ background: '#2a1215', color: 'var(--red)' }}><Icon name="skull" size={24} /></div>
+            <div>
+              <div className="t-title">Dungeon</div>
+              <div className="t-sub">{nextDungeon ? `Nächster Boss: ${nextDungeon.boss}` : 'Bosse erneut fordern'}</div>
+            </div>
+          </button>
+        </div>
+      </Section>
+
+      <Section title="Tägliche Missionen" action={<span className="display purple" style={{ fontSize: 16 }}>{claimed}/3</span>}>
+        <div className="stack" style={{ gap: 10 }}>
+          {missions.map((m) => (
+            <div key={m.id} className={`card mission ${m.done ? 'done' : ''}`}>
+              <div className="flag"><Icon name={m.claimed ? 'star' : 'flag'} size={24} /></div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div className="row" style={{ gap: 10 }}>
+                  <div className="title">{m.title}</div>
+                  <div className="spacer" />
+                  <div className="muted" style={{ fontSize: 13, whiteSpace: 'nowrap' }}>{m.current} / {m.target}</div>
+                </div>
+                <div className="progress"><span style={{ width: `${(m.current / m.target) * 100}%` }} /></div>
+                <div className="reward">+{m.xp} XP · +{m.gold}g</div>
+              </div>
+              <button
+                className="btn btn-primary solid btn-sm"
+                disabled={!m.done || m.claimed}
+                onClick={() => { claim(m.id); toast(`+${m.xp} XP · +${m.gold} Gold eingefordert!`); }}
+              >
+                {m.claimed ? '✓' : 'Einfordern'}
+              </button>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      <Section title="Aktivität">
+        <WeekChart data={weekStats(me.sessions)} />
+      </Section>
+
+      <Section title="Statistik">
+        <div className="stat-grid four">
+          <div className="mini"><div className="l"><Icon name="repeat" size={14} color="var(--blue)" />Gesamt Wdh.</div><div className="v blue">{t.reps}</div></div>
+          <div className="mini"><div className="l"><Icon name="trophy" size={14} color="var(--purple)" />Bester Satz</div><div className="v purple">{t.best}</div></div>
+          <div className="mini"><div className="l"><Icon name="dumbbell" size={14} color="var(--blue)" />Trainings</div><div className="v blue">{t.trainings}</div></div>
+          <div className="mini"><div className="l"><Icon name="bolt" size={14} color="var(--purple)" />Kämpfe</div><div className="v purple">{t.pvp}</div></div>
+        </div>
+      </Section>
     </div>
   );
 }

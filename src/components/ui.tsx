@@ -43,6 +43,32 @@ export function Sheet({ title, onClose, children }: { title: string; onClose: ()
   );
 }
 
+/** Einheitlicher Seitenkopf: Überschrift links, optionaler Inhalt rechts (Platz für den Einstellungs-Button). */
+export function PageHeader({ eyebrow, title, right }: { eyebrow: string; title: string; right?: ReactNode }) {
+  return (
+    <div className="page-head">
+      <div style={{ minWidth: 0 }}>
+        <div className="eyebrow caps">{eyebrow}</div>
+        <h1>{title}</h1>
+      </div>
+      {right && <div className="page-head-right">{right}</div>}
+    </div>
+  );
+}
+
+/** Abschnittsüberschrift mit optionaler Aktion rechts. */
+export function Section({ title, action, children }: { title: string; action?: ReactNode; children: ReactNode }) {
+  return (
+    <section className="section">
+      <div className="section-title">
+        <div className="caps">{title}</div>
+        {action}
+      </div>
+      {children}
+    </section>
+  );
+}
+
 let toastSetter: ((s: string | null) => void) | null = null;
 export const toast = (msg: string) => toastSetter?.(msg);
 export function ToastHost() {
@@ -90,7 +116,7 @@ export function WeekChart({ data }: { data: { training: number; pvp: number; isT
   return (
     <div className="card week">
       <div className="row">
-        <div className="caps" style={{ fontSize: 15 }}>Diese Woche</div>
+        <div className="caps muted" style={{ fontSize: 12 }}>Diese Woche</div>
         <div className="spacer" />
         <div className="display blue" style={{ fontSize: 17 }}>{total} Wdh.</div>
       </div>

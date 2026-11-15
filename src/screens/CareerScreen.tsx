@@ -5,7 +5,8 @@ import { bestPaceNorm, recentPaceNorm, TIER_PACE } from '../lib/pace';
 import { BADGES } from '../lib/badges';
 import { EXERCISES, EXERCISE_LIST } from '../lib/exercises';
 import { Icon } from '../components/Icon';
-import { Avatar, Sheet, toast } from '../components/ui';
+import { Avatar, PageHeader, Section, Sheet, toast } from '../components/ui';
+import type { SessionRecord } from '../lib/types';
 
 async function resizeImage(file: File, size = 256): Promise<string> {
   const url = URL.createObjectURL(file);
@@ -20,6 +21,8 @@ async function resizeImage(file: File, size = 256): Promise<string> {
 }
 
 const MODE_LABEL = { pvp: 'ARENA', dungeon: 'DUNGEON', training: 'TRAINING', ghost: 'DUELL' } as const;
+const QUEUE_LABEL = { ranked: 'RANKED', casual: 'SCHNELL', custom: 'TEMPO' } as const;
+const activityLabel = (s: SessionRecord) => (s.mode === 'pvp' && s.queue ? QUEUE_LABEL[s.queue] : MODE_LABEL[s.mode]);
 
 export function CareerScreen() {
   const me = useMe()!;
@@ -40,16 +43,12 @@ export function CareerScreen() {
 
   return (
     <div className="page">
-      <div className="page-head">
-        <div>
-          <div className="eyebrow caps">Karriere</div>
-          <h1>{me.name}</h1>
-        </div>
-      </div>
+      <PageHeader eyebrow="Karriere" title="Profil" />
 
-      <div className="card row" style={{ gap: 22 }}>
+      {/* Profil */}
+      <div className="card profile-card">
         <div style={{ position: 'relative' }}>
-          <Avatar src={me.avatar} name={me.name} size={130} ring="var(--blue)" />
+          <Avatar src={me.avatar} name={me.name} size={120} ring="var(--blue)" />
           <button className="fab" style={{ position: 'absolute', right: -2, bottom: -2, top: 'auto', width: 42, height: 42 }} onClick={() => fileRef.current?.click()} aria-label="Profilbild ändern">
             <Icon name="camera" size={20} />
           </button>
@@ -58,99 +57,111 @@ export function CareerScreen() {
             if (f) update({ avatar: await resizeImage(f) });
           }} />
         </div>
-        <div style={{ minWidth: 0 }}>
+        <div style={{ minWidth: 0, width: '100%' }}>
           {editName ? (
             <div className="row">
-              <label className="field" style={{ minHeight: 46 }}><input value={name} maxLength={18} onChange={(e) => setName(e.target.value)} autoFocus /></label>
+              <label className="field" style={{ minHeight: 46, flex: 1 }}><input value={name} maxLength={18} onChange={(e) => setName(e.target.value)} autoFocus /></label>
               <button className="btn btn-primary solid btn-sm" onClick={() => { if (name.trim().length >= 3) { update({ name: name.trim() }); setEditName(false); } else toast('Mind. 3 Zeichen'); }}>OK</button>
             </div>
           ) : (
-            <>
+            <div className="row" style={{ gap: 10, flexWrap: 'wrap' }}>
               <div className="display" style={{ fontSize: 30, textTransform: 'uppercase' }}>{me.name}</div>
-              <button className="muted caps" style={{ fontSize: 12, letterSpacing: '.1em', fontStyle: 'italic' }} onClick={() => setEditName(true)}>Namen ändern</button>
-            </>
+              <button className="icon-btn" style={{ width: 36, height: 36 }} onClick={() => setEditName(true)} aria-label="Namen ändern"><Icon name="edit" size={16} /></button>
+            </div>
           )}
-          <div className="row" style={{ marginTop: 12, gap: 8, flexWrap: 'wrap' }}>
+          <div className="chips">
             <span className="pill" style={{ background: '#1d2236', color: '#c7cad8' }}>🎖 LVL {lv}</span>
-            <span className="pill" style={{ background: '#1d2236', color: '#c7cad8' }}>📅 {joined}</span>
+            <span className="pill" style={{ background: '#1d2236', color: '#c7cad8' }}>📅 Seit {joined}</span>
             <span className="pill" style={{ background: '#1d2236', color: 'var(--gold)' }}>🪙 {me.gold}</span>
             <span className="pill" style={{ background: '#1d2236', color: 'var(--blue)' }}>💎 {me.gems}</span>
           </div>
+          <button className="row" style={{ marginTop: 14, gap: 10 }} onClick={() => { navigator.clipboard?.writeText(me.code); toast('Spieler-Code kopiert'); }}>
+            <span className="caps muted" style={{ fontSize: 11 }}>Spieler-Code</span>
+            <span className="display blue" style={{ fontSize: 22, letterSpacing: '.18em' }}>{me.code}</span>
+            <Icon name="copy" size={16} color="var(--muted)" />
+          </button>
         </div>
       </div>
 
-      <div className="section-title">
-        <div className="caps">Lieblingsabzeichen</div>
-        <button className="caps blue" style={{ fontSize: 13 }} onClick={() => setBadgesOpen(true)}>Verwalten ›</button>
-      </div>
-      <div className="card" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(90px, 1fr))', justifyItems: 'center', gap: 16, padding: '40px 20px' }}>
-        {Array.from({ length: 6 }, (_, i) => {
-          const b = favs[i];
-          return b ? (
-            <div key={i} className="badge-slot full" style={{ background: `${b.color}22` }} title={b.name}>{b.icon}</div>
-          ) : (
-            <button key={i} className="badge-slot" onClick={() => setBadgesOpen(true)}>+</button>
-          );
-        })}
-      </div>
-
-      <div className="grid2" style={{ marginTop: 22 }}>
-        <button className="action-card blue" style={{ minHeight: 220 }} onClick={() => setLadderOpen(true)}>
-          <div className="ico" style={{ background: 'none' }}><Icon name="shield" size={70} color={rank.tier.color} /></div>
-          <p style={{ color: '#fff', fontWeight: 800 }}>Rangliste</p>
-          <h3 style={{ marginTop: 4 }}>{rank.tier.name}</h3>
-          <p style={{ marginTop: 6 }}>{rank.division ?? ''} · {me.arenaPoints} 🏆</p>
-          {rank.next && (
-            <>
-              <div className="rank-bar" style={{ background: 'rgba(0,0,0,.25)' }}><span style={{ width: `${rank.progress * 100}%`, background: '#fff' }} /></div>
-              <p style={{ marginTop: 6, letterSpacing: '.08em' }}>Noch {rank.pointsToNext} bis zum Aufstieg</p>
-            </>
-          )}
-          <p style={{ marginTop: 6, letterSpacing: '.08em', color: '#fff' }}>Rang-Tempo {TIER_PACE[rank.tier.id]} Wdh./Min* · Leiter ›</p>
-        </button>
-        <button className="action-card dark" style={{ minHeight: 220 }} onClick={() => setBadgesOpen(true)}>
-          <div className="ico" style={{ fontSize: 34 }}>🏅</div>
-          <p className="purple" style={{ fontWeight: 800 }}>Abzeichen</p>
-          <h3 style={{ marginTop: 4 }}>{earned.length}/{BADGES.length}</h3>
-          <p>Sammlung</p>
-        </button>
-      </div>
-
-      <div className="card code-box" style={{ marginTop: 22 }}>
-        <div>
-          <div className="caps muted" style={{ fontSize: 12 }}>Dein Spieler-Code</div>
-          <div className="code" style={{ fontSize: 34 }}>{me.code}</div>
-        </div>
-        <Icon name="qr" size={40} color="#8a8fa6" />
-      </div>
-
-      <div className="section-title"><div className="caps">Persönliche Bestleistungen</div></div>
-      <div className="grid4">
-        {EXERCISE_LIST.map((e) => (
-          <div key={e.id} className="card stat-card" style={{ padding: 14 }}>
-            <div className="label" style={{ fontSize: 12 }}>{e.name}</div>
-            <div className="value" style={{ fontSize: 26 }}>{me.personalBests[e.id] ?? '–'}</div>
-          </div>
-        ))}
-      </div>
-
-      <div className="section-title"><div className="caps">Letzte Aktivitäten</div></div>
-      <div className="card">
-        {recent.length === 0 && <div className="muted">Noch keine Einheiten. Leg los!</div>}
-        {recent.map((s) => (
-          <div className="history-row" key={s.id}>
-            <span className="pill" style={{ background: s.result === 'win' ? '#10301e' : s.result === 'loss' ? '#3a1414' : '#1d2236', color: s.result === 'win' ? 'var(--green)' : s.result === 'loss' ? 'var(--red)' : '#c7cad8' }}>
-              {MODE_LABEL[s.mode]}
-            </span>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <b>{EXERCISES[s.exercise].name}</b> · {s.reps} {EXERCISES[s.exercise].unit}
-              {s.oppName && <span className="muted"> vs {s.oppName} ({s.oppReps})</span>}
+      {/* Rang & Abzeichen */}
+      <div className="grid2" style={{ marginTop: 14 }}>
+        <button className="tile primary" style={{ minHeight: 170 }} onClick={() => setLadderOpen(true)}>
+          <div className="row" style={{ gap: 12 }}>
+            <Icon name="shield" size={46} color={rank.tier.color} />
+            <div style={{ minWidth: 0 }}>
+              <div className="caps" style={{ fontSize: 11, color: 'rgba(255,255,255,.8)' }}>Rang</div>
+              <div className="t-title" style={{ fontSize: 18 }}>{rank.tier.name} {rank.division ?? ''}</div>
             </div>
-            {!!s.eloDelta && <span className={s.eloDelta > 0 ? 'green' : 'red'}>{s.eloDelta > 0 ? '+' : ''}{s.eloDelta} ELO</span>}
-            <span className="muted" style={{ fontSize: 12 }}>{new Date(s.ts).toLocaleDateString('de-DE')}</span>
           </div>
-        ))}
+          <div>
+            {rank.next && <div className="rank-bar" style={{ background: 'rgba(0,0,0,.25)', marginTop: 0 }}><span style={{ width: `${rank.progress * 100}%`, background: '#fff' }} /></div>}
+            <div className="t-sub" style={{ marginTop: 8 }}>
+              {me.arenaPoints} Punkte{rank.next ? ` · noch ${rank.pointsToNext} bis zum Aufstieg` : ''}<br />
+              Rang-Tempo {TIER_PACE[rank.tier.id]} Wdh./Min* · Rang-Leiter ›
+            </div>
+          </div>
+        </button>
+        <button className="tile" style={{ minHeight: 170 }} onClick={() => setBadgesOpen(true)}>
+          <div className="row" style={{ gap: 12 }}>
+            <div className="t-ico" style={{ background: '#221d3a', fontSize: 26 }}>🏅</div>
+            <div>
+              <div className="caps purple" style={{ fontSize: 11 }}>Abzeichen</div>
+              <div className="t-title" style={{ fontSize: 18 }}>{earned.length} / {BADGES.length}</div>
+            </div>
+          </div>
+          <div>
+            <div className="progress" style={{ marginTop: 0 }}><span style={{ width: `${(earned.length / BADGES.length) * 100}%` }} /></div>
+            <div className="t-sub" style={{ marginTop: 8 }}>Sammlung ansehen & Favoriten wählen ›</div>
+          </div>
+        </button>
       </div>
+
+      <Section title="Lieblingsabzeichen" action={<button className="section-link" onClick={() => setBadgesOpen(true)}>Verwalten ›</button>}>
+        <div className="card" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(84px, 1fr))', justifyItems: 'center', gap: 14, padding: '24px 16px' }}>
+          {Array.from({ length: 6 }, (_, i) => {
+            const b = favs[i];
+            return b ? (
+              <div key={i} className="badge-slot full" style={{ background: `${b.color}22` }} title={b.name}>{b.icon}</div>
+            ) : (
+              <button key={i} className="badge-slot" onClick={() => setBadgesOpen(true)}>+</button>
+            );
+          })}
+        </div>
+      </Section>
+
+      <Section title="Persönliche Bestleistungen">
+        <div className="stat-grid four">
+          {EXERCISE_LIST.map((e) => (
+            <div key={e.id} className="mini">
+              <div className="l" style={{ letterSpacing: '.08em' }}>{e.name}</div>
+              <div className="v">{me.personalBests[e.id] ?? '–'} {me.personalBests[e.id] != null && <span className="muted" style={{ fontSize: 13 }}>{e.unit}</span>}</div>
+            </div>
+          ))}
+          <div className="mini">
+            <div className="l" style={{ letterSpacing: '.08em' }}>Bestes Tempo*</div>
+            <div className="v gold">{best ? Math.round(best) : '–'} {best > 0 && <span className="muted" style={{ fontSize: 13 }}>/Min</span>}</div>
+          </div>
+        </div>
+      </Section>
+
+      <Section title="Letzte Aktivitäten">
+        <div className="card">
+          {recent.length === 0 && <div className="muted">Noch keine Einheiten. Leg los!</div>}
+          {recent.map((s) => (
+            <div className="history-row" key={s.id}>
+              <span className="pill" style={{ minWidth: 92, textAlign: 'center', background: s.result === 'win' ? '#10301e' : s.result === 'loss' ? '#3a1414' : '#1d2236', color: s.result === 'win' ? 'var(--green)' : s.result === 'loss' ? 'var(--red)' : '#c7cad8' }}>
+                {activityLabel(s)}
+              </span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <b>{EXERCISES[s.exercise].name}</b> · {s.reps} {EXERCISES[s.exercise].unit}
+                {s.oppName && <span className="muted"> vs {s.oppName}{s.oppReps != null ? ` (${s.oppReps})` : ''}</span>}
+              </div>
+              {!!s.eloDelta && <span className={s.eloDelta > 0 ? 'green' : 'red'}>{s.eloDelta > 0 ? '+' : ''}{s.eloDelta} ELO</span>}
+              <span className="muted" style={{ fontSize: 12 }}>{new Date(s.ts).toLocaleDateString('de-DE')}</span>
+            </div>
+          ))}
+        </div>
+      </Section>
 
       {ladderOpen && (
         <Sheet title="RANG-LEITER" onClose={() => setLadderOpen(false)}>
