@@ -57,3 +57,56 @@ export function duelUrl(code: string) {
   const base = window.location.href.split('#')[0];
   return `${base}#/duel?c=${code}`;
 }
+
+/* ---------- Team-Links: 1–2 aufgezeichnete Läufe ---------- */
+
+export interface TeamMemberRun {
+  n: string; // Name
+  c: string; // Spieler-Code
+  co: string; // Land
+  a: number; // Trophäen
+  timeline: number[];
+}
+
+interface TeamPayload {
+  v: 1;
+  k: 'team';
+  x: ExerciseId;
+  d: number;
+  m: { n: string; c: string; co: string; a: number; t: number[] }[];
+}
+
+const toDeltas = (tl: number[]) => {
+  let prev = 0;
+  return tl.map((ms) => {
+    const ds = Math.round(ms / 100);
+    const d = ds - prev;
+    prev = ds;
+    return d;
+  });
+};
+const fromDeltas = (t: number[]) => {
+  let acc = 0;
+  return t.map((d) => (acc += d) * 100);
+};
+
+export function encodeTeam(x: ExerciseId, d: number, members: TeamMemberRun[]): string {
+  const p: TeamPayload = { v: 1, k: 'team', x, d, m: members.slice(0, 2).map((m) => ({ n: m.n.slice(0, 24), c: m.c, co: m.co, a: m.a, t: toDeltas(m.timeline) })) };
+  return toB64(JSON.stringify(p));
+}
+
+export function decodeTeam(code: string): { x: ExerciseId; d: number; members: TeamMemberRun[] } | null {
+  try {
+    const p = JSON.parse(fromB64(code.trim())) as TeamPayload;
+    if (p.v !== 1 || p.k !== 'team' || !Array.isArray(p.m) || !p.m.length || p.m.length > 2) return null;
+    if (p.m.some((m) => typeof m.n !== 'string' || !Array.isArray(m.t))) return null;
+    return { x: p.x, d: p.d, members: p.m.map((m) => ({ n: m.n.slice(0, 24), c: m.c, co: m.co, a: m.a, timeline: fromDeltas(m.t) })) };
+  } catch {
+    return null;
+  }
+}
+
+export function teamUrl(code: string) {
+  const base = window.location.href.split('#')[0];
+  return `${base}#/team?c=${code}`;
+}

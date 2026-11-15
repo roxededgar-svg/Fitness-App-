@@ -248,3 +248,46 @@ describe('Einführung & Flux', () => {
     expect(fluxTip(p, now).text).toContain('20 Wiederholungen');
   });
 });
+
+import { assignSlots } from '../src/pose/duo';
+import { encodeTeam, decodeTeam } from '../src/lib/duel';
+import { buildConfig } from '../src/lib/teamSetup';
+
+describe('Zwei Spieler & Teams', () => {
+  const person = (x: number) => Array.from({ length: 33 }, () => ({ x, y: 0.5, visibility: 1 }));
+  it('ordnet Personen nach Bildseite zu – auch gespiegelt', () => {
+    const [a, b] = assignSlots([person(0.8), person(0.2)], false);
+    expect(a![0].x).toBe(0.2);
+    expect(b![0].x).toBe(0.8);
+    const [m0] = assignSlots([person(0.8), person(0.2)], true);
+    expect(m0![0].x).toBe(0.8); // gespiegelt erscheint x=0.8 links
+    const [solo0, solo1] = assignSlots([person(0.7)], false);
+    expect(solo0).toBeNull();
+    expect(solo1).not.toBeNull();
+  });
+  it('Team-Link Roundtrip mit zwei Läufen', () => {
+    const code = encodeTeam('squat', 60, [
+      { n: 'Mia', c: 'AAA111', co: 'DE', a: 100, timeline: [1500, 3000] },
+      { n: 'Alex', c: 'BBB222', co: 'AT', a: 50, timeline: [2000] },
+    ]);
+    const t = decodeTeam(code)!;
+    expect(t.members.map((m) => m.n)).toEqual(['Mia', 'Alex']);
+    expect(t.members[0].timeline).toEqual([1500, 3000]);
+    expect(decodeTeam('kaputt')).toBeNull();
+  });
+  it('baut Teams für jeden Modus richtig auf', () => {
+    const me = { name: 'Mia', code: 'AAA111', country: 'DE', arenaPoints: 0, sessions: [] } as unknown as Profile;
+    const v1 = buildConfig({ mode: 'local1v1', me, exercise: 'squat', durationS: 60, guest: 'Alex' });
+    expect(v1.left).toHaveLength(1);
+    expect(v1.right[0]).toMatchObject({ name: 'Alex', kind: 'live', slot: 1 });
+    const coop = buildConfig({ mode: 'local2v2', me, exercise: 'squat', durationS: 60, guest: 'Alex' });
+    expect(coop.left.map((m) => m.kind)).toEqual(['live', 'live']);
+    expect(coop.right.map((m) => m.kind)).toEqual(['bot', 'bot']);
+    const link = buildConfig({ mode: 'link2v2', me, exercise: 'squat', durationS: 60, teammate: { n: 'Alex', c: 'B', co: 'DE', a: 0, timeline: [1000] } });
+    expect(link.left.map((m) => m.kind)).toEqual(['live', 'ghost']);
+    const vsDuo = buildConfig({ mode: 'solo2v2', me, exercise: 'squat', durationS: 60, rivals: [{ n: 'A', c: 'a', co: 'DE', a: 0, timeline: [] }, { n: 'B', c: 'b', co: 'DE', a: 0, timeline: [] }] });
+    expect(vsDuo.left.map((m) => m.kind)).toEqual(['live', 'bot']);
+    expect(vsDuo.right.map((m) => m.kind)).toEqual(['ghost', 'ghost']);
+    expect(vsDuo.rightName).toBe('Team A');
+  });
+});
