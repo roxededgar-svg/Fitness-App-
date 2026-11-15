@@ -289,7 +289,8 @@ button:disabled { cursor: not-allowed; }
 .cam-status i.warn { background: var(--gold); box-shadow: 0 0 12px var(--gold); }
 .exercise-label { font-family: var(--display); font-weight: 900; letter-spacing: .2em; font-size: 18px; text-align: center; }
 .hint-bubble { background: rgba(245,165,36,.95); color: #1a1003; font-weight: 800; padding: 10px 18px; border-radius: 999px; font-size: 16px; margin-bottom: 14px; display: inline-block; animation: fadeUp .2s; }
-.depth-meter { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); z-index: 2; width: 12px; height: 34vh; border-radius: 8px; background: rgba(255,255,255,.08); overflow: hidden; }
+.depth-meter { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); z-index: 2; width: 16px; height: 34vh; border-radius: 8px; background: rgba(255,255,255,.08); overflow: hidden; }
+.depth-meter::after { content: ''; position: absolute; left: 0; right: 0; bottom: 62%; height: 3px; background: var(--gold); border-radius: 2px; z-index: 1; }
 .depth-meter span { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(0deg, var(--green), var(--blue)); transition: height .1s; border-radius: 8px; }
 .close-btn { width: 46px; height: 46px; border-radius: 50%; background: rgba(30,32,44,.85); display: grid; place-items: center; justify-self: end; }
 .tap-zone { position: absolute; inset: 0; z-index: 1; }
