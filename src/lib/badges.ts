@@ -16,7 +16,7 @@ export const BADGES: Badge[] = [
   { id: 'first_blood', name: 'Erster Sieg', desc: 'Gewinne deinen ersten Arena-Kampf', icon: 'swords', color: '#4f86ff', earned: (p) => p.wins >= 1 },
   { id: 'reps100', name: 'Hunderter', desc: '100 Wiederholungen insgesamt', icon: 'target', color: '#22c55e', earned: (p) => totals(p).reps >= 100 },
   { id: 'reps1000', name: 'Tausendsassa', desc: '1.000 Wiederholungen insgesamt', icon: 'fire', color: '#f97316', earned: (p) => totals(p).reps >= 1000 },
-  { id: 'streak7', name: 'Eiserner Wille', desc: '7 Tage Streak', icon: 'calendar', color: '#a855f7', earned: (p) => streak(p.sessions) >= 7 },
+  { id: 'streak7', name: 'Eiserner Wille', desc: '7 Tage Streak', icon: 'calendar', color: '#a855f7', earned: (p) => streak(p.sessions, new Date(), p.frozenDays) >= 7 },
   { id: 'dungeon', name: 'Dungeon-Bezwinger', desc: 'Besiege deinen ersten Boss', icon: 'skull', color: '#ef4444', earned: (p) => p.dungeonsCleared.length >= 1 },
   { id: 'ember', name: 'Glut entfacht', desc: 'Erreiche Ember Rise', icon: 'shield', color: '#f97316', earned: (p) => p.arenaPoints >= 400 },
   { id: 'win10', name: 'Gladiator', desc: '10 Arena-Siege', icon: 'trophy', color: '#f5b100', earned: (p) => p.wins >= 10 },

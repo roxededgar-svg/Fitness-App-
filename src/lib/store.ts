@@ -8,6 +8,10 @@ import { dailyMissions } from './missions';
 import { DUNGEONS } from './dungeons';
 import { syncBadgeDates } from './badges';
 import { nodeById, starsFor } from './path';
+import { sessionTotals, dayOf } from './stats';
+import { itemById } from './shop';
+import { seasonId, seasonReward, softReset } from './season';
+import { levelFromXp as lvl } from './progression';
 
 async function sha256(s: string) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
@@ -71,6 +75,20 @@ interface State {
   syncBadges(): void;
   /** Schatzkiste auf dem Pfad öffnen; gibt Belohnung zurück */
   openChest(nodeId: string): { xp: number; gold: number; gems: number } | null;
+  /** Sicherung des aktuellen Profils als Text (JSON) */
+  /** Shop-Artikel kaufen; gibt Fehlermeldung oder null zurück */
+  buy(itemId: string): string | null;
+  equip(kind: 'frame' | 'title', itemId: string | undefined): void;
+  /** Setzt bei verpasstem Vortag automatisch einen Streak-Schutz ein; gibt true zurück, wenn genutzt */
+  applyStreakFreeze(): boolean;
+  /** Prüft Saisonwechsel: Belohnung + weicher Trophäen-Reset. Gibt Zusammenfassung zurück. */
+  checkSeason(): { season: string; peak: number; gems: number; gold: number; tierName: string; before: number; after: number } | null;
+  startPlan(planId: string, startMax: number): void;
+  completePlanDay(planId: string): void;
+  stopPlan(planId: string): void;
+  exportBackup(): string;
+  /** Sicherung einspielen; gibt Fehlermeldung oder null zurück */
+  importBackup(json: string): string | null;
 }
 
 const findByEmail = (profiles: Record<string, Profile>, email: string) =>
@@ -100,6 +118,7 @@ function blankProfile(email: string, passHash: string, name: string): Profile {
     friends: [],
     dungeonsCleared: [],
     personalBests: {},
+    onboarded: false,
   };
 }
 
@@ -221,9 +240,21 @@ export const useStore = create<State>()(
             gems: p.gems + gems,
             elo: p.elo + dElo,
             arenaPoints: p.arenaPoints + dArena,
+            season: p.season ? { ...p.season, peak: Math.max(p.season.peak, p.arenaPoints + dArena) } : p.season,
             wins: p.wins + (isPvp && result === 'win' ? 1 : 0),
             losses: p.losses + (isPvp && result === 'loss' ? 1 : 0),
             draws: p.draws + (isPvp && result === 'draw' ? 1 : 0),
+            lifetime: (() => {
+              const base = p.lifetime ?? sessionTotals(p);
+              const counted = input.exercise !== 'plank';
+              return {
+                reps: base.reps + (counted ? input.reps : 0),
+                best: counted ? Math.max(base.best, input.reps) : base.best,
+                trainings: base.trainings + (input.mode === 'training' ? 1 : 0),
+                pvp: base.pvp + (input.mode === 'pvp' || input.mode === 'ghost' ? 1 : 0),
+                dungeons: base.dungeons + (input.mode === 'dungeon' && result === 'win' ? 1 : 0),
+              };
+            })(),
             sessions: [...p.sessions, rec].slice(-500),
             dungeonsCleared:
               result === 'win' && input.dungeonId && input.ranked && !p.dungeonsCleared.includes(input.dungeonId) ? [...p.dungeonsCleared, input.dungeonId] : p.dungeonsCleared,
@@ -253,6 +284,103 @@ export const useStore = create<State>()(
             }));
           }
           return rec;
+        },
+
+        buy(itemId) {
+          const item = itemById(itemId);
+          const me = get().profiles[get().currentId!];
+          if (!item) return 'Unbekannter Artikel';
+          if (lvl(me.xp).level < item.minLevel) return `Ab Level ${item.minLevel} verfügbar`;
+          if (item.kind !== 'freeze' && me.owned?.includes(item.id)) return 'Schon gekauft';
+          const have = item.currency === 'gold' ? me.gold : me.gems;
+          if (have < item.price) return item.currency === 'gold' ? 'Nicht genug Gold' : 'Nicht genug Edelsteine';
+          patchMe((p) => ({
+            ...p,
+            gold: item.currency === 'gold' ? p.gold - item.price : p.gold,
+            gems: item.currency === 'gems' ? p.gems - item.price : p.gems,
+            owned: item.kind === 'freeze' ? p.owned : [...(p.owned ?? []), item.id],
+            streakFreezes: item.kind === 'freeze' ? (p.streakFreezes ?? 0) + 1 : p.streakFreezes,
+            equipped: item.kind === 'frame' || item.kind === 'title' ? { ...(p.equipped ?? {}), [item.kind]: item.id } : p.equipped,
+          }));
+          return null;
+        },
+
+        equip(kind, itemId) {
+          patchMe((p) => (itemId && !p.owned?.includes(itemId) ? p : { ...p, equipped: { ...(p.equipped ?? {}), [kind]: itemId } }));
+        },
+
+        checkSeason() {
+          const me = get().profiles[get().currentId!];
+          if (!me) return null;
+          const now = seasonId();
+          if (!me.season) {
+            patchMe((p) => ({ ...p, season: { id: now, peak: p.arenaPoints } }));
+            return null;
+          }
+          if (me.season.id === now) return null;
+          const peak = Math.max(me.season.peak, me.arenaPoints);
+          const r = seasonReward(peak);
+          const after = softReset(me.arenaPoints);
+          const summary = { season: me.season.id, peak, gems: r.gems, gold: r.gold, tierName: r.tier.name, before: me.arenaPoints, after };
+          patchMe((p) => ({ ...p, gems: p.gems + r.gems, gold: p.gold + r.gold, arenaPoints: after, season: { id: now, peak: after } }));
+          return summary;
+        },
+
+        applyStreakFreeze() {
+          const me = get().profiles[get().currentId!];
+          if (!me || !(me.streakFreezes ?? 0)) return false;
+          const active = new Set([...me.sessions.filter((s) => s.reps > 0).map((s) => dayOf(s.ts)), ...(me.frozenDays ?? [])]);
+          const d = new Date();
+          const today = todayKey(d);
+          d.setDate(d.getDate() - 1);
+          const yesterday = todayKey(d);
+          d.setDate(d.getDate() - 1);
+          const before = todayKey(d);
+          // Nur retten, wenn gestern fehlt, aber vorgestern trainiert wurde (laufende Serie)
+          if (active.has(yesterday) || active.has(today) || !active.has(before)) return false;
+          patchMe((p) => ({ ...p, streakFreezes: (p.streakFreezes ?? 1) - 1, frozenDays: [...(p.frozenDays ?? []), yesterday].slice(-60) }));
+          return true;
+        },
+
+        startPlan(planId, startMax) {
+          patchMe((p) => ({ ...p, plans: { ...(p.plans ?? {}), [planId]: { startMax: Math.max(1, Math.round(startMax)), done: 0, startedAt: Date.now() } } }));
+        },
+        completePlanDay(planId) {
+          patchMe((p) => {
+            const cur = p.plans?.[planId];
+            if (!cur) return p;
+            return { ...p, plans: { ...p.plans, [planId]: { ...cur, done: cur.done + 1, lastAt: Date.now() } } };
+          });
+        },
+        stopPlan(planId) {
+          patchMe((p) => {
+            const rest = { ...(p.plans ?? {}) };
+            delete rest[planId];
+            return { ...p, plans: rest };
+          });
+        },
+
+        exportBackup() {
+          const me = get().profiles[get().currentId!];
+          return JSON.stringify({ app: 'vitalis', v: 1, exportedAt: Date.now(), profile: me });
+        },
+
+        importBackup(json) {
+          let data: { app?: string; profile?: Profile };
+          try {
+            data = JSON.parse(json);
+          } catch {
+            return 'Datei ist keine gültige Sicherung.';
+          }
+          const p = data?.profile;
+          if (data?.app !== 'vitalis' || !p || typeof p.id !== 'string' || !Array.isArray(p.sessions) || typeof p.email !== 'string') {
+            return 'Datei ist keine Vitalis-Sicherung.';
+          }
+          const profiles = { ...get().profiles };
+          for (const [id, other] of Object.entries(profiles)) if (other.email === p.email && id !== p.id) delete profiles[id];
+          profiles[p.id] = { ...blankProfile(p.email, p.passHash, p.name), onboarded: true, ...p };
+          set({ profiles, currentId: p.id });
+          return null;
         },
 
         openChest(nodeId) {
@@ -308,6 +436,7 @@ export const useStore = create<State>()(
             avatar: p.avatar,
             country: p.country,
             createdAt: p.createdAt,
+            onboarded: true,
           }));
         },
       };

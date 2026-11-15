@@ -5,12 +5,15 @@ import { bestPaceNorm, recentPaceNorm, tierPaceNorm, TIER_PACE } from '../lib/pa
 import { BADGES, type Badge } from '../lib/badges';
 import { EXERCISES, EXERCISE_LIST } from '../lib/exercises';
 import { Icon } from '../components/Icon';
-import { Avatar, Gems, Gold, PageHeader, Section, Sheet, toast } from '../components/ui';
+import { MyAvatar, Gems, Gold, PageHeader, Section, Sheet, toast } from '../components/ui';
 import { RankEmblem, tierPalette } from '../components/RankEmblem';
 import { BadgeBack, BadgeFront, RankBack, RankFront } from '../components/MedalFaces';
 import { MedalViewer } from '../components/MedalViewer';
+import { ProgressChart } from '../components/ProgressChart';
 import { cssClip, METALS, styleFor } from '../lib/badgeStyles';
 import type { Tier } from '../lib/progression';
+import { itemById } from '../lib/shop';
+import { useNavigate } from 'react-router-dom';
 import type { SessionRecord } from '../lib/types';
 
 async function resizeImage(file: File, size = 256): Promise<string> {
@@ -37,6 +40,7 @@ export function CareerScreen() {
   const [ladderOpen, setLadderOpen] = useState(false);
   const [viewBadge, setViewBadge] = useState<Badge | null>(null);
   const [viewTier, setViewTier] = useState<Tier | null>(null);
+  const nav = useNavigate();
   const syncBadges = useStore((s) => s.syncBadges);
   useEffect(() => syncBadges(), [syncBadges]);
   const best = bestPaceNorm(me);
@@ -52,12 +56,12 @@ export function CareerScreen() {
 
   return (
     <div className="page">
-      <PageHeader eyebrow="Karriere" title="Profil" />
+      <PageHeader eyebrow="Karriere" title="Profil" right={<button className="btn btn-ghost btn-sm" onClick={() => nav('/shop')}><Icon name="gem" size={16} /> Shop</button>} />
 
       {/* Profil */}
       <div className="card profile-card">
         <div style={{ position: 'relative' }}>
-          <Avatar src={me.avatar} name={me.name} size={120} ring="var(--blue)" />
+          <MyAvatar size={120} />
           <button className="fab" style={{ position: 'absolute', right: -2, bottom: -2, top: 'auto', width: 42, height: 42 }} onClick={() => fileRef.current?.click()} aria-label="Profilbild ändern">
             <Icon name="camera" size={20} />
           </button>
@@ -78,6 +82,7 @@ export function CareerScreen() {
               <button className="icon-btn" style={{ width: 36, height: 36 }} onClick={() => setEditName(true)} aria-label="Namen ändern"><Icon name="edit" size={16} /></button>
             </div>
           )}
+          {itemById(me.equipped?.title) && <div className="player-title" style={{ fontSize: 14 }}>„{itemById(me.equipped?.title)!.name}“</div>}
           <div className="chips">
             <span className="pill ico-inline" style={{ background: '#1d2236', color: '#c7cad8' }}><Icon name="star" size={13} /> LVL {lv}</span>
             <span className="pill ico-inline" style={{ background: '#1d2236', color: '#c7cad8' }}><Icon name="calendar" size={13} /> Seit {joined}</span>
@@ -155,6 +160,10 @@ export function CareerScreen() {
         </div>
       </Section>
 
+      <Section title="Fortschritt">
+        <ProgressChart sessions={me.sessions} />
+      </Section>
+
       <Section title="Letzte Aktivitäten">
         <div className="card">
           {recent.length === 0 && <div className="muted">Noch keine Einheiten. Leg los!</div>}
@@ -167,7 +176,7 @@ export function CareerScreen() {
                 <b>{EXERCISES[s.exercise].name}</b> · {s.reps} {EXERCISES[s.exercise].unit}
                 {s.oppName && <span className="muted"> vs {s.oppName}{s.oppReps != null ? ` (${s.oppReps})` : ''}</span>}
               </div>
-              {!!s.eloDelta && <span className={s.eloDelta > 0 ? 'green' : 'red'}>{s.eloDelta > 0 ? '+' : ''}{s.eloDelta} ELO</span>}
+              {!!s.arenaDelta && <span className={s.arenaDelta > 0 ? 'green' : 'red'}>{s.arenaDelta > 0 ? '+' : ''}{s.arenaDelta} Trophäen</span>}
               <span className="muted" style={{ fontSize: 12 }}>{new Date(s.ts).toLocaleDateString('de-DE')}</span>
             </div>
           ))}

@@ -8,7 +8,7 @@ import { useBattle } from '../lib/battle';
 import { rankFor, rankLabel } from '../lib/progression';
 import { fromNorm, humanTimeline, rankedOpponentRpm, recentPaceNorm, tierPaceNorm } from '../lib/pace';
 import type { Queue } from '../lib/types';
-import { Avatar, Flag } from '../components/ui';
+import { Avatar, Flag, MyAvatar } from '../components/ui';
 import { Icon } from '../components/Icon';
 import { RankEmblem } from '../components/RankEmblem';
 
@@ -16,7 +16,7 @@ const DURATIONS = [30, 60, 90, 120];
 const RANKED_DURATION = 60;
 
 export const QUEUE_INFO: Record<Queue, { title: string; sub: string; color: string }> = {
-  ranked: { title: 'RANKED', sub: 'Trophäen & ELO · Gegner-Tempo passt sich deinem Rang an', color: 'var(--blue)' },
+  ranked: { title: 'RANKED', sub: 'Um Trophäen · Gegner-Tempo passt sich deinem Rang an', color: 'var(--blue)' },
   casual: { title: 'SCHNELLKAMPF', sub: 'Locker kämpfen · Übung & Dauer frei wählbar · keine Trophäen', color: 'var(--purple)' },
   custom: { title: 'EIGENES TEMPO', sub: 'Du bestimmst, wie schnell dein Gegner ist · ungewertet', color: 'var(--gold)' },
 };
@@ -93,7 +93,7 @@ export function MatchmakingScreen() {
               <RankEmblem tier={rank.tier} division={rank.division} size={46} />
               <div>
                 <div className="display" style={{ fontSize: 20 }}>{rankLabel(me.arenaPoints)}</div>
-                <div className="muted" style={{ fontSize: 13 }}>{me.arenaPoints} Trophäen · {me.elo} ELO</div>
+                <div className="muted" style={{ fontSize: 13 }}>{me.arenaPoints} Trophäen</div>
               </div>
               <div className="spacer" />
               <div style={{ textAlign: 'right' }}>
@@ -162,10 +162,10 @@ export function MatchmakingScreen() {
   if (phase === 'search' || !opp) {
     return (
       <div className="mm">
-        <div className="radar"><Avatar src={me.avatar} name={me.name} size={110} /></div>
+        <div className="radar"><MyAvatar size={110} /></div>
         <div>
           <div className="display" style={{ fontSize: 28, letterSpacing: '.15em' }}>SUCHE GEGNER…</div>
-          <div className="muted" style={{ marginTop: 8 }}>{info.title} · {EXERCISES[ex].name} · {dur}s{queue === 'casual' ? ` · ELO ${me.elo} ± 120` : ` · ~${Math.round(oppRpm)} Wdh./Min`}</div>
+          <div className="muted" style={{ marginTop: 8 }}>{info.title} · {EXERCISES[ex].name} · {dur}s{queue === 'casual' ? ' · ähnliche Stärke' : ` · ~${Math.round(oppRpm)} Wdh./Min`}</div>
         </div>
         <button className="btn btn-ghost btn-sm" onClick={() => setPhase('choose')}>Abbrechen</button>
       </div>
@@ -177,16 +177,16 @@ export function MatchmakingScreen() {
       <div className="caps" style={{ color: info.color }}>{info.title} · Gegner gefunden</div>
       <div className="vs-intro">
         <div className="side">
-          <Avatar src={me.avatar} name={me.name} size={120} ring="var(--blue)" />
+          <MyAvatar size={120} />
           <div className="display blue" style={{ fontSize: 22 }}>{me.name}</div>
-          <div className="muted" style={{ fontSize: 13 }}>{rankLabel(me.arenaPoints)} · {me.elo} ELO</div>
+          <div className="muted" style={{ fontSize: 13 }}>{rankLabel(me.arenaPoints)} · {me.arenaPoints} Trophäen</div>
         </div>
         <div className="big-vs">VS</div>
         <div className="side r">
           <Avatar name={opp.name} size={120} color={opp.color} ring="var(--red)" />
           <div className="display red" style={{ fontSize: 22 }}><Flag cc={opp.country} /> {opp.name}</div>
           <div className="muted" style={{ fontSize: 13 }}>
-            {queue === 'casual' ? `${rankLabel(opp.arenaPoints)} · ${opp.elo} ELO` : `Tempo ~${Math.round(oppRpm)} Wdh./Min`}
+            {queue === 'casual' ? `KI-Gegner · ${rankLabel(opp.arenaPoints)}` : `KI-Gegner · Tempo ~${Math.round(oppRpm)} Wdh./Min`}
           </div>
         </div>
       </div>

@@ -84,6 +84,22 @@ export interface Profile {
   badgeDates?: Record<string, number>;
   /** Trainingspfad: Fortschritt pro Station */
   path?: Record<string, { stars: number; clearedAt: number }>;
+  /** Gesamtwerte über alle Zeiten (der Verlauf wird auf 500 Einträge gekürzt) */
+  lifetime?: { reps: number; best: number; trainings: number; pvp: number; dungeons: number };
+  /** Gekaufte Shop-Artikel */
+  owned?: string[];
+  /** Ausgerüsteter Rahmen und Titel */
+  equipped?: { frame?: string; title?: string };
+  /** Vorrat an Streak-Schutz */
+  streakFreezes?: number;
+  /** Tage (YYYY-MM-DD), die durch Streak-Schutz gerettet wurden */
+  frozenDays?: string[];
+  /** Laufende Saison und höchste Trophäenzahl darin */
+  season?: { id: string; peak: number };
+  /** false = Einführung noch nicht gesehen (nur bei neuen Konten gesetzt) */
+  onboarded?: boolean;
+  /** Trainingspläne: Starttest und abgeschlossene Einheiten */
+  plans?: Record<string, { startMax: number; done: number; startedAt: number; lastAt?: number }>;
 }
 
 export interface Settings {

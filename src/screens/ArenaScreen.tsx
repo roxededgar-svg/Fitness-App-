@@ -10,10 +10,11 @@ import { useBattle } from '../lib/battle';
 import { tierPaceNorm } from '../lib/pace';
 import { Icon } from '../components/Icon';
 import { RankEmblem } from '../components/RankEmblem';
+import { seasonEndsIn, seasonId, seasonName, seasonReward } from '../lib/season';
 import { Flag, PageHeader, Section, Sheet, toast } from '../components/ui';
 
 type Tab = 'global' | 'land' | 'friends';
-type Row = Pick<Opponent, 'id' | 'name' | 'country' | 'elo' | 'arenaPoints' | 'level' | 'wins' | 'losses'> & { me?: boolean };
+type Row = Pick<Opponent, 'id' | 'name' | 'country' | 'elo' | 'arenaPoints' | 'level' | 'wins' | 'losses'> & { me?: boolean; bot?: boolean };
 
 export function ArenaScreen() {
   const me = useMe()!;
@@ -27,7 +28,7 @@ export function ArenaScreen() {
     const mine: Row = { id: me.id, name: me.name, country: me.country, elo: me.elo, arenaPoints: me.arenaPoints, level: levelFromXp(me.xp).level, wins: me.wins, losses: me.losses, me: true };
     const friends: Row[] = me.friends.map((f) => ({ ...f, id: f.code }));
     let list: Row[] =
-      tab === 'friends' ? [mine, ...friends] : [mine, ...friends, ...botPool(todayKey())];
+      tab === 'friends' ? [mine, ...friends] : [mine, ...friends, ...botPool(todayKey()).map((b) => ({ ...b, bot: true }))];
     if (tab === 'land') list = list.filter((r) => r.country === me.country);
     return list.sort((a, b) => b.arenaPoints - a.arenaPoints || b.elo - a.elo);
   }, [me, tab]);
@@ -54,6 +55,13 @@ export function ArenaScreen() {
         }
       />
 
+      {/* Saison */}
+      <div className="season-bar">
+        <span className="caps" style={{ fontSize: 11 }}>Saison {seasonName(seasonId())}</span>
+        <span className="spacer" />
+        <span className="muted" style={{ fontSize: 13 }}>Endet in {Math.ceil(seasonEndsIn() / 864e5)} Tagen · Belohnung jetzt: <b className="gold">{seasonReward(Math.max(me.season?.peak ?? 0, me.arenaPoints)).gold} Gold</b> + <b style={{ color: '#60a5fa' }}>{seasonReward(Math.max(me.season?.peak ?? 0, me.arenaPoints)).gems} Edelsteine</b></span>
+      </div>
+
       {/* Rang-Übersicht */}
       <div className="card">
         <div className="rank-summary">
@@ -71,7 +79,7 @@ export function ArenaScreen() {
           </div>
         </div>
         <div className="stat-grid four" style={{ marginTop: 16 }}>
-          <div className="mini" style={{ background: 'var(--card2)' }}><div className="l">ELO</div><div className="v purple">{me.elo}</div></div>
+          <div className="mini" style={{ background: 'var(--card2)' }}><div className="l">Trophäen</div><div className="v gold">{me.arenaPoints}</div></div>
           <div className="mini" style={{ background: 'var(--card2)' }}><div className="l">Siege</div><div className="v green">{me.wins}</div></div>
           <div className="mini" style={{ background: 'var(--card2)' }}><div className="l">Niederlagen</div><div className="v red">{me.losses}</div></div>
           <div className="mini" style={{ background: 'var(--card2)' }}><div className="l">Platz</div><div className="v blue">#{myIndex + 1}</div></div>
@@ -84,7 +92,7 @@ export function ArenaScreen() {
             <div className="t-ico"><Icon name="shield" size={24} /></div>
             <div>
               <div className="t-title">Ranked</div>
-              <div className="t-sub">Trophäen & ELO · Gegner im Tempo deines Rangs · 60 s</div>
+              <div className="t-sub">Um Trophäen · Gegner im Tempo deines Rangs · 60 s</div>
             </div>
           </button>
           <button className="tile" onClick={() => nav('/matchmaking?q=casual')}>
@@ -138,8 +146,8 @@ export function ArenaScreen() {
               <div className={`board-row ${r.me ? 'me' : ''}`}>
                 <div className={`pos p${i + 1}`}>{String(i + 1).padStart(2, '0')}</div>
                 <div style={{ minWidth: 0 }}>
-                  <div className="name"><Flag cc={r.country} /> {r.name} {r.me && <span className="me-tag">ME</span>}</div>
-                  <div className="sub">LVL {r.level} · {r.elo} ELO<span className="rk"> · {rankLabel(r.arenaPoints)}</span></div>
+                  <div className="name"><Flag cc={r.country} /> {r.name} {r.me && <span className="me-tag">ME</span>}{r.bot && <span className="ai-tag">KI</span>}</div>
+                  <div className="sub">LVL {r.level}<span className="rk"> · {rankLabel(r.arenaPoints)}</span></div>
                 </div>
                 <div className="pts"><b>{r.arenaPoints}</b><small>{r.wins}W · {r.losses}L</small></div>
               </div>
@@ -149,7 +157,7 @@ export function ArenaScreen() {
             <button className="board-more" onClick={() => setShowAll(!showAll)}>{showAll ? 'Weniger anzeigen' : `Alle ${rows.length} anzeigen`}</button>
           )}
         </div>
-        <div className="muted" style={{ fontSize: 12, marginTop: 10 }}>* Rang-Tempo im Liegestütz-Maßstab, andere Übungen werden umgerechnet.</div>
+        <div className="muted" style={{ fontSize: 12, marginTop: 10 }}>KI = computergesteuerter Gegner. Echte Spieler kommen über Duell-Links als Freunde dazu.<br />* Rang-Tempo im Liegestütz-Maßstab, andere Übungen werden umgerechnet.</div>
       </Section>
 
       {friendsOpen && <FriendsSheet onClose={() => setFriendsOpen(false)} />}
@@ -202,7 +210,7 @@ function FriendsSheet({ onClose }: { onClose: () => void }) {
             <Flag cc={f.country} size={22} />
             <div style={{ flex: 1 }}>
               <div className="display">{f.name}</div>
-              <div className="muted" style={{ fontSize: 12 }}>{f.code} · LVL {f.level} · {f.elo} ELO</div>
+              <div className="muted" style={{ fontSize: 12 }}>{f.code} · LVL {f.level} · {f.arenaPoints} Trophäen</div>
             </div>
             {f.duel && <button className="btn btn-purple btn-sm" onClick={() => { onClose(); nav(`/duel?c=${f.duel}`); }}>Duell</button>}
             <button className="icon-btn" style={{ width: 40, height: 40 }} onClick={() => remove(f.code)} aria-label="Entfernen"><Icon name="close" size={16} /></button>

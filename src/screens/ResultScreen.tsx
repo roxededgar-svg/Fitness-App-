@@ -17,6 +17,7 @@ import { BadgeBack, BadgeFront, RankBack, RankFront } from '../components/MedalF
 import { MedalViewer } from '../components/MedalViewer';
 import { cssClip, METALS, styleFor } from '../lib/badgeStyles';
 import { BADGES } from '../lib/badges';
+import { unlockedAtLevel } from '../lib/shop';
 
 export function ResultScreen() {
   const last = useBattle((s) => s.last);
@@ -121,11 +122,11 @@ export function ResultScreen() {
         {rec.mode === 'pvp' && rec.ranked && rec.queue !== 'casual' && rec.queue !== 'custom' && (
           <div className="grid2">
             <div style={{ textAlign: 'center' }}>
-              <div className="caps muted" style={{ fontSize: 12 }}>ELO</div>
+              <div className="caps muted" style={{ fontSize: 12 }}>Trophäen</div>
               <div className="display" style={{ fontSize: 30, marginTop: 6 }}>
-                {rec.eloBefore} <span className="muted">→</span> <span style={{ color: (rec.eloDelta ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>{(rec.eloBefore ?? 0) + (rec.eloDelta ?? 0)}</span>
+                {rec.arenaBefore} <span className="muted">→</span> <span style={{ color: (rec.arenaDelta ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>{(rec.arenaBefore ?? 0) + (rec.arenaDelta ?? 0)}</span>
               </div>
-              <div className="display" style={{ fontSize: 26, color: (rec.eloDelta ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>{(rec.eloDelta ?? 0) >= 0 ? '+' : ''}{rec.eloDelta}</div>
+              <div className="display" style={{ fontSize: 26, color: (rec.arenaDelta ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>{(rec.arenaDelta ?? 0) >= 0 ? '+' : ''}{rec.arenaDelta}</div>
             </div>
             <div style={{ textAlign: 'center' }}>
               <div className="caps muted" style={{ fontSize: 12 }}>Rang</div>
@@ -218,6 +219,12 @@ export function ResultScreen() {
         <div className="levelup" onClick={nextReveal}>
           <div className="caps gold">Level Up!</div>
           <div className="num">{rec.levelUp}</div>
+          {unlockedAtLevel(rec.levelUp!).length > 0 && (
+            <div style={{ textAlign: 'center' }}>
+              <div className="caps muted" style={{ fontSize: 11 }}>Neu im Shop</div>
+              <div className="display" style={{ fontSize: 18, marginTop: 6 }}>{unlockedAtLevel(rec.levelUp!).map((i) => i.name).join(' · ')}</div>
+            </div>
+          )}
           <div className="muted">Tippen zum Fortfahren</div>
         </div>
       )}

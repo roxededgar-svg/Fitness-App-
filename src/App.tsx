@@ -13,6 +13,10 @@ import { BattleScreen } from './screens/BattleScreen';
 import { ResultScreen } from './screens/ResultScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
 import { DuelScreen } from './screens/DuelScreen';
+import { ShopScreen } from './screens/ShopScreen';
+import { PlansScreen } from './screens/PlansScreen';
+import { WorkoutScreen } from './screens/WorkoutScreen';
+import { OnboardingScreen } from './screens/OnboardingScreen';
 
 const NAV = [
   { to: '/', label: 'Start', icon: 'home' },
@@ -20,7 +24,7 @@ const NAV = [
   { to: '/arena', label: 'Arena', icon: 'bolt' },
   { to: '/career', label: 'Karriere', icon: 'user' },
 ];
-const FULLSCREEN = ['/battle', '/matchmaking', '/result', '/training', '/settings'];
+const FULLSCREEN = ['/battle', '/matchmaking', '/result', '/training', '/settings', '/workout', '/shop', '/plans'];
 
 function Shell() {
   const me = useMe();
@@ -31,6 +35,7 @@ function Shell() {
     if (loc.pathname === '/duel') sessionStorage.setItem('pendingDuel', loc.search);
     return <AuthScreen />;
   }
+  if (me.onboarded === false) return <OnboardingScreen />;
   const pending = sessionStorage.getItem('pendingDuel');
   if (pending && loc.pathname !== '/duel') {
     sessionStorage.removeItem('pendingDuel');
@@ -50,6 +55,9 @@ function Shell() {
         <Route path="/result" element={<ResultScreen />} />
         <Route path="/settings" element={<SettingsScreen />} />
         <Route path="/duel" element={<DuelScreen />} />
+        <Route path="/shop" element={<ShopScreen />} />
+        <Route path="/plans" element={<PlansScreen />} />
+        <Route path="/workout" element={<WorkoutScreen />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       {!full && (

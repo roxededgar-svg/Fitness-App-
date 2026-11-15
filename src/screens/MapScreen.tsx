@@ -8,7 +8,7 @@ import {
   type PathNode, type World,
 } from '../lib/path';
 import { Icon } from '../components/Icon';
-import { Avatar, Gems, Gold, Sheet, toast } from '../components/ui';
+import { Gems, Gold, MyAvatar, Sheet, toast } from '../components/ui';
 import { Backdrop, Particles, Scenery } from '../components/Scenery';
 
 const HEADER = 330;
@@ -190,7 +190,7 @@ export function MapScreen() {
                     {(open || done) && <div className="pnode-aura" />}
                     {isCur && (
                       <div className="pnode-me">
-                        <Avatar src={me.avatar} name={me.name} size={38} ring={w.glow} />
+                        <MyAvatar size={38} ring={w.glow} />
                         <span style={{ background: w.glow }}>{n.kind === 'chest' ? 'ÖFFNEN' : n.kind === 'boss' ? 'BOSS!' : 'LOS!'}</span>
                       </div>
                     )}
