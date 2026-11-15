@@ -4,9 +4,9 @@ import { useMe } from '../lib/store';
 import { DUNGEONS, RARITY_COLOR } from '../lib/dungeons';
 import { levelFromXp } from '../lib/progression';
 import { EXERCISES } from '../lib/exercises';
-import { botTimeline } from '../lib/bots';
 import { useBattle } from '../lib/battle';
 import { Icon } from '../components/Icon';
+import { Gems, Gold, PageHeader } from '../components/ui';
 
 export function MapScreen() {
   const me = useMe()!;
@@ -16,9 +16,11 @@ export function MapScreen() {
 
   return (
     <div className="page">
-      <div className="center-head">
-        <h1>Weltkarte</h1>
-        <div className="sub">· STORY MODE ·</div>
+      <PageHeader eyebrow="Story-Modus" title="Weltkarte" />
+      <div className="map-progress">
+        <span className="caps muted" style={{ fontSize: 12 }}>Bosse besiegt</span>
+        <div className="progress"><span style={{ width: `${(me.dungeonsCleared.length / DUNGEONS.length) * 100}%` }} /></div>
+        <span className="display gold">{me.dungeonsCleared.length} / {DUNGEONS.length}</span>
       </div>
       {DUNGEONS.map((d, i) => {
         const locked = level < d.minLevel;
@@ -27,8 +29,19 @@ export function MapScreen() {
         return (
           <Fragment key={d.id}>
             {i > 0 && <div className="connector" />}
-            <div className={`card dungeon ${locked ? 'locked' : ''}`}>
-              {cleared && <div className="cleared-badge">👑 BESIEGT</div>}
+            {locked ? (
+              <div className="card dungeon-compact dungeon" style={{ opacity: 0.75 }}>
+                <div className="num" style={{ borderColor: rc, color: rc }}>{i + 1}</div>
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div className="display" style={{ fontSize: 18 }}>{d.name}</div>
+                  <div className="muted" style={{ fontSize: 13 }}>{d.boss} · {EXERCISES[d.exercise].name}</div>
+                </div>
+                <span className="chip" style={{ color: d.elementColor, borderColor: d.elementColor }}>{d.element}</span>
+                <span className="pill" style={{ background: '#1d2236', color: '#c7cad8', whiteSpace: 'nowrap' }}><span className="ico-inline"><Icon name="lock" size={12} /> LVL {d.minLevel}</span></span>
+              </div>
+            ) : (
+            <div className={`card dungeon`}>
+              {cleared && <div className="cleared-badge ico-inline"><Icon name="crown" size={16} /> BESIEGT</div>}
               <div className="row">
                 <div className="num" style={{ borderColor: locked && d.rarity === 'COMMON' ? '#4b4f63' : rc, color: rc }}>{i + 1}</div>
                 <div>
@@ -41,16 +54,16 @@ export function MapScreen() {
               <div className="boss">
                 <Icon name="skull" size={22} color="var(--red)" />
                 <span>{d.boss}</span>
-                <span className="muted" style={{ fontSize: 14 }}>· {EXERCISES[d.exercise].name} · {d.duration}s</span>
+                <span className="muted" style={{ fontSize: 14 }}>· {EXERCISES[d.exercise].name} · {d.hp * 100} HP · {d.duration}s</span>
                 <div className="spacer" />
                 <span className="chip" style={{ color: d.elementColor, borderColor: d.elementColor }}>{d.element}</span>
               </div>
               {!locked && <div className="muted" style={{ fontSize: 14, marginBottom: 12 }}>{d.lore}</div>}
               <div className="rewards">
                 <span>+{d.xp} XP</span>
-                <span className="gold">+{d.gold}g</span>
-                <span className="blue">+{d.gems}💎</span>
-                {cleared && <span className="muted" style={{ fontSize: 13 }}>(Wiederholung: 40 %, keine 💎)</span>}
+                <span className="gold ico-inline">+{d.gold} <Gold /></span>
+                <span className="blue ico-inline">+{d.gems} <Gems /></span>
+                {cleared && <span className="muted" style={{ fontSize: 13, marginLeft: 'auto' }}>Wiederholung: 40 % Belohnung, keine Edelsteine</span>}
               </div>
               <button
                 className="btn btn-primary"
@@ -61,19 +74,21 @@ export function MapScreen() {
                     exercise: d.exercise,
                     durationS: d.duration,
                     dungeonId: d.id,
+                    bossHp: d.hp,
                     ranked: true,
                     opponent: {
                       id: d.id, name: d.boss, country: '', elo: d.bossElo, arenaPoints: 0, level: d.minLevel + 2,
                       wins: 0, losses: 0, kind: 'boss', color: d.elementColor, tier: d.element,
-                      timeline: botTimeline(d.exercise, d.bossElo, d.duration, Date.now()),
+                      timeline: [],
                     },
                   });
                   nav('/battle');
                 }}
               >
-                {locked ? `Level ${d.minLevel} erforderlich` : cleared ? 'Erneut betreten' : 'Betreten'}
+                {cleared ? 'Erneut betreten' : 'Betreten'}
               </button>
             </div>
+            )}
           </Fragment>
         );
       })}

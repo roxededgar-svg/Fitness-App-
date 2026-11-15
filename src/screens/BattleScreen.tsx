@@ -8,6 +8,7 @@ import { rankFor } from '../lib/progression';
 import { usePoseTracker } from '../pose/usePoseTracker';
 import { sfx, unlockAudio } from '../lib/feedback';
 import { Avatar, TugBar } from '../components/ui';
+import { applyRegen, applyRep, comboWindowMs, createBoss, type BossState } from '../lib/boss';
 import { Icon } from '../components/Icon';
 
 type Phase = 'setup' | 'countdown' | 'live' | 'done';
@@ -18,6 +19,7 @@ const fmt = (ms: number) => {
 };
 
 const MODE_TITLE = { pvp: '1 vs 1', dungeon: 'BOSSKAMPF', training: 'TRAINING', ghost: 'FREUNDES-DUELL' } as const;
+const QUEUE_TITLE = { ranked: 'RANKED', casual: 'SCHNELLKAMPF', custom: 'EIGENES TEMPO' } as const;
 
 export function BattleScreen() {
   const config = useBattle((s) => s.config);
@@ -50,11 +52,29 @@ function Battle() {
   const leaderRef = useRef<'me' | 'opp' | null>(null);
   const lastOppRef = useRef(0);
 
+  // ---- Bosskampf (Dungeon): Wiederholungen = Schaden ----
+  const isBoss = config.mode === 'dungeon' && !!config.bossHp;
+  const bossRef = useRef<BossState>(createBoss(config.bossHp ?? 1));
+  const [boss, setBoss] = useState<BossState>(bossRef.current);
+  const [hits, setHits] = useState<{ id: number; dmg: number; crit: boolean; x: number }[]>([]);
+  const maxComboRef = useRef(0);
+  const windowMs = comboWindowMs(ex.baseRpm);
+
   const onRep = useCallback(() => {
-    timelineRef.current.push(Math.round(performance.now() - startRef.current));
+    const now = performance.now() - startRef.current;
+    timelineRef.current.push(Math.round(now));
     setBumpMine((b) => b + 1);
     sfx.rep();
-  }, []);
+    if (isBoss && bossRef.current.hp > 0) {
+      const { state, hit } = applyRep(bossRef.current, now, windowMs);
+      bossRef.current = state;
+      maxComboRef.current = Math.max(maxComboRef.current, hit.combo);
+      setBoss(state);
+      const id = Math.random();
+      setHits((h) => [...h.slice(-5), { id, dmg: hit.dmg, crit: hit.crit, x: 30 + Math.random() * 40 }]);
+      if (hit.crit) sfx.lead();
+    }
+  }, [isBoss, windowMs]);
 
   const tracker = usePoseTracker({
     exercise: config.exercise,
@@ -71,6 +91,8 @@ function Battle() {
   const durMs = config.durationS ? config.durationS * 1000 : null;
   const oppReps = opp ? repsAt(opp.timeline, elapsed) : 0;
   const ranked = config.ranked && !useTap;
+  /** Aufgeben zählt als Niederlage – nur in echten Kämpfen, nicht im Training */
+  const competitive = config.mode !== 'training';
 
   // Display schlafen verhindern
   useEffect(() => {
@@ -112,16 +134,24 @@ function Battle() {
     const id = setInterval(() => {
       const e = performance.now() - startRef.current;
       setElapsed(durMs ? Math.min(e, durMs) : e);
+      if (isBoss) {
+        const { state, healed } = applyRegen(bossRef.current, e, 100);
+        if (healed > 0) {
+          bossRef.current = state;
+          setBoss(state);
+        }
+      }
     }, 100);
     return () => clearInterval(id);
-  }, [phase, durMs]);
+  }, [phase, durMs, isBoss]);
 
   const end = useCallback(
     (forfeit = false) => {
       setPhase('done');
       const e = performance.now() - startRef.current;
       const durationS = config.durationS ?? Math.round(e / 1000);
-      const finalOpp = opp ? repsAt(opp.timeline, durMs ?? e) : undefined;
+      const finalOpp = opp && !isBoss ? repsAt(opp.timeline, durMs ?? e) : undefined;
+      const b = bossRef.current;
       const rec = finishMatch({
         mode: config.mode,
         exercise: config.exercise,
@@ -130,9 +160,14 @@ function Battle() {
         timeline: [...timelineRef.current],
         oppName: opp?.name,
         oppElo: opp?.elo,
-        oppReps: forfeit && opp ? repsAt(opp.timeline, e) : finalOpp,
-        oppTimeline: opp?.timeline.filter((t) => t <= (forfeit ? e : durMs ?? e)),
+        oppReps: isBoss ? undefined : forfeit && opp ? repsAt(opp.timeline, e) : finalOpp,
+        oppTimeline: isBoss ? undefined : opp?.timeline.filter((t) => t <= (forfeit ? e : durMs ?? e)),
+        outcome: isBoss ? (b.hp <= 0 ? 'win' : 'loss') : undefined,
+        bossMaxHp: isBoss ? b.maxHp : undefined,
+        bossHpLeft: isBoss ? Math.round(b.hp) : undefined,
+        maxCombo: isBoss ? maxComboRef.current : undefined,
         ranked,
+        queue: config.queue,
         dungeonId: config.dungeonId,
         forfeit,
       });
@@ -141,7 +176,7 @@ function Battle() {
       else if (rec.result === 'loss') sfx.loss();
       nav('/result', { replace: true });
     },
-    [config, opp, durMs, myReps, ranked, finishMatch, finishBattle, nav],
+    [config, opp, durMs, myReps, ranked, finishMatch, finishBattle, nav, isBoss],
   );
 
   // Zeit abgelaufen
@@ -149,9 +184,18 @@ function Battle() {
     if (phase === 'live' && durMs && elapsed >= durMs) end();
   }, [phase, elapsed, durMs, end]);
 
+  // Boss besiegt → sofort Sieg
+  useEffect(() => {
+    if (phase === 'live' && isBoss && boss.hp <= 0) {
+      setFlash({ text: 'BOSS BESIEGT!', color: 'var(--gold)', id: Date.now() });
+      const t = setTimeout(() => end(), 900);
+      return () => clearTimeout(t);
+    }
+  }, [phase, isBoss, boss.hp, end]);
+
   // Gegner-Wiederholungen & Führungswechsel
   useEffect(() => {
-    if (phase !== 'live' || !opp) return;
+    if (phase !== 'live' || !opp || isBoss) return;
     if (oppReps > lastOppRef.current) {
       lastOppRef.current = oppReps;
       setBumpOpp((b) => b + 1);
@@ -165,9 +209,13 @@ function Battle() {
       } else setFlash({ text: `${opp.name} führt!`, color: 'var(--red)', id: Date.now() });
     }
     if (leader) leaderRef.current = leader;
-  }, [phase, myReps, oppReps, opp]);
+  }, [phase, myReps, oppReps, opp, isBoss]);
 
   const remaining = durMs ? durMs - elapsed : elapsed;
+  const pace = (n: number) => (elapsed > 4000 ? Math.round(n / (elapsed / 60000)) : null);
+  const myPace = pace(myReps);
+  const oppPace = opp && !isBoss ? pace(oppReps) : null;
+  const regen = isBoss && phase === 'live' && boss.hp > 0 && elapsed - boss.lastRepAt > 3500;
   const hot = !!durMs && phase === 'live' && remaining <= 10000;
   const myRank = rankFor(me.arenaPoints);
   const oppRank = opp ? rankFor(opp.arenaPoints) : null;
@@ -194,18 +242,18 @@ function Battle() {
             <div style={{ minWidth: 0 }}>
               <div className="pname blue">{me.name.toUpperCase()}</div>
               <div className="ptier" style={{ color: myRank.tier.color }}>{myRank.tier.name}</div>
-              <div className="ptroph">🏆 {me.elo}</div>
+              <div className="ptroph ico-inline"><Icon name="trophy" size={15} /> {me.elo}</div>
             </div>
           </div>
           <div className="timer-box">
-            <div className="mode">{MODE_TITLE[config.mode]} · {config.durationS ? `${config.durationS} SEK` : '∞'}</div>
+            <div className="mode">{config.mode === 'pvp' && config.queue ? QUEUE_TITLE[config.queue] : MODE_TITLE[config.mode]} · {config.durationS ? `${config.durationS} SEK` : '∞'}</div>
             <div className={`timer ${hot ? 'hot' : ''}`}>{phase === 'setup' || phase === 'countdown' ? fmt(durMs ?? 0) : fmt(remaining)}</div>
           </div>
           {opp ? (
             <div className="player right">
               <div className="av-ring" style={{ background: 'var(--red)' }}>
                 {opp.kind === 'boss' ? (
-                  <div className="avatar" style={{ width: 58, height: 58, background: '#2a0f12', fontSize: 30 }}>💀</div>
+                  <div className="avatar" style={{ width: 58, height: 58, background: '#2a0f12' }}><Icon name="skull" size={32} color="var(--red)" /></div>
                 ) : (
                   <Avatar src={opp.avatar} name={opp.name} size={58} color={opp.color} />
                 )}
@@ -214,7 +262,7 @@ function Battle() {
               <div style={{ minWidth: 0 }}>
                 <div className="pname red">{opp.name}</div>
                 <div className="ptier" style={{ color: '#c7cad8' }}>{opp.tier ?? oppRank?.tier.name}</div>
-                <div className="ptroph">🏆 {opp.elo}</div>
+                <div className="ptroph ico-inline" style={{ justifyContent: 'flex-end' }}>{isBoss ? <><Icon name="heart" size={15} color="var(--red)" /> {Math.ceil(boss.hp)}</> : opp.elo > 0 ? <><Icon name="trophy" size={15} /> {opp.elo}</> : <Icon name="robot" size={18} />}</div>
               </div>
             </div>
           ) : (
@@ -222,19 +270,33 @@ function Battle() {
           )}
         </div>
 
-        {opp ? <TugBar mine={myReps} theirs={oppReps} /> : <div style={{ height: 16 }} />}
+        {isBoss ? (
+          <div className="boss-bar">
+            <div className="boss-hp" style={{ width: `${(boss.hp / boss.maxHp) * 100}%` }} />
+            <div className="boss-hp-label">{Math.ceil(boss.hp)} / {boss.maxHp} HP</div>
+          </div>
+        ) : opp ? <TugBar mine={myReps} theirs={oppReps} /> : <div style={{ height: 16 }} />}
 
         <div className="scores">
           <div>
             <div key={`m${bumpMine}`} className="n blue bump">{myReps}</div>
             <div className="lbl">{ex.unit === 'Sek.' ? 'Sekunden' : 'Deine Reps'}</div>
+            {myPace != null && ex.unit !== 'Sek.' && <div className="pace ico-inline"><Icon name="bolt" size={13} /> {myPace} / Min</div>}
           </div>
-          <div className="vs">{opp ? 'VS' : ''}</div>
+          <div className="vs">{isBoss ? <Icon name="swords" size={40} /> : opp ? 'VS' : ''}</div>
           <div>
-            {opp && (
+            {isBoss && (
+              <>
+                <div className="n gold">{boss.combo > 1 ? `x${boss.combo}` : '–'}</div>
+                <div className="lbl">Combo</div>
+                {regen && <div className="pace red">Boss regeneriert!</div>}
+              </>
+            )}
+            {opp && !isBoss && (
               <>
                 <div key={`o${bumpOpp}`} className="n red bump">{oppReps}</div>
                 <div className="lbl">Gegner-Reps</div>
+                {oppPace != null && <div className="pace ico-inline"><Icon name="bolt" size={13} /> {oppPace} / Min</div>}
               </>
             )}
             {!opp && config.durationS == null && phase === 'live' && (
@@ -246,6 +308,16 @@ function Battle() {
 
       {phase === 'live' && !useTap && camOk && <div className="depth-meter"><span style={{ height: `${tracker.frame.depth * 100}%` }} /></div>}
 
+      {isBoss && (
+        <div className="hit-layer">
+          {hits.map((h) => (
+            <div key={h.id} className={`hit ${h.crit ? 'crit' : ''}`} style={{ left: `${h.x}%` }}
+              onAnimationEnd={() => setHits((all) => all.filter((x) => x.id !== h.id))}>
+              -{h.dmg}{h.crit && ' KRIT!'}
+            </div>
+          ))}
+        </div>
+      )}
       <div className="center-msg">
         {phase === 'countdown' && count > 0 && <div key={count} className="countdown">{count}</div>}
         {phase === 'countdown' && count === 0 && <div className="countdown">LOS!</div>}
@@ -272,11 +344,17 @@ function Battle() {
             )}
             {camOk && (
               <>
-                <div className="display" style={{ fontSize: 22 }}>{tracker.frame.tracking ? '✅ Körper erkannt – gleich geht’s los!' : 'Positioniere dich'}</div>
+                <div className="display" style={{ fontSize: 22 }}>{tracker.frame.tracking ? <span className="ico-inline green"><Icon name="check" size={22} /> <span style={{ color: 'var(--text)' }}>Körper erkannt – gleich geht’s los!</span></span> : 'Positioniere dich'}</div>
                 <div className="muted" style={{ margin: '10px 0 16px', fontSize: 15 }}>{ex.setup}</div>
               </>
             )}
-            {config.challenge && <div className="purple" style={{ fontSize: 14, marginBottom: 14 }}>🎬 Dein Lauf wird als Duell-Link aufgezeichnet.</div>}
+            {isBoss && (
+              <div className="gold" style={{ fontSize: 14, marginBottom: 14 }}>
+                Jede Wiederholung trifft {opp?.name}. Besiege ihn in {config.durationS}s! Schnelle Wiederholungen bauen eine Combo auf –
+                wer länger als 3 s pausiert, lässt den Boss heilen.
+              </div>
+            )}
+            {config.challenge && <div className="purple" style={{ fontSize: 14, marginBottom: 14 }}><Icon name="record" size={12} color="var(--red)" /> Dein Lauf wird als Duell-Link aufgezeichnet.</div>}
             <div className="stack" style={{ gap: 10 }}>
               {camOk && <button className="btn btn-primary solid" onClick={() => { unlockAudio(); setPhase('countdown'); }}>Jetzt starten</button>}
               {(settings.tapMode || camFailed) && (settings.tapMode || config.mode === 'training') && (
@@ -290,11 +368,11 @@ function Battle() {
         )}
         {confirmQuit && (
           <div className="setup-card" style={{ pointerEvents: 'auto' }}>
-            <div className="display" style={{ fontSize: 22 }}>{opp ? 'Kampf aufgeben?' : 'Training beenden?'}</div>
-            <div className="muted" style={{ margin: '10px 0 18px' }}>{opp ? 'Aufgeben zählt als Niederlage.' : 'Deine bisherigen Wiederholungen werden gespeichert.'}</div>
+            <div className="display" style={{ fontSize: 22 }}>{competitive ? 'Kampf aufgeben?' : 'Training beenden?'}</div>
+            <div className="muted" style={{ margin: '10px 0 18px' }}>{competitive ? 'Aufgeben zählt als Niederlage.' : 'Deine bisherigen Wiederholungen werden gespeichert.'}</div>
             <div className="grid2">
               <button className="btn btn-ghost" onClick={() => setConfirmQuit(false)}>Weiter</button>
-              <button className="btn btn-red" onClick={() => end(!!opp)}>{opp ? 'Aufgeben' : 'Beenden'}</button>
+              <button className="btn btn-red" onClick={() => end(competitive)}>{competitive ? 'Aufgeben' : 'Beenden'}</button>
             </div>
           </div>
         )}

@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useMe, useSettings, useStore } from '../lib/store';
 import { Icon } from '../components/Icon';
-import { Switch, flag, toast } from '../components/ui';
+import { COUNTRY_NAMES, Flag, Switch, toast } from '../components/ui';
 import type { Sensitivity } from '../pose/counters';
 
 const COUNTRIES = ['DE', 'AT', 'CH', 'US', 'GB', 'FR', 'ES', 'IT', 'NL', 'PL', 'SE', 'TR', 'BR', 'JP'];
@@ -56,9 +56,10 @@ export function SettingsScreen() {
       <div className="card">
         <div className="setting-row">
           <div><div className="t">Land</div><div className="d">Für die Länder-Rangliste</div></div>
-          <label className="field" style={{ minHeight: 44, width: 140 }}>
+          <label className="field" style={{ minHeight: 44, width: 200 }}>
+            <Flag cc={me.country} size={16} />
             <select value={me.country} onChange={(e) => updateProfile({ country: e.target.value })}>
-              {COUNTRIES.map((c) => <option key={c} value={c}>{flag(c)} {c}</option>)}
+              {COUNTRIES.map((c) => <option key={c} value={c}>{COUNTRY_NAMES[c] ?? c}</option>)}
             </select>
           </label>
         </div>

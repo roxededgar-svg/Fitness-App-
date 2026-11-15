@@ -5,7 +5,7 @@ import { useMe, useStore } from '../lib/store';
 import { useBattle } from '../lib/battle';
 import { EXERCISES } from '../lib/exercises';
 import { rankLabel } from '../lib/progression';
-import { Avatar, flag } from '../components/ui';
+import { Avatar, Flag } from '../components/ui';
 
 export function DuelScreen() {
   const [params] = useSearchParams();
@@ -38,7 +38,7 @@ export function DuelScreen() {
         <div className="big-vs">VS</div>
         <div className="side r">
           <Avatar name={duel.n} size={110} color="#a855f7" ring="var(--red)" />
-          <div className="display red" style={{ fontSize: 20 }}>{flag(duel.co)} {duel.n}</div>
+          <div className="display red" style={{ fontSize: 20 }}><Flag cc={duel.co} /> {duel.n}</div>
           <div className="muted" style={{ fontSize: 13 }}>{rankLabel(duel.a)} · {duel.e} ELO</div>
         </div>
       </div>

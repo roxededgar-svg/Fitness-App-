@@ -58,15 +58,34 @@ export function findMatch(pool: Opponent[], myElo: number, exclude?: string): Op
   return pool[0];
 }
 
+/** Typisches Tempo (Wdh./Min) eines Spielers mit dieser ELO. */
+export function rpmForElo(exercise: ExerciseId, elo: number) {
+  const skill = Math.max(0.35, Math.min(1.8, 0.45 + (elo - 800) / 650));
+  return EXERCISES[exercise].baseRpm * skill;
+}
+
+/** Test-Bot: gleichmäßiges, frei einstellbares Tempo mit leichter Streuung. */
+export function paceTimeline(rpm: number, durationS: number, seed: number): number[] {
+  const r = rng(seed);
+  const out: number[] = [];
+  const iv = 60000 / Math.max(1, rpm);
+  let t = 1000;
+  while (true) {
+    t += iv * (0.9 + r() * 0.2);
+    if (t >= durationS * 1000) break;
+    out.push(Math.round(t));
+  }
+  return out;
+}
+
 /**
  * Erzeugt eine realistische Zeitleiste (ms) der Wiederholungen eines Bots:
  * Tempo abhängig von ELO, mit Startverzögerung, Ermüdung, Pausen und Zufall.
  */
 export function botTimeline(exercise: ExerciseId, elo: number, durationS: number, seed: number): number[] {
   const r = rng(seed);
-  const ex = EXERCISES[exercise];
   const skill = Math.max(0.35, Math.min(1.8, 0.45 + (elo - 800) / 650));
-  const rpm = ex.baseRpm * skill * (0.88 + r() * 0.24);
+  const rpm = rpmForElo(exercise, elo) * (0.88 + r() * 0.24);
   const out: number[] = [];
   let t = 1200 + r() * 1800; // Reaktionszeit / Position einnehmen
   const end = durationS * 1000;

@@ -26,9 +26,32 @@ const P: Record<string, string> = {
   play: 'M7 4l13 8-13 8z',
   crown: 'M3 7l4 4 5-7 5 7 4-4-2 12H5z',
   fire: 'M12 2c1 4 6 6 6 12a6 6 0 0 1-12 0c0-3 2-5 3-6 0 2 1 3 2 3 0-4 1-6 1-9z',
+  coin: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zm0 4.5a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9z',
+  gem: 'M6 4h12l4 5-10 11L2 9zM2 9h20M8 9l4 11 4-11M9 4L8 9M15 4l1 5',
+  medal: 'M8 2l4 6 4-6M12 9a6 6 0 1 0 0 12 6 6 0 0 0 0-12zm0 3.2l1.1 2.2 2.4.4-1.7 1.7.4 2.4-2.2-1.1-2.2 1.1.4-2.4-1.7-1.7 2.4-.4z',
+  swords: 'M4 4l10.5 10.5M20 4L9.5 14.5M4 4v3.5M4 4h3.5M20 4v3.5M20 4h-3.5M6.5 13l4.5 4.5M17.5 13L13 17.5M4 20l3.8-3.8M20 20l-3.8-3.8',
+  calendar: 'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4',
+  crystal: 'M12 2l7 7-7 13L5 9zM5 9h14M9 9l3 13 3-13M9 9l3-7 3 7',
+  storm: 'M7 15a4 4 0 0 1-.5-7.97A5 5 0 0 1 16.3 6 4 4 0 0 1 17 14M12.5 12l-2.5 4.5h4L11.5 21',
+  trident: 'M12 22V7M6 3v5a6 6 0 0 0 12 0V3M12 2v5M9 18h6',
+  wind: 'M3 8h10a3 3 0 1 0-3-3M3 12h15a3 3 0 1 1-3 3M3 16h7',
+  stopwatch: 'M12 8a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zM12 11.5v3l2 1.5M10 2h4M12 2v3.5M17.5 7l1.5-1.5',
+  rocket: 'M5 15c-1.5 1.5-2 5-2 5s3.5-.5 5-2M9 15l-3-3c1-4 4.5-8 12-9-1 7.5-5 11-9 12zM15 7.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3z',
+  rivals: 'M9 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zM15 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10z',
+  heart: 'M12 21s-8-5.2-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.8-8 11-8 11z',
+  robot: 'M5 9h14v10H5zM12 9V5.5M12 3.5v.01M9 13.5v.01M15 13.5v.01M9.5 16.5h5M3 13v3M21 13v3',
+  ghost: 'M6 20V10a6 6 0 0 1 12 0v10l-2-1.5-2 1.5-2-1.5-2 1.5-2-1.5zM10 10.5v.01M14 10.5v.01',
+  dice: 'M4 4h16v16H4zM8.5 8.5v.01M15.5 15.5v.01M12 12v.01M15.5 8.5v.01M8.5 15.5v.01',
+  check: 'M5 12.5l4.5 4.5L19 7',
+  up: 'M12 19V5M5.5 11.5L12 5l6.5 6.5',
+  down: 'M12 5v14M5.5 12.5L12 19l6.5-6.5',
+  record: 'M12 6a6 6 0 1 0 0 12 6 6 0 0 0 0-12z',
+  target: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zm0 4a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0 4a1 1 0 1 0 0 2 1 1 0 0 0 0-2z',
+  cog: 'M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1',
 };
 
-const FILLED = new Set(['home', 'bolt', 'user', 'gear', 'flag', 'lock', 'skull', 'users', 'camera', 'share', 'play', 'crown', 'shield', 'star', 'fire', 'dumbbell', 'map', 'copy']);
+
+const FILLED = new Set(['home', 'bolt', 'user', 'gear', 'flag', 'lock', 'skull', 'users', 'camera', 'share', 'play', 'crown', 'shield', 'star', 'fire', 'dumbbell', 'map', 'copy', 'heart', 'record']);
 
 export function Icon({ name, size = 24, color, style }: { name: keyof typeof P | string; size?: number; color?: string; style?: React.CSSProperties }) {
   const fill = FILLED.has(name);

@@ -3,8 +3,66 @@ import { createPortal } from 'react-dom';
 import { Icon } from './Icon';
 import { rankFor } from '../lib/progression';
 
-export const flag = (cc?: string) =>
-  cc && /^[A-Z]{2}$/.test(cc) ? String.fromCodePoint(...[...cc].map((c) => 0x1f1a5 + c.charCodeAt(0))) : '';
+export const COUNTRY_NAMES: Record<string, string> = {
+  DE: 'Deutschland', AT: 'Österreich', CH: 'Schweiz', US: 'USA', GB: 'Großbritannien', FR: 'Frankreich', ES: 'Spanien',
+  IT: 'Italien', NL: 'Niederlande', PL: 'Polen', SE: 'Schweden', TR: 'Türkei', BR: 'Brasilien', JP: 'Japan',
+};
+
+/** Gezeichnete Mini-Fahne (keine Emoji-Flaggen). Unbekannte Länder → Länderkürzel. */
+export function Flag({ cc, size = 18 }: { cc?: string; size?: number }) {
+  if (!cc) return null;
+  const w = size * 1.4, h = size;
+  const H = (cols: string[]) => cols.map((c, i) => <rect key={i} x={0} y={(i * 14) / cols.length} width={20} height={14 / cols.length + 0.05} fill={c} />);
+  const V = (cols: string[]) => cols.map((c, i) => <rect key={i} y={0} x={(i * 20) / cols.length} height={14} width={20 / cols.length + 0.05} fill={c} />);
+  const art: Record<string, React.ReactNode> = {
+    DE: H(['#111', '#dd0000', '#ffce00']),
+    AT: H(['#ed2939', '#fff', '#ed2939']),
+    NL: H(['#ae1c28', '#fff', '#21468b']),
+    PL: H(['#fff', '#dc143c']),
+    FR: V(['#0055a4', '#fff', '#ef4135']),
+    IT: V(['#009246', '#fff', '#ce2b37']),
+    ES: [<rect key={0} width={20} height={14} fill="#c60b1e" />, <rect key={1} y={3.5} width={20} height={7} fill="#ffc400" />],
+    CH: [<rect key={0} width={20} height={14} fill="#d52b1e" />, <path key={1} d="M8.6 3.5h2.8v2.1h2.1v2.8h-2.1v2.1H8.6V8.4H6.5V5.6h2.1z" fill="#fff" />],
+    SE: [<rect key={0} width={20} height={14} fill="#006aa7" />, <path key={1} d="M6 0h2.8v14H6zM0 5.6h20v2.8H0z" fill="#fecc00" />],
+    JP: [<rect key={0} width={20} height={14} fill="#fff" />, <circle key={1} cx={10} cy={7} r={4} fill="#bc002d" />],
+    TR: [<rect key={0} width={20} height={14} fill="#e30a17" />, <circle key={1} cx={8} cy={7} r={3.6} fill="#fff" />, <circle key={2} cx={9} cy={7} r={2.9} fill="#e30a17" />, <circle key={3} cx={12.6} cy={7} r={1.1} fill="#fff" />],
+    BR: [<rect key={0} width={20} height={14} fill="#009c3b" />, <path key={1} d="M10 1.8 18 7l-8 5.2L2 7z" fill="#ffdf00" />, <circle key={2} cx={10} cy={7} r={2.8} fill="#002776" />],
+    US: [<rect key={0} width={20} height={14} fill="#fff" />, ...[0, 2, 4, 6, 8, 10, 12].map((y) => <rect key={`s${y}`} y={y} width={20} height={1.08} fill="#b22234" />), <rect key="c" width={9} height={7.5} fill="#3c3b6e" />],
+    GB: [<rect key={0} width={20} height={14} fill="#012169" />, <path key={1} d="M0 0l20 14M20 0L0 14" stroke="#fff" strokeWidth={2.6} />, <path key={2} d="M0 0l20 14M20 0L0 14" stroke="#c8102e" strokeWidth={1} />, <path key={3} d="M10 0v14M0 7h20" stroke="#fff" strokeWidth={4} />, <path key={4} d="M10 0v14M0 7h20" stroke="#c8102e" strokeWidth={2.2} />],
+  };
+  const a = art[cc];
+  if (!a) return <span className="cc-chip">{cc}</span>;
+  return (
+    <svg width={w} height={h} viewBox="0 0 20 14" className="flag" aria-label={COUNTRY_NAMES[cc] ?? cc}>
+      <clipPath id={`f-${cc}`}><rect width={20} height={14} rx={2.2} /></clipPath>
+      <g clipPath={`url(#f-${cc})`}>{a}</g>
+    </svg>
+  );
+}
+
+/** Abzeichen-Medaille: Sechseck in der Abzeichenfarbe mit eigenem Symbol. */
+export function BadgeMedal({ icon, color, size = 64, off = false }: { icon: string; color: string; size?: number; off?: boolean }) {
+  const id = `m-${icon}-${color.replace('#', '')}`;
+  return (
+    <div className="medal" style={{ width: size, height: size, filter: off ? 'grayscale(1)' : undefined, opacity: off ? 0.4 : 1 }}>
+      <svg viewBox="0 0 64 64" width={size} height={size}>
+        <defs>
+          <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stopColor={color} stopOpacity={0.45} />
+            <stop offset="1" stopColor={color} stopOpacity={0.12} />
+          </linearGradient>
+        </defs>
+        <path d="M32 3 57 17.5v29L32 61 7 46.5v-29z" fill={`url(#${id})`} stroke={color} strokeWidth={2.5} strokeLinejoin="round" />
+        <path d="M32 9.5 51.5 20.8v22.4L32 54.5 12.5 43.2V20.8z" fill="none" stroke={color} strokeOpacity={0.35} strokeWidth={1} />
+      </svg>
+      <span className="medal-ico"><Icon name={icon} size={size * 0.42} color="#fff" /></span>
+    </div>
+  );
+}
+
+/** Währungs-Symbole */
+export const Gold = ({ size = 16 }: { size?: number }) => <Icon name="coin" size={size} color="var(--gold)" />;
+export const Gems = ({ size = 16 }: { size?: number }) => <Icon name="gem" size={size} color="#60a5fa" />;
 
 export function Avatar({ src, name, size = 56, color = '#3f7bfa', ring }: { src?: string; name: string; size?: number; color?: string; ring?: string }) {
   const inner = src ? (
@@ -40,6 +98,32 @@ export function Sheet({ title, onClose, children }: { title: string; onClose: ()
       </div>
     </div>,
     document.body,
+  );
+}
+
+/** Einheitlicher Seitenkopf: Überschrift links, optionaler Inhalt rechts (Platz für den Einstellungs-Button). */
+export function PageHeader({ eyebrow, title, right }: { eyebrow: string; title: string; right?: ReactNode }) {
+  return (
+    <div className="page-head">
+      <div style={{ minWidth: 0 }}>
+        <div className="eyebrow caps">{eyebrow}</div>
+        <h1>{title}</h1>
+      </div>
+      {right && <div className="page-head-right">{right}</div>}
+    </div>
+  );
+}
+
+/** Abschnittsüberschrift mit optionaler Aktion rechts. */
+export function Section({ title, action, children }: { title: string; action?: ReactNode; children: ReactNode }) {
+  return (
+    <section className="section">
+      <div className="section-title">
+        <div className="caps">{title}</div>
+        {action}
+      </div>
+      {children}
+    </section>
   );
 }
 
@@ -90,7 +174,7 @@ export function WeekChart({ data }: { data: { training: number; pvp: number; isT
   return (
     <div className="card week">
       <div className="row">
-        <div className="caps" style={{ fontSize: 15 }}>Diese Woche</div>
+        <div className="caps muted" style={{ fontSize: 12 }}>Diese Woche</div>
         <div className="spacer" />
         <div className="display blue" style={{ fontSize: 17 }}>{total} Wdh.</div>
       </div>

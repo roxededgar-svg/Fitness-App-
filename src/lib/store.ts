@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Friend, Mode, Profile, Result, SessionRecord, Settings } from './types';
+import type { Friend, Mode, Profile, Queue, Result, SessionRecord, Settings } from './types';
 import { EXERCISES, type ExerciseId } from './exercises';
 import { arenaDelta, eloDelta, levelFromXp } from './progression';
 import { todayKey, uid } from './rng';
@@ -36,9 +36,15 @@ export interface FinishInput {
   oppReps?: number;
   oppTimeline?: number[];
   ranked: boolean;
+  queue?: Queue;
   dungeonId?: string;
   /** Aufgegeben → zählt als Niederlage */
   forfeit?: boolean;
+  /** Fester Ausgang (Dungeon: Boss besiegt oder nicht) */
+  outcome?: Result;
+  bossMaxHp?: number;
+  bossHpLeft?: number;
+  maxCombo?: number;
 }
 
 interface State {
@@ -127,25 +133,31 @@ export const useStore = create<State>()(
           const ex = EXERCISES[input.exercise];
           const active = input.reps > 0; // Anti-AFK: ohne Wiederholung keine Belohnung
           let result: Result | undefined;
-          if (input.oppReps != null) {
+          if (input.outcome) {
+            result = input.forfeit ? 'loss' : input.outcome;
+          } else if (input.oppReps != null) {
             result = input.forfeit ? 'loss' : input.reps > input.oppReps ? 'win' : input.reps < input.oppReps ? 'loss' : 'draw';
           }
           const score = result === 'win' ? 1 : result === 'draw' ? 0.5 : 0;
-          const isPvp = input.mode === 'pvp' && input.ranked;
-          const dElo = isPvp ? eloDelta(me.elo, input.oppElo ?? 1000, score) : 0;
-          const dArena = isPvp ? Math.max(-me.arenaPoints, arenaDelta(score, me.elo, input.oppElo ?? 1000)) : 0;
+          // Ranked: ELO + Rang-Punkte · Schnellkampf: nur Sieg/Niederlage · Eigenes Tempo: nichts
+          const queue = input.queue ?? 'ranked';
+          const isPvp = input.mode === 'pvp' && input.ranked && queue !== 'custom';
+          const isRanked = isPvp && queue === 'ranked';
+          const dElo = isRanked ? eloDelta(me.elo, input.oppElo ?? 1000, score) : 0;
+          const dArena = isRanked ? Math.max(-me.arenaPoints, arenaDelta(score, me.elo, input.oppElo ?? 1000)) : 0;
 
           let xp = 0, gold = 0, gems = 0, firstClear = false;
           if (active) {
             xp = Math.round(input.reps * ex.xpPerRep);
             gold = Math.round(input.reps / 4);
             if (input.mode === 'pvp' || input.mode === 'ghost') {
-              xp += result === 'win' ? 60 : result === 'draw' ? 35 : 20;
-              gold += result === 'win' ? 30 : 10;
+              const f = input.queue === 'custom' ? 0.5 : input.queue === 'casual' ? 0.8 : 1;
+              xp += Math.round((result === 'win' ? 60 : result === 'draw' ? 35 : 20) * f);
+              gold += Math.round((result === 'win' ? 30 : 10) * f);
             }
             if (input.mode === 'dungeon' && result === 'win') {
               const d = DUNGEONS.find((x) => x.id === input.dungeonId)!;
-              firstClear = !me.dungeonsCleared.includes(d.id);
+              firstClear = input.ranked && !me.dungeonsCleared.includes(d.id);
               const f = firstClear ? 1 : 0.4;
               xp += Math.round(d.xp * f);
               gold += Math.round(d.gold * f);
@@ -180,8 +192,12 @@ export const useStore = create<State>()(
             gold,
             gems,
             ranked: input.ranked,
+            queue: input.mode === 'pvp' ? queue : undefined,
             dungeonId: input.dungeonId,
             firstClear,
+            bossMaxHp: input.bossMaxHp,
+            bossHpLeft: input.bossHpLeft,
+            maxCombo: input.maxCombo,
             levelUp: after > before ? after : undefined,
           };
           patchMe((p) => ({

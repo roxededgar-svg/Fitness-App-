@@ -3,12 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { useMe, useStore } from '../lib/store';
 import { botPool, type Opponent } from '../lib/bots';
 import { todayKey } from '../lib/rng';
-import { levelFromXp, rankLabel } from '../lib/progression';
+import { levelFromXp, rankFor, rankLabel } from '../lib/progression';
 import { extractDuelCode } from '../lib/duel';
 import { PVP_EXERCISES, EXERCISES, type ExerciseId } from '../lib/exercises';
 import { useBattle } from '../lib/battle';
+import { tierPaceNorm } from '../lib/pace';
 import { Icon } from '../components/Icon';
-import { Sheet, flag, toast, TierShield } from '../components/ui';
+import { Flag, PageHeader, Section, Sheet, toast } from '../components/ui';
 
 type Tab = 'global' | 'land' | 'friends';
 type Row = Pick<Opponent, 'id' | 'name' | 'country' | 'elo' | 'arenaPoints' | 'level' | 'wins' | 'losses'> & { me?: boolean };
@@ -19,6 +20,7 @@ export function ArenaScreen() {
   const [tab, setTab] = useState<Tab>('global');
   const [friendsOpen, setFriendsOpen] = useState(false);
   const [challengeOpen, setChallengeOpen] = useState(false);
+  const [showAll, setShowAll] = useState(false);
 
   const rows = useMemo(() => {
     const mine: Row = { id: me.id, name: me.name, country: me.country, elo: me.elo, arenaPoints: me.arenaPoints, level: levelFromXp(me.xp).level, wins: me.wins, losses: me.losses, me: true };
@@ -29,76 +31,125 @@ export function ArenaScreen() {
     return list.sort((a, b) => b.arenaPoints - a.arenaPoints || b.elo - a.elo);
   }, [me, tab]);
 
+  const myIndex = rows.findIndex((r) => r.me);
+  const rank = rankFor(me.arenaPoints);
+  // Kompakte Rangliste: Top 10 + deine Umgebung, außer alles wird angezeigt
+  const visible = showAll || rows.length <= 12
+    ? rows.map((r, i) => ({ r, i }))
+    : [
+        ...rows.slice(0, 10).map((r, i) => ({ r, i })),
+        ...(myIndex >= 10 ? rows.slice(Math.max(10, myIndex - 1), myIndex + 2).map((r, k) => ({ r, i: Math.max(10, myIndex - 1) + k })) : []),
+      ];
+
   return (
     <div className="page">
-      <div className="page-head">
-        <div>
-          <div className="eyebrow caps">Arena</div>
-          <h1>PvP Arena</h1>
-        </div>
-        <button className="btn btn-ghost btn-sm" style={{ color: 'var(--blue)', marginRight: 70 }} onClick={() => setFriendsOpen(true)}>
-          <Icon name="users" size={20} /> Freunde
-        </button>
-      </div>
+      <PageHeader
+        eyebrow="Arena"
+        title="PvP Arena"
+        right={
+          <button className="btn btn-ghost btn-sm" style={{ color: 'var(--blue)' }} onClick={() => setFriendsOpen(true)}>
+            <Icon name="users" size={20} /> Freunde
+          </button>
+        }
+      />
 
+      {/* Rang-Übersicht */}
       <div className="card">
-        <div className="grid4 arena-stats">
-          <div className="box"><div className="l">ARENA-PUNKTE</div><div className="v blue">{me.arenaPoints}</div></div>
-          <div className="box"><div className="l">ELO</div><div className="v purple">{me.elo}</div></div>
-          <div className="box"><div className="l">SIEGE</div><div className="v green">{me.wins}</div></div>
-          <div className="box"><div className="l">NIEDERLAGEN</div><div className="v red">{me.losses}</div></div>
+        <div className="rank-summary">
+          <Icon name="shield" size={54} color={rank.tier.color} />
+          <div style={{ minWidth: 0 }}>
+            <div className="r-name">{rankLabel(me.arenaPoints)}</div>
+            <div className="r-sub">
+              {me.arenaPoints} Rang-Punkte{rank.next ? ` · noch ${rank.pointsToNext} bis zur nächsten Stufe` : ''}
+            </div>
+            {rank.next && <div className="rank-bar"><span style={{ width: `${rank.progress * 100}%`, background: rank.tier.color }} /></div>}
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <div className="caps muted" style={{ fontSize: 11 }}>Rang-Tempo*</div>
+            <div className="display gold" style={{ fontSize: 26 }}>{Math.round(tierPaceNorm(me.arenaPoints))}<span className="muted" style={{ fontSize: 13 }}> /Min</span></div>
+          </div>
         </div>
-        <div className="row" style={{ margin: '14px 4px', fontSize: 14 }}>
-          <TierShield points={me.arenaPoints} />
-          <span className="display">{rankLabel(me.arenaPoints)}</span>
+        <div className="stat-grid four" style={{ marginTop: 16 }}>
+          <div className="mini" style={{ background: 'var(--card2)' }}><div className="l">ELO</div><div className="v purple">{me.elo}</div></div>
+          <div className="mini" style={{ background: 'var(--card2)' }}><div className="l">Siege</div><div className="v green">{me.wins}</div></div>
+          <div className="mini" style={{ background: 'var(--card2)' }}><div className="l">Niederlagen</div><div className="v red">{me.losses}</div></div>
+          <div className="mini" style={{ background: 'var(--card2)' }}><div className="l">Platz</div><div className="v blue">#{myIndex + 1}</div></div>
         </div>
-        <button className="btn btn-primary solid" onClick={() => nav('/matchmaking')}>
-          <Icon name="bolt" size={22} /> Gegner suchen
-        </button>
       </div>
 
-      <div className="section-title">
-        <div className="caps">1v1 Duelle</div>
-        <button className="caps blue" style={{ fontSize: 13 }} onClick={() => setChallengeOpen(true)}>+ Herausfordern</button>
-      </div>
-      {me.friends.filter((f) => f.duel).length === 0 ? (
-        <div className="empty">
-          <Icon name="shield" size={34} color="#6b7085" />
-          <div style={{ marginTop: 10 }}>Keine offenen Duelle. Fordere einen Freund heraus!</div>
+      <Section title="Spielmodi">
+        <div className="tiles three">
+          <button className="tile primary" onClick={() => nav('/matchmaking?q=ranked')}>
+            <div className="t-ico"><Icon name="shield" size={24} /></div>
+            <div>
+              <div className="t-title">Ranked</div>
+              <div className="t-sub">Rang-Punkte & ELO · Gegner im Tempo deines Rangs · 60 s</div>
+            </div>
+          </button>
+          <button className="tile" onClick={() => nav('/matchmaking?q=casual')}>
+            <div className="t-ico" style={{ background: '#221d3a', color: 'var(--purple)' }}><Icon name="bolt" size={24} /></div>
+            <div>
+              <div className="t-title">Schnellkampf</div>
+              <div className="t-sub">Übung & Dauer frei wählbar · keine Rang-Punkte</div>
+            </div>
+          </button>
+          <button className="tile" onClick={() => nav('/matchmaking?q=custom')}>
+            <div className="t-ico" style={{ background: '#2a2108', color: 'var(--gold)' }}><Icon name="stopwatch" size={24} /></div>
+            <div>
+              <div className="t-title">Eigenes Tempo</div>
+              <div className="t-sub">Gegner-Tempo selbst einstellen · ungewertet</div>
+            </div>
+          </button>
         </div>
-      ) : (
-        <div className="board">
-          {me.friends.filter((f) => f.duel).map((f) => (
-            <div className="board-row" key={f.code}>
-              <div>
-                <div className="name">{flag(f.country)} {f.name}</div>
-                <div className="sub">Ghost-Duell verfügbar</div>
+      </Section>
+
+      <Section title="1v1 Duelle" action={<button className="section-link" onClick={() => setChallengeOpen(true)}>+ Herausfordern</button>}>
+        {me.friends.filter((f) => f.duel).length === 0 ? (
+          <div className="empty">
+            <Icon name="shield" size={30} color="#6b7085" />
+            <div style={{ marginTop: 8 }}>Keine offenen Duelle. Fordere einen Freund heraus!</div>
+          </div>
+        ) : (
+          <div className="board">
+            {me.friends.filter((f) => f.duel).map((f) => (
+              <div className="board-row" key={f.code}>
+                <div>
+                  <div className="name"><Flag cc={f.country} /> {f.name}</div>
+                  <div className="sub">Ghost-Duell verfügbar</div>
+                </div>
+                <button className="btn btn-purple btn-sm" style={{ marginLeft: 'auto' }} onClick={() => nav(`/duel?c=${f.duel}`)}>Antreten</button>
               </div>
-              <button className="btn btn-purple btn-sm" style={{ marginLeft: 'auto' }} onClick={() => nav(`/duel?c=${f.duel}`)}>Antreten</button>
+            ))}
+          </div>
+        )}
+      </Section>
+
+      <Section title="Rangliste" action={<span className="blue display" style={{ fontSize: 14 }}>{rows.length} Spieler</span>}>
+        <div className="tabs">
+          <button className={tab === 'global' ? 'on' : ''} onClick={() => setTab('global')}><Icon name="globe" size={18} />GLOBAL</button>
+          <button className={tab === 'land' ? 'on' : ''} onClick={() => setTab('land')}><Icon name="flag" size={18} /><Flag cc={me.country} size={14} /> LAND</button>
+          <button className={tab === 'friends' ? 'on' : ''} onClick={() => setTab('friends')}><Icon name="users" size={18} />FREUNDE</button>
+        </div>
+        <div className="board" style={{ marginTop: 12 }}>
+          {visible.map(({ r, i }, k) => (
+            <div key={r.id}>
+              {k > 0 && i - visible[k - 1].i > 1 && <div className="board-gap">···</div>}
+              <div className={`board-row ${r.me ? 'me' : ''}`}>
+                <div className={`pos p${i + 1}`}>{String(i + 1).padStart(2, '0')}</div>
+                <div style={{ minWidth: 0 }}>
+                  <div className="name"><Flag cc={r.country} /> {r.name} {r.me && <span className="me-tag">ME</span>}</div>
+                  <div className="sub">LVL {r.level} · {r.elo} ELO<span className="rk"> · {rankLabel(r.arenaPoints)}</span></div>
+                </div>
+                <div className="pts"><b>{r.arenaPoints}</b><small>{r.wins}W · {r.losses}L</small></div>
+              </div>
             </div>
           ))}
+          {rows.length > 12 && (
+            <button className="board-more" onClick={() => setShowAll(!showAll)}>{showAll ? 'Weniger anzeigen' : `Alle ${rows.length} anzeigen`}</button>
+          )}
         </div>
-      )}
-
-      <div className="tabs" style={{ marginTop: 26 }}>
-        <button className={tab === 'global' ? 'on' : ''} onClick={() => setTab('global')}><Icon name="globe" size={18} />GLOBAL</button>
-        <button className={tab === 'land' ? 'on' : ''} onClick={() => setTab('land')}><Icon name="flag" size={18} />{flag(me.country)} LAND</button>
-        <button className={tab === 'friends' ? 'on' : ''} onClick={() => setTab('friends')}><Icon name="users" size={18} />FREUNDE</button>
-      </div>
-
-      <div className="board" style={{ marginTop: 16 }}>
-        <div className="board-head"><span className="caps">Rangliste</span><span className="blue display">{rows.length}</span></div>
-        {rows.map((r, i) => (
-          <div key={r.id} className={`board-row ${r.me ? 'me' : ''}`}>
-            <div className={`pos p${i + 1}`}>{String(i + 1).padStart(2, '0')}</div>
-            <div style={{ minWidth: 0 }}>
-              <div className="name">{flag(r.country)} {r.name} {r.me && <span className="me-tag">ME</span>}</div>
-              <div className="sub">LVL {r.level} · {r.elo} ELO · {rankLabel(r.arenaPoints)}</div>
-            </div>
-            <div className="pts"><b>{r.arenaPoints}</b><small>{r.wins}W · {r.losses}L</small></div>
-          </div>
-        ))}
-      </div>
+        <div className="muted" style={{ fontSize: 12, marginTop: 10 }}>* Rang-Tempo im Liegestütz-Maßstab, andere Übungen werden umgerechnet.</div>
+      </Section>
 
       {friendsOpen && <FriendsSheet onClose={() => setFriendsOpen(false)} />}
       {challengeOpen && <ChallengeSheet onClose={() => setChallengeOpen(false)} />}
@@ -147,7 +198,7 @@ function FriendsSheet({ onClose }: { onClose: () => void }) {
       ) : (
         me.friends.map((f) => (
           <div className="history-row" key={f.code}>
-            <span style={{ fontSize: 22 }}>{flag(f.country)}</span>
+            <Flag cc={f.country} size={22} />
             <div style={{ flex: 1 }}>
               <div className="display">{f.name}</div>
               <div className="muted" style={{ fontSize: 12 }}>{f.code} · LVL {f.level} · {f.elo} ELO</div>

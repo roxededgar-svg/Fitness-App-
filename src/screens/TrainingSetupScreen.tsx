@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { EXERCISE_LIST, EXERCISES, type ExerciseId } from '../lib/exercises';
 import { useBattle } from '../lib/battle';
 import { useMe } from '../lib/store';
+import { paceTimeline, rpmForElo } from '../lib/bots';
 import { Icon } from '../components/Icon';
 
 const DURS: { s: number | null; label: string }[] = [
@@ -20,9 +21,19 @@ export function TrainingSetupScreen() {
   const [dur, setDur] = useState<number | null>(60);
   const [custom, setCustom] = useState(false);
   const [mins, setMins] = useState(3);
-  const [ghost, setGhost] = useState(false);
+  const [opp, setOpp] = useState<'solo' | 'bot' | 'pb'>('solo');
+  const [rpm, setRpm] = useState<number | null>(null);
   const effective = custom ? mins * 60 : dur;
   const pb = me.personalBests[ex];
+  const exo = EXERCISES[ex];
+  const botRpm = rpm ?? Math.round(exo.baseRpm);
+  const arenaRpm = Math.round(rpmForElo(ex, me.elo));
+  const presets = [
+    { label: 'Locker', v: Math.round(exo.baseRpm * 0.6) },
+    { label: 'Mittel', v: Math.round(exo.baseRpm) },
+    { label: 'Stark', v: Math.round(exo.baseRpm * 1.4) },
+    { label: 'Arena-Niveau', v: arenaRpm },
+  ];
   const pbSession = [...me.sessions].reverse().find((s) => s.exercise === ex && s.durationS === effective && s.reps === pb && s.timeline.length);
 
   return (
@@ -55,7 +66,7 @@ export function TrainingSetupScreen() {
         ))}
       </div>
       <button className={`choice ${custom ? 'on' : ''}`} style={{ width: '100%', marginTop: 12, textAlign: 'center' }} onClick={() => setCustom(true)}>
-        ✎ Eigene Zeit
+        <span className="ico-inline"><Icon name="edit" size={18} /> Eigene Zeit</span>
       </button>
       {custom && (
         <div className="row" style={{ marginTop: 12, justifyContent: 'center' }}>
@@ -65,18 +76,40 @@ export function TrainingSetupScreen() {
         </div>
       )}
 
-      {pbSession && (
-        <label className="card row" style={{ marginTop: 18, cursor: 'pointer' }}>
-          <input type="checkbox" checked={ghost} onChange={(e) => setGhost(e.target.checked)} style={{ width: 22, height: 22 }} />
-          <div>
-            <div className="display">👻 Gegen eigenen Bestwert antreten</div>
-            <div className="muted" style={{ fontSize: 13 }}>Dein Rekordlauf ({pb} {EXERCISES[ex].unit}) läuft als Gegner im Tauziehen-Balken mit.</div>
+      <div className="caps" style={{ fontSize: 14, margin: '28px 0 14px' }}>Gegner</div>
+      <div className="grid4" style={{ gridTemplateColumns: pbSession ? 'repeat(3,1fr)' : 'repeat(2,1fr)' }}>
+        <button className={`choice ${opp === 'solo' ? 'on' : ''}`} onClick={() => setOpp('solo')}>Solo<small>Nur du</small></button>
+        <button className={`choice ${opp === 'bot' ? 'on' : ''}`} onClick={() => setOpp('bot')}><span className="ico-inline"><Icon name="robot" size={20} /> Test-Bot</span><small>Tempo selbst einstellen</small></button>
+        {pbSession && <button className={`choice ${opp === 'pb' ? 'on' : ''}`} onClick={() => setOpp('pb')}><span className="ico-inline"><Icon name="ghost" size={20} /> Rekord</span><small>{pb} {exo.unit}</small></button>}
+      </div>
+
+      {opp === 'bot' && ex !== 'plank' && (
+        <div className="card" style={{ marginTop: 14 }}>
+          <div className="row">
+            <div className="caps" style={{ fontSize: 13 }}>Tempo des Bots</div>
+            <div className="spacer" />
+            <div className="display gold" style={{ fontSize: 26 }}>{botRpm}<span className="muted" style={{ fontSize: 14 }}> Wdh./Min</span></div>
           </div>
-        </label>
+          <input type="range" min={5} max={Math.round(exo.baseRpm * 2.5)} value={botRpm} onChange={(e) => setRpm(Number(e.target.value))}
+            style={{ width: '100%', margin: '18px 0 14px', accentColor: 'var(--gold)' }} />
+          <div className="grid4">
+            {presets.map((p) => (
+              <button key={p.label} className={`choice ${botRpm === p.v ? 'on' : ''}`} style={{ minHeight: 54, textAlign: 'center', fontSize: 14 }} onClick={() => setRpm(p.v)}>
+                {p.label}<small>{p.v}/Min</small>
+              </button>
+            ))}
+          </div>
+          <div className="muted" style={{ fontSize: 13, marginTop: 12 }}>
+            {effective
+              ? `Der Bot schafft ca. ${Math.round((botRpm * Math.max(0, effective - 1)) / 60)} ${exo.unit} in ${effective >= 60 ? `${effective / 60} Min` : `${effective} Sek`}. „Arena-Niveau“ entspricht Gegnern mit deiner ELO (${me.elo}).`
+              : 'Bei unbegrenzter Dauer läuft der Bot, bis du beendest.'}
+          </div>
+        </div>
       )}
+      {opp === 'bot' && ex === 'plank' && <div className="muted" style={{ marginTop: 10, fontSize: 13 }}>Für Plank gibt es keinen Test-Bot.</div>}
 
       <div className="card" style={{ marginTop: 18, fontSize: 14 }}>
-        <b>📷 Kamera-Tipp:</b> <span className="muted">{EXERCISES[ex].setup}</span>
+        <b className="ico-inline"><Icon name="camera" size={16} /> Kamera-Tipp:</b> <span className="muted">{EXERCISES[ex].setup}</span>
       </div>
 
       <div className="sticky-bottom">
@@ -91,7 +124,9 @@ export function TrainingSetupScreen() {
               exercise: ex,
               durationS: effective,
               ranked: true,
-              opponent: ghost && pbSession && effective
+              opponent: opp === 'bot' && ex !== 'plank'
+                ? { id: 'testbot', name: 'Test-Bot', country: '', elo: 0, arenaPoints: 0, level: 0, wins: 0, losses: 0, kind: 'bot', color: '#f5a524', tier: `${botRpm} Wdh./Min`, timeline: paceTimeline(botRpm, effective ?? 1800, Date.now()) }
+                : opp === 'pb' && pbSession && effective
                 ? { id: 'pb', name: 'Dein Rekord', country: me.country, elo: me.elo, arenaPoints: me.arenaPoints, level: 0, wins: 0, losses: 0, kind: 'ghost', avatar: me.avatar, color: '#a855f7', timeline: pbSession.timeline, tier: 'Ghost' }
                 : undefined,
             });
