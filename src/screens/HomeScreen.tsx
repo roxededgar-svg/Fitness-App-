@@ -54,7 +54,7 @@ export function HomeScreen() {
       <div style={{ marginTop: 28 }}><WeekChart data={weekStats(me.sessions)} /></div>
 
       <div className="grid2" style={{ marginTop: 22 }}>
-        <button className="action-card blue" onClick={() => nav('/matchmaking')}>
+        <button className="action-card blue" onClick={() => nav('/matchmaking?q=casual')}>
           <div className="ico"><Icon name="bolt" size={34} /></div>
           <h3>Schnellkampf</h3>
           <p>Match · 1 vs 1</p>

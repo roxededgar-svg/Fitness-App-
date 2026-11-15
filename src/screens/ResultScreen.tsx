@@ -5,6 +5,7 @@ import { useMe } from '../lib/store';
 import { EXERCISES } from '../lib/exercises';
 import { rankFor, rankLabel } from '../lib/progression';
 import { botTimeline } from '../lib/bots';
+import { humanTimeline, sessionRpm } from '../lib/pace';
 import { DUNGEONS } from '../lib/dungeons';
 import { duelUrl, encodeDuel } from '../lib/duel';
 import { levelFromXp } from '../lib/progression';
@@ -61,11 +62,13 @@ export function ResultScreen() {
   if (!r && config.challenge) title = 'DUELL AUFGEZEICHNET';
 
   function rematch(newOpp: boolean) {
-    if (config.mode === 'pvp' && newOpp) return nav('/matchmaking', { replace: true });
+    if (config.mode === 'pvp' && newOpp) return nav(`/matchmaking?q=${config.queue ?? 'casual'}`, { replace: true });
     const o = config.opponent;
     start({
       ...config,
-      opponent: o && o.kind === 'bot' && o.id !== 'testbot' ? { ...o, timeline: botTimeline(config.exercise, o.elo, config.durationS ?? 60, Date.now()) } : o,
+      opponent: o && o.kind === 'bot' && o.id !== 'testbot'
+        ? { ...o, timeline: o.rpm ? humanTimeline(o.rpm, config.durationS ?? 60, Date.now()) : botTimeline(config.exercise, o.elo, config.durationS ?? 60, Date.now()) }
+        : o,
     });
     nav('/battle', { replace: true });
   }
@@ -81,12 +84,20 @@ export function ResultScreen() {
       <div className="score">{rec.reps}{rec.oppReps != null && <> <span style={{ color: 'var(--muted)' }}>·</span> {rec.oppReps}</>}</div>
       <div className="muted" style={{ textAlign: 'center', marginBottom: 26, fontSize: 17 }}>
         {rec.oppName ? `vs ${rec.oppName}` : `${ex.name} · ${rec.durationS}s`}
+        {rec.queue === 'casual' && ' · Schnellkampf'}
+        {rec.queue === 'custom' && ' · Eigenes Tempo'}
         {!rec.ranked && ' · ungewertet'}
         {rec.reps === 0 && ' · Keine Wiederholungen → keine Belohnung'}
       </div>
 
       <div className="card stack">
-        {rec.mode === 'pvp' && rec.ranked && (
+        {rec.durationS >= 10 && rec.exercise !== 'plank' && (
+          <div className="row" style={{ justifyContent: 'center', gap: 28, fontSize: 15 }}>
+            <span>Dein Tempo: <b className="blue">{Math.round(sessionRpm(rec))} Wdh./Min</b></span>
+            {rec.oppReps != null && <span>Gegner: <b className="red">{Math.round((rec.oppReps / rec.durationS) * 60)} Wdh./Min</b></span>}
+          </div>
+        )}
+        {rec.mode === 'pvp' && rec.ranked && rec.queue !== 'casual' && rec.queue !== 'custom' && (
           <div className="grid2">
             <div style={{ textAlign: 'center' }}>
               <div className="caps muted" style={{ fontSize: 12 }}>ELO</div>
@@ -130,7 +141,7 @@ export function ResultScreen() {
           <div className="reward-row"><Icon name="star" size={24} color="var(--blue)" />XP erhalten<b className="blue">+{rec.xp}</b></div>
           <div className="reward-row"><span style={{ fontSize: 22 }}>🪙</span>Gold erhalten<b className="gold">+{rec.gold}</b></div>
         </div>
-        {(rec.mode === 'pvp' && rec.ranked) && (
+        {(rec.mode === 'pvp' && rec.ranked && (rec.queue ?? 'ranked') === 'ranked') && (
           <div className="reward-row"><Icon name="trophy" size={24} color={(rec.arenaDelta ?? 0) >= 0 ? 'var(--green)' : 'var(--red)'} />Arena-Punkte
             <b style={{ color: (rec.arenaDelta ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>{(rec.arenaDelta ?? 0) >= 0 ? '+' : ''}{rec.arenaDelta}</b></div>
         )}

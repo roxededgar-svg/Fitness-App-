@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { useMe, useStore } from '../lib/store';
-import { levelFromXp, rankFor } from '../lib/progression';
+import { levelFromXp, rankFor, TIERS } from '../lib/progression';
+import { bestPaceNorm, recentPaceNorm, TIER_PACE } from '../lib/pace';
 import { BADGES } from '../lib/badges';
 import { EXERCISES, EXERCISE_LIST } from '../lib/exercises';
 import { Icon } from '../components/Icon';
@@ -25,6 +26,9 @@ export function CareerScreen() {
   const update = useStore((s) => s.updateProfile);
   const fileRef = useRef<HTMLInputElement>(null);
   const [badgesOpen, setBadgesOpen] = useState(false);
+  const [ladderOpen, setLadderOpen] = useState(false);
+  const best = bestPaceNorm(me);
+  const recentPace = recentPaceNorm(me);
   const [editName, setEditName] = useState(false);
   const [name, setName] = useState(me.name);
   const lv = levelFromXp(me.xp).level;
@@ -91,7 +95,7 @@ export function CareerScreen() {
       </div>
 
       <div className="grid2" style={{ marginTop: 22 }}>
-        <div className="action-card blue" style={{ minHeight: 220 }}>
+        <button className="action-card blue" style={{ minHeight: 220 }} onClick={() => setLadderOpen(true)}>
           <div className="ico" style={{ background: 'none' }}><Icon name="shield" size={70} color={rank.tier.color} /></div>
           <p style={{ color: '#fff', fontWeight: 800 }}>Rangliste</p>
           <h3 style={{ marginTop: 4 }}>{rank.tier.name}</h3>
@@ -102,7 +106,8 @@ export function CareerScreen() {
               <p style={{ marginTop: 6, letterSpacing: '.08em' }}>Noch {rank.pointsToNext} bis zum Aufstieg</p>
             </>
           )}
-        </div>
+          <p style={{ marginTop: 6, letterSpacing: '.08em', color: '#fff' }}>Rang-Tempo {TIER_PACE[rank.tier.id]} Wdh./Min* · Leiter ›</p>
+        </button>
         <button className="action-card dark" style={{ minHeight: 220 }} onClick={() => setBadgesOpen(true)}>
           <div className="ico" style={{ fontSize: 34 }}>🏅</div>
           <p className="purple" style={{ fontWeight: 800 }}>Abzeichen</p>
@@ -147,9 +152,42 @@ export function CareerScreen() {
         ))}
       </div>
 
+      {ladderOpen && (
+        <Sheet title="RANG-LEITER" onClose={() => setLadderOpen(false)}>
+          <div className="grid2" style={{ marginBottom: 16 }}>
+            <div className="card stat-card"><div className="label caps">Dein Bestwert-Tempo*</div><div className="value gold">{best ? Math.round(best) : '–'}</div></div>
+            <div className="card stat-card"><div className="label caps">Ø Ranked-Tempo*</div><div className="value blue">{recentPace ? Math.round(recentPace) : '–'}</div></div>
+          </div>
+          <div className="board">
+            {[...TIERS].reverse().map((t) => {
+              const current = rank.tier.id === t.id;
+              const reached = me.arenaPoints >= t.min;
+              return (
+                <div key={t.id} className={`board-row ${current ? 'me' : ''}`} style={{ opacity: reached || current ? 1 : 0.6 }}>
+                  <Icon name="shield" size={30} color={t.color} />
+                  <div>
+                    <div className="name">{t.name} {current && <span className="me-tag">DU</span>}</div>
+                    <div className="sub">ab {t.min} Punkten{t.id !== 'legend' ? ' · Divisionen IV–I' : ''}</div>
+                  </div>
+                  <div className="pts">
+                    <b style={{ color: best >= TIER_PACE[t.id] ? 'var(--green)' : 'var(--gold)' }}>{TIER_PACE[t.id]}</b>
+                    <small>Wdh./Min*</small>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="muted" style={{ fontSize: 13, marginTop: 14, lineHeight: 1.5 }}>
+            Im Ranked-Modus laufen deine Gegner ungefähr im Tempo deines Rangs – gemischt mit deinem eigenen Ø-Tempo, damit es immer knapp bleibt.
+            Steigst du auf, werden die Gegner schneller. Grün = Tempo hast du schon einmal erreicht.
+            <br />* Liegestütz-Maßstab. Andere Übungen werden umgerechnet (z. B. Jumping Jacks sind von Natur aus schneller).
+          </div>
+        </Sheet>
+      )}
+
       {badgesOpen && (
         <Sheet title="ABZEICHEN" onClose={() => setBadgesOpen(false)}>
-          <div className="muted" style={{ marginBottom: 16 }}>Tippe auf freigeschaltete Abzeichen, um bis zu 6 Favoriten zu wählen.</div>
+          <div className="muted" style={{ marginBottom: 16 }}>Tippe auf freigeschaltete Abzeichen, um bis zu 6 Favoriten zu wählen. Tempo-Abzeichen (*) zählen im Liegestütz-Maßstab, gemessen in gewerteten Einheiten ab 30 s.</div>
           <div className="badge-grid">
             {BADGES.map((b) => {
               const has = b.earned(me);

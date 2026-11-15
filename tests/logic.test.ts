@@ -104,3 +104,35 @@ describe('Test-Bot-Tempo', () => {
     expect(n).toBeLessThanOrEqual(31);
   });
 });
+
+import { fromNorm, humanTimeline, rankedOpponentRpm, tierPaceNorm, toNorm } from '../src/lib/pace';
+import type { Profile } from '../src/lib/types';
+
+describe('Tempo & Ranked', () => {
+  const profile = (arenaPoints: number, sessions: SessionRecord[] = []) =>
+    ({ arenaPoints, sessions } as unknown as Profile);
+  const ranked = (reps: number): SessionRecord => ({ id: String(reps), ts: Date.now(), mode: 'pvp', queue: 'ranked', exercise: 'pushup', reps, durationS: 60, timeline: [], xp: 0, gold: 0, gems: 0, ranked: true });
+
+  it('höherer Rang = schnelleres Ziel-Tempo', () => {
+    expect(tierPaceNorm(0)).toBe(18);
+    expect(tierPaceNorm(900)).toBeGreaterThan(tierPaceNorm(450));
+    expect(tierPaceNorm(5000)).toBe(48);
+  });
+  it('Umrechnung zwischen Übungen ist umkehrbar', () => {
+    expect(fromNorm('jumpingjack', toNorm('jumpingjack', 55))).toBeCloseTo(55);
+    expect(toNorm('pushup', 32)).toBe(32);
+  });
+  it('Ranked-Gegner passt sich dem eigenen Tempo an', () => {
+    const slow = rankedOpponentRpm('pushup', profile(0, [ranked(10), ranked(12)]));
+    const fast = rankedOpponentRpm('pushup', profile(0, [ranked(40), ranked(42)]));
+    expect(fast).toBeGreaterThan(slow);
+    expect(rankedOpponentRpm('pushup', profile(0))).toBeCloseTo(18);
+  });
+  it('humanTimeline erreicht ungefähr das Ziel-Tempo', () => {
+    for (const seed of [1, 2, 3]) {
+      const n = humanTimeline(30, 60, seed).length;
+      expect(n).toBeGreaterThanOrEqual(25);
+      expect(n).toBeLessThanOrEqual(34);
+    }
+  });
+});

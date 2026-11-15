@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import type { ExerciseId } from './exercises';
-import type { Mode, SessionRecord } from './types';
+import type { Mode, Queue, SessionRecord } from './types';
 import type { Opponent } from './bots';
 
 export interface BattleConfig {
@@ -8,7 +8,9 @@ export interface BattleConfig {
   exercise: ExerciseId;
   /** null = unbegrenzt (nur freies Training) */
   durationS: number | null;
-  opponent?: Opponent & { timeline: number[]; tier?: string };
+  opponent?: Opponent & { timeline: number[]; tier?: string; rpm?: number };
+  /** Arena-Modus (nur mode 'pvp') */
+  queue?: Queue;
   dungeonId?: string;
   /** Dungeon: Wiederholungen bis der Boss fällt */
   bossHp?: number;

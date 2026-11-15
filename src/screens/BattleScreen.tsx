@@ -19,6 +19,7 @@ const fmt = (ms: number) => {
 };
 
 const MODE_TITLE = { pvp: '1 vs 1', dungeon: 'BOSSKAMPF', training: 'TRAINING', ghost: 'FREUNDES-DUELL' } as const;
+const QUEUE_TITLE = { ranked: 'RANKED', casual: 'SCHNELLKAMPF', custom: 'EIGENES TEMPO' } as const;
 
 export function BattleScreen() {
   const config = useBattle((s) => s.config);
@@ -166,6 +167,7 @@ function Battle() {
         bossHpLeft: isBoss ? Math.round(b.hp) : undefined,
         maxCombo: isBoss ? maxComboRef.current : undefined,
         ranked,
+        queue: config.queue,
         dungeonId: config.dungeonId,
         forfeit,
       });
@@ -244,7 +246,7 @@ function Battle() {
             </div>
           </div>
           <div className="timer-box">
-            <div className="mode">{MODE_TITLE[config.mode]} · {config.durationS ? `${config.durationS} SEK` : '∞'}</div>
+            <div className="mode">{config.mode === 'pvp' && config.queue ? QUEUE_TITLE[config.queue] : MODE_TITLE[config.mode]} · {config.durationS ? `${config.durationS} SEK` : '∞'}</div>
             <div className={`timer ${hot ? 'hot' : ''}`}>{phase === 'setup' || phase === 'countdown' ? fmt(durMs ?? 0) : fmt(remaining)}</div>
           </div>
           {opp ? (

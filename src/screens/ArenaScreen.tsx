@@ -7,6 +7,7 @@ import { levelFromXp, rankLabel } from '../lib/progression';
 import { extractDuelCode } from '../lib/duel';
 import { PVP_EXERCISES, EXERCISES, type ExerciseId } from '../lib/exercises';
 import { useBattle } from '../lib/battle';
+import { tierPaceNorm } from '../lib/pace';
 import { Icon } from '../components/Icon';
 import { Sheet, flag, toast, TierShield } from '../components/ui';
 
@@ -51,10 +52,22 @@ export function ArenaScreen() {
         <div className="row" style={{ margin: '14px 4px', fontSize: 14 }}>
           <TierShield points={me.arenaPoints} />
           <span className="display">{rankLabel(me.arenaPoints)}</span>
+          <span className="spacer" />
+          <span className="muted">Rang-Tempo: <b className="gold">{Math.round(tierPaceNorm(me.arenaPoints))} Wdh./Min</b>*</span>
         </div>
-        <button className="btn btn-primary solid" onClick={() => nav('/matchmaking')}>
-          <Icon name="bolt" size={22} /> Gegner suchen
+        <button className="btn btn-primary solid" onClick={() => nav('/matchmaking?q=ranked')}>
+          <Icon name="shield" size={22} /> Ranked spielen
         </button>
+        <div className="grid2" style={{ marginTop: 12 }}>
+          <button className="btn btn-ghost" onClick={() => nav('/matchmaking?q=casual')} style={{ flexDirection: 'column', gap: 2, minHeight: 64 }}>
+            <span><Icon name="bolt" size={16} color="var(--purple)" /> Schnellkampf</span>
+            <small className="muted" style={{ fontFamily: 'var(--body)', letterSpacing: 0, textTransform: 'none', fontWeight: 500, fontSize: 12 }}>Locker, ohne Rang-Punkte</small>
+          </button>
+          <button className="btn btn-ghost" onClick={() => nav('/matchmaking?q=custom')} style={{ flexDirection: 'column', gap: 2, minHeight: 64 }}>
+            <span>⏱️ Eigenes Tempo</span>
+            <small className="muted" style={{ fontFamily: 'var(--body)', letterSpacing: 0, textTransform: 'none', fontWeight: 500, fontSize: 12 }}>Gegner-Tempo selbst wählen</small>
+          </button>
+        </div>
       </div>
 
       <div className="section-title">

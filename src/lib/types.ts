@@ -3,6 +3,8 @@ import type { Sensitivity } from '../pose/counters';
 
 export type Mode = 'pvp' | 'dungeon' | 'training' | 'ghost';
 export type Result = 'win' | 'loss' | 'draw';
+/** Arena-Modus: Ranked (Rang & ELO), Schnellkampf (locker), Eigenes Tempo (Gegner-Tempo selbst gewählt) */
+export type Queue = 'ranked' | 'casual' | 'custom';
 
 export interface SessionRecord {
   id: string;
@@ -25,6 +27,7 @@ export interface SessionRecord {
   gold: number;
   gems: number;
   ranked: boolean;
+  queue?: Queue;
   dungeonId?: string;
   firstClear?: boolean;
   /** Dungeon: maximale und verbleibende Boss-HP */
