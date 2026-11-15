@@ -46,6 +46,15 @@ export function TrainingSetupScreen() {
         </div>
       </div>
 
+      <button className="card plan-cta" style={{ marginBottom: 22, width: '100%' }} onClick={() => nav('/plans')}>
+        <Icon name="calendar" size={26} color="var(--gold)" />
+        <div style={{ textAlign: 'left', flex: 1 }}>
+          <div className="display" style={{ fontSize: 17 }}>Trainingspläne</div>
+          <div className="muted" style={{ fontSize: 13 }}>Geführte Einheiten mit Sätzen und Pausen-Timer</div>
+        </div>
+        <Icon name="back" size={18} style={{ transform: 'rotate(180deg)' }} />
+      </button>
+
       <div className="caps" style={{ fontSize: 14, marginBottom: 14 }}>Übung wählen</div>
       <div className="grid2">
         {EXERCISE_LIST.map((e, i) => (
@@ -101,7 +110,7 @@ export function TrainingSetupScreen() {
           </div>
           <div className="muted" style={{ fontSize: 13, marginTop: 12 }}>
             {effective
-              ? `Der Bot schafft ca. ${Math.round((botRpm * Math.max(0, effective - 1)) / 60)} ${exo.unit} in ${effective >= 60 ? `${effective / 60} Min` : `${effective} Sek`}. „Arena-Niveau“ entspricht Gegnern mit deiner ELO (${me.elo}).`
+              ? `Der Bot schafft ca. ${Math.round((botRpm * Math.max(0, effective - 1)) / 60)} ${exo.unit} in ${effective >= 60 ? `${effective / 60} Min` : `${effective} Sek`}. „Arena-Niveau“ entspricht deinen Arena-Gegnern.`
               : 'Bei unbegrenzter Dauer läuft der Bot, bis du beendest.'}
           </div>
         </div>

@@ -1,6 +1,6 @@
 // Copies the MediaPipe WASM runtime into /public and downloads the pose model once,
 // so the app works offline / without third-party CDNs at runtime.
-import { cpSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -12,8 +12,10 @@ const MODEL_URL =
   'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task';
 
 if (existsSync(wasmSrc)) {
+  // Nur die Variante kopieren, die FilesetResolver.forVisionTasks() lädt (spart ~14 MB)
+  rmSync(wasmDst, { recursive: true, force: true });
   mkdirSync(wasmDst, { recursive: true });
-  cpSync(wasmSrc, wasmDst, { recursive: true });
+  for (const f of ['vision_wasm_internal.js', 'vision_wasm_internal.wasm']) copyFileSync(join(wasmSrc, f), join(wasmDst, f));
   console.log('[assets] MediaPipe WASM kopiert');
 }
 

@@ -1,6 +1,8 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { Icon } from './Icon';
+import { useMe } from '../lib/store';
+import { itemById } from '../lib/shop';
 import { rankFor } from '../lib/progression';
 
 export const COUNTRY_NAMES: Record<string, string> = {
@@ -74,6 +76,19 @@ export function Avatar({ src, name, size = 56, color = '#3f7bfa', ring }: { src?
   );
   if (!ring) return inner;
   return <div className="av-ring" style={{ background: ring }}>{inner}</div>;
+}
+
+/** Dein eigener Avatar mit ausgerüstetem Shop-Rahmen */
+export function MyAvatar({ size = 56, ring = 'var(--blue)' }: { size?: number; ring?: string }) {
+  const me = useMe();
+  if (!me) return null;
+  const frame = itemById(me.equipped?.frame);
+  const r = frame?.ring ?? ring;
+  return (
+    <div className={`av-ring ${frame ? 'framed' : ''} ${frame?.animated ? 'frame-anim' : ''}`} style={{ background: r, padding: frame ? Math.max(3, size / 22) : 3 }}>
+      <Avatar src={me.avatar} name={me.name} size={size} />
+    </div>
+  );
 }
 
 export function TierShield({ points, size = 22 }: { points: number; size?: number }) {

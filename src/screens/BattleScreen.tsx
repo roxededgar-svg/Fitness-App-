@@ -7,7 +7,7 @@ import { repsAt } from '../lib/bots';
 import { rankFor } from '../lib/progression';
 import { usePoseTracker } from '../pose/usePoseTracker';
 import { sfx, unlockAudio } from '../lib/feedback';
-import { Avatar, TugBar } from '../components/ui';
+import { Avatar, MyAvatar, TugBar } from '../components/ui';
 import { applyRegen, applyRep, comboWindowMs, createBoss, type BossState } from '../lib/boss';
 import { Icon } from '../components/Icon';
 import { RankEmblem } from '../components/RankEmblem';
@@ -238,8 +238,8 @@ function Battle() {
       <div className="hud" style={{ pointerEvents: 'none' }}>
         <div className="players">
           <div className="player">
-            <div className="av-ring" style={{ background: 'var(--blue)' }}>
-              <Avatar src={me.avatar} name={me.name} size={58} />
+            <div style={{ position: 'relative' }}>
+              <MyAvatar size={58} />
               <div className="tier-emblem"><RankEmblem tier={myRank.tier} size={30} glow={false} /></div>
             </div>
             <div style={{ minWidth: 0 }}>

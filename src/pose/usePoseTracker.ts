@@ -45,6 +45,7 @@ export function usePoseTracker(opts: Options) {
     let raf = 0;
     let cancelled = false;
     let lastUi = 0;
+    let lastDetect = 0;
 
     async function start() {
       if (!navigator.mediaDevices?.getUserMedia) {
@@ -77,6 +78,9 @@ export function usePoseTracker(opts: Options) {
           const now = performance.now();
           let lms = null;
           try {
+            // ~30 Erkennungen pro Sekunde reichen zum Zählen und schonen Akku/Wärme
+            if (now - lastDetect < 32) return;
+            lastDetect = now;
             lms = detect(engine, video);
           } catch {
             return;

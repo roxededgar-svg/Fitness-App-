@@ -8,8 +8,8 @@ export function sessionsOn(p: Profile, key: string) {
 }
 
 /** Tage in Folge mit mindestens einer Einheit (heute oder gestern muss dabei sein). */
-export function streak(sessions: SessionRecord[], now = new Date()): number {
-  const days = new Set(sessions.filter((s) => s.reps > 0).map((s) => dayOf(s.ts)));
+export function streak(sessions: SessionRecord[], now = new Date(), frozenDays: string[] = []): number {
+  const days = new Set([...sessions.filter((s) => s.reps > 0).map((s) => dayOf(s.ts)), ...frozenDays]);
   const d = new Date(now);
   if (!days.has(todayKey(d))) d.setDate(d.getDate() - 1);
   let n = 0;
@@ -39,7 +39,21 @@ export function weekStats(sessions: SessionRecord[], now = new Date()) {
   });
 }
 
+/** Gesamtwerte: gespeicherte Lebenszeit-Summe, sonst aus dem Verlauf berechnet */
 export function totals(p: Profile) {
+  const fromSessions = sessionTotals(p);
+  const l = p.lifetime;
+  if (!l) return fromSessions;
+  return {
+    reps: Math.max(l.reps, fromSessions.reps),
+    best: Math.max(l.best, fromSessions.best),
+    trainings: Math.max(l.trainings, fromSessions.trainings),
+    pvp: Math.max(l.pvp, fromSessions.pvp),
+    dungeons: Math.max(l.dungeons, fromSessions.dungeons),
+  };
+}
+
+export function sessionTotals(p: Pick<Profile, 'sessions'>) {
   let reps = 0, best = 0, trainings = 0, pvp = 0, dungeons = 0;
   for (const s of p.sessions) {
     reps += s.exercise === 'plank' ? 0 : s.reps;

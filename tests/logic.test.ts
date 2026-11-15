@@ -225,3 +225,26 @@ describe('Pfad-Kampf speichert Sterne', () => {
     expect(rec.xp).toBeGreaterThan(0);
   });
 });
+
+import { recommend, GOALS, FITNESS } from '../src/lib/goals';
+import { planById } from '../src/lib/plans';
+import { fluxTip, weekDaysTrained } from '../src/lib/tips';
+
+describe('Einführung & Flux', () => {
+  it('jede Kombination aus Ziel und Fitness ergibt einen gültigen Plan', () => {
+    for (const g of GOALS) for (const f of FITNESS) {
+      const r = recommend(g.id, f.id);
+      expect(planById(r.planId)).toBeDefined();
+      expect(r.startMax).toBeGreaterThan(0);
+    }
+  });
+  it('Profis starten höher als Einsteiger', () => {
+    expect(recommend('muscle', 'advanced').startMax).toBeGreaterThan(recommend('muscle', 'beginner').startMax);
+  });
+  it('Tipp lobt nach Training und zählt Wochentage', () => {
+    const now = new Date();
+    const p = { sessions: [{ id: 'a', ts: now.getTime(), mode: 'training', exercise: 'squat', reps: 20, durationS: 60, timeline: [], xp: 0, gold: 0, gems: 0, ranked: true }], perWeek: 3, goal: 'lose' } as unknown as Profile;
+    expect(weekDaysTrained(p, now)).toBe(1);
+    expect(fluxTip(p, now).text).toContain('20 Wiederholungen');
+  });
+});

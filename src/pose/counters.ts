@@ -89,7 +89,7 @@ const emptyFrame = (reps: number): CounterFrame => ({ reps, tracking: false, dep
 interface AngleSpec {
   joints: Joint[];
   /** Messwert (meist ein Winkel). null = Haltung ungültig (z. B. nicht waagrecht). */
-  measure(lms: Lm[], side: Side, aspect: number): { value: number; hint?: string } | null;
+  measure(lms: Lm[], side: Side, aspect: number): { value: number; hint?: string; alt?: number } | null;
   /** Wert in der Startposition (oben). */
   up: number;
   /** Wert in der Endposition (unten). */
@@ -111,6 +111,9 @@ class AngleCounter implements RepCounter {
   private maxDepth = 0;
   private hint: string | null = null;
   private hintUntil = 0;
+  /** Selbst-Kalibrierung: tiefste gemessene Startposition (raw), passt sich langsam an */
+  private topRef: number | null = null;
+  private lostSince: number | null = null;
 
   constructor(
     readonly exercise: ExerciseId,
@@ -124,6 +127,8 @@ class AngleCounter implements RepCounter {
     this.smooth = null;
     this.lastRep = -Infinity;
     this.maxDepth = 0;
+    this.topRef = null;
+    this.lostSince = null;
   }
 
   private setHint(h: string, t: number) {
@@ -131,23 +136,48 @@ class AngleCounter implements RepCounter {
     this.hintUntil = t + 1500;
   }
 
+  /** Beide Körperseiten messen, wenn sichtbar, und mitteln (stabiler als eine Seite) */
+  private measureBoth(lms: Lm[], aspect: number) {
+    const sideScore = (sd: Side) => Math.min(...this.spec.joints.map((jn) => vis(lms[SIDE_IDX[sd][jn]])));
+    const sides = (['l', 'r'] as Side[]).filter((sd) => sideScore(sd) >= MIN_VIS);
+    if (!sides.length) {
+      const { side, ok } = bestSide(lms, this.spec.joints);
+      if (!ok) return undefined;
+      sides.push(side);
+    }
+    const ms = sides.map((sd) => this.spec.measure(lms, sd, aspect)).filter((m): m is NonNullable<typeof m> => !!m);
+    if (!ms.length) return null;
+    const value = ms.reduce((a, m) => a + m.value, 0) / ms.length;
+    const alts = ms.map((m) => m.alt).filter((a): a is number => a != null);
+    return { value, alt: alts.length ? alts.reduce((a, b) => a + b, 0) / alts.length : undefined, hint: ms.find((m) => m.hint)?.hint };
+  }
+
   update(lms: Lm[] | null, t: number, aspect = 1): CounterFrame {
     if (t > this.hintUntil) this.hint = null;
-    if (!lms) return { ...emptyFrame(this.reps), hint: this.hint };
-    const { side, ok } = bestSide(lms, this.spec.joints);
-    if (!ok) return { ...emptyFrame(this.reps), hint: 'Ganzen Körper ins Bild' };
-    const m = this.spec.measure(lms, side, aspect);
-    if (!m) return { ...emptyFrame(this.reps), tracking: true, hint: this.hint };
+    const keep = (tracking: boolean, hint: string | null): CounterFrame => ({ reps: this.reps, tracking, depth: 0, hint, repped: false });
+    if (!lms) return keep(false, this.hint);
+    const m = this.measureBoth(lms, aspect);
+    if (m === undefined) {
+      // kurze Aussetzer überbrücken – der Zählzustand bleibt erhalten
+      this.lostSince ??= t;
+      return keep(false, t - this.lostSince > 800 ? 'Ganzen Körper ins Bild' : this.hint);
+    }
+    this.lostSince = null;
+    if (!m) return keep(true, this.hint);
     if (m.hint) this.setHint(m.hint, t);
 
     this.smooth = this.smooth == null ? m.value : this.smooth * 0.45 + m.value * 0.55;
     const s = SENS[this.sens];
     const span = this.spec.up - this.spec.down;
-    // raw: 0 = Startposition, 1 = volle Tiefe (kann darüber/darunter liegen)
-    const raw = (this.spec.up - this.smooth) / span;
+    // raw: 0 = Startposition, 1 = volle Tiefe. Zweites Signal (z. B. Hüfthöhe) hilft bei frontaler Kamera.
+    const angleRaw = (this.spec.up - this.smooth) / span;
+    const raw = m.alt != null ? Math.max(angleRaw, m.alt) : angleRaw;
     const depth = Math.max(0, Math.min(1, raw));
+    // Selbst-Kalibrierung der Startposition: wer z. B. die Knie oben nicht ganz streckt, wird trotzdem gezählt
+    if (this.topRef == null || raw < this.topRef) this.topRef = raw;
+    else this.topRef += (raw - this.topRef) * 0.002;
     const downAt = 1 - s * 0.12;
-    const upAt = 0.12 + s * 0.08;
+    const upAt = Math.min(0.45, Math.max(0.12 + s * 0.08, this.topRef + 0.15));
     let repped = false;
 
     if (this.phase === 'up') {
@@ -176,6 +206,7 @@ const isHorizontal = (lms: Lm[], side: Side, aspect: number, max = 40) =>
   tilt(j(lms, side, 's'), j(lms, side, 'h'), aspect) < max;
 
 function squatSpec(): AngleSpec {
+  const legRef: Record<Side, number> = { l: 0, r: 0 };
   return {
     joints: ['h', 'k', 'a', 's'],
     up: 165,
@@ -185,7 +216,13 @@ function squatSpec(): AngleSpec {
     measure(lms, side, aspect) {
       // Oberkörper muss eher aufrecht sein (keine Liegestütz-Position)
       if (tilt(j(lms, side, 's'), j(lms, side, 'h'), aspect) < 40) return null;
-      return { value: angle(j(lms, side, 'h'), j(lms, side, 'k'), j(lms, side, 'a'), aspect) };
+      const H = pt(j(lms, side, 'h'), aspect), K = pt(j(lms, side, 'k'), aspect), A = pt(j(lms, side, 'a'), aspect);
+      const len = Math.hypot(H.x - K.x, H.y - K.y) + Math.hypot(K.x - A.x, K.y - A.y);
+      legRef[side] = Math.max(len, legRef[side] * 0.995);
+      // Hüfthöhe über dem Knöchel relativ zur Beinlänge: stehend ≈ 0,95, tiefe Hocke ≈ 0,5 (funktioniert auch frontal)
+      const h = legRef[side] > 0.02 ? (A.y - H.y) / legRef[side] : 1;
+      const alt = Math.max(-0.3, Math.min(1.3, (0.92 - h) / (0.92 - 0.52)));
+      return { value: angle(j(lms, side, 'h'), j(lms, side, 'k'), j(lms, side, 'a'), aspect), alt };
     },
   };
 }

@@ -123,3 +123,54 @@ describe('Plank-Zähler', () => {
     expect(run('plank', frames, 100).reps).toBeGreaterThanOrEqual(5);
   });
 });
+
+describe('Kniebeugen robust', () => {
+  it('zählt auch ohne ganz gestreckte Knie oben (Selbst-Kalibrierung)', () => {
+    const one = [...sweep(150, 85), ...sweep(85, 150)];
+    expect(run('squat', [...one, ...one, ...one].map(squat)).reps).toBe(3);
+  });
+  it('zählt halbe Kniebeugen nicht', () => {
+    const half = [...sweep(175, 140), ...sweep(140, 175)];
+    expect(run('squat', [...half, ...half].map(squat)).reps).toBe(0);
+  });
+  it('zählt frontal: Hüfte sinkt, Kniewinkel ändert sich im Bild kaum', () => {
+    // depth 0 = stehend, 1 = tiefe Hocke; Knie wandern seitlich, Winkel bleibt fast gerade
+    const front = (d: number) => {
+      const hipY = 0.5 + d * 0.2;
+      const kneeY = 0.7 + d * 0.03;
+      return pose({
+        lShoulder: [0.44, hipY - 0.25], rShoulder: [0.56, hipY - 0.25],
+        lHip: [0.46, hipY], rHip: [0.54, hipY],
+        lKnee: [0.44 - d * 0.02, kneeY], rKnee: [0.56 + d * 0.02, kneeY],
+        lAnkle: [0.45, 0.9], rAnkle: [0.55, 0.9],
+      });
+    };
+    const one = [...sweep(0, 1), ...sweep(1, 0)];
+    expect(run('squat', [...one, ...one].map(front)).reps).toBe(2);
+  });
+  it('übersteht kurze Erkennungsaussetzer', () => {
+    const c = createCounter('squat');
+    let t = 0;
+    const feed = (f: Lm[]) => c.update(f, (t += 60));
+    sweep(175, 85).forEach((a) => feed(squat(a)));
+    feed(pose({}));
+    feed(pose({}));
+    const last = sweep(85, 175).map((a) => feed(squat(a))).pop()!;
+    expect(last.reps).toBe(1);
+  });
+});
+
+describe('Sit-ups', () => {
+  const situp = (hipAngle: number) => {
+    // liegend: Schulter links auf Bodenhöhe, Knie angewinkelt rechts
+    const h: [number, number] = [0.5, 0.7];
+    const k: [number, number] = [0.65, 0.55];
+    const a0 = Math.atan2(k[1] - h[1], k[0] - h[0]);
+    const a = a0 + (hipAngle * Math.PI) / 180;
+    return pose({ lHip: h, lKnee: k, lShoulder: [h[0] + Math.cos(a) * 0.2, h[1] + Math.sin(a) * 0.2], lAnkle: [0.8, 0.7] });
+  };
+  it('zählt volle Sit-ups', () => {
+    const one = [...sweep(150, 55), ...sweep(55, 150)];
+    expect(run('situp', [...one, ...one].map(situp)).reps).toBe(2);
+  });
+});

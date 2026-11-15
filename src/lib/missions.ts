@@ -18,7 +18,7 @@ const repsOf = (ex: ExerciseId) => (s: SessionRecord[]) =>
 export const MISSION_POOL: MissionDef[] = [
   { id: 'squat100', title: '100 Kniebeugen', target: 100, xp: 80, gold: 40, progress: repsOf('squat') },
   { id: 'push50', title: '50 Liegestütze', target: 50, xp: 80, gold: 40, progress: repsOf('pushup') },
-  { id: 'dungeon1', title: '1 Dungeon abschließen', target: 1, xp: 150, gold: 80, progress: (s) => s.filter((x) => x.mode === 'dungeon' && x.result === 'win').length },
+  { id: 'dungeon1', title: '1 Pfad-Kampf gewinnen', target: 1, xp: 150, gold: 80, progress: (s) => s.filter((x) => x.mode === 'dungeon' && x.result === 'win').length },
   { id: 'pvpwin1', title: '1 Arena-Sieg', target: 1, xp: 120, gold: 60, progress: (s) => s.filter((x) => x.mode === 'pvp' && x.result === 'win').length },
   { id: 'pvp3', title: '3 Arena-Kämpfe', target: 3, xp: 100, gold: 50, progress: (s) => s.filter((x) => x.mode === 'pvp' && x.reps > 0).length },
   { id: 'jj80', title: '80 Jumping Jacks', target: 80, xp: 70, gold: 35, progress: repsOf('jumpingjack') },
