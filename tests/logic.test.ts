@@ -59,3 +59,48 @@ describe('Streak', () => {
     expect(streak([s(3)])).toBe(0);
   });
 });
+
+import { applyRegen, applyRep, createBoss } from '../src/lib/boss';
+import { paceTimeline } from '../src/lib/bots';
+
+describe('Bosskampf', () => {
+  it('jede Wiederholung macht Schaden, Combo erhöht ihn', () => {
+    let b = createBoss(10);
+    expect(b.maxHp).toBe(1000);
+    const r1 = applyRep(b, 1000, 2000);
+    expect(r1.hit.dmg).toBe(100);
+    const r2 = applyRep(r1.state, 2500, 2000);
+    expect(r2.hit.combo).toBe(2);
+    expect(r2.hit.dmg).toBeGreaterThan(100);
+    // nach langer Pause: Combo weg
+    const r3 = applyRep(r2.state, 9000, 2000);
+    expect(r3.hit.combo).toBe(1);
+    b = r3.state;
+    expect(b.hp).toBeLessThan(1000 - 300 + 1);
+  });
+
+  it('Boss fällt nach genug Wiederholungen', () => {
+    let b = createBoss(12);
+    let t = 0;
+    for (let i = 0; i < 12 && b.hp > 0; i++) b = applyRep(b, (t += 1500), 2000).state;
+    expect(b.hp).toBe(0);
+  });
+
+  it('Boss regeneriert bei Pause, aber nicht über Max-HP', () => {
+    let b = applyRep(createBoss(10), 1000, 2000).state;
+    expect(applyRegen(b, 2000, 100).healed).toBe(0);
+    const r = applyRegen(b, 6000, 1000);
+    expect(r.healed).toBeGreaterThan(0);
+    b = r.state;
+    for (let i = 0; i < 500; i++) b = applyRegen(b, 6000 + i * 100, 100).state;
+    expect(b.hp).toBe(b.maxHp);
+  });
+});
+
+describe('Test-Bot-Tempo', () => {
+  it('liefert ungefähr das eingestellte Tempo', () => {
+    const n = paceTimeline(30, 60, 7).length;
+    expect(n).toBeGreaterThanOrEqual(27);
+    expect(n).toBeLessThanOrEqual(31);
+  });
+});

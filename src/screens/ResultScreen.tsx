@@ -56,7 +56,7 @@ export function ResultScreen() {
   let title = 'TRAINING BEENDET';
   let color = 'var(--blue)';
   if (r === 'win') { title = config.mode === 'dungeon' ? 'BOSS BESIEGT' : 'SIEG'; color = 'var(--green)'; }
-  if (r === 'loss') { title = 'NIEDERLAGE'; color = 'var(--red)'; }
+  if (r === 'loss') { title = config.mode === 'dungeon' ? 'BOSS ENTKOMMEN' : 'NIEDERLAGE'; color = 'var(--red)'; }
   if (r === 'draw') { title = 'UNENTSCHIEDEN'; color = 'var(--gold)'; }
   if (!r && config.challenge) title = 'DUELL AUFGEZEICHNET';
 
@@ -65,7 +65,7 @@ export function ResultScreen() {
     const o = config.opponent;
     start({
       ...config,
-      opponent: o && o.kind !== 'ghost' ? { ...o, timeline: botTimeline(config.exercise, o.elo, config.durationS ?? 60, Date.now()) } : o,
+      opponent: o && o.kind === 'bot' && o.id !== 'testbot' ? { ...o, timeline: botTimeline(config.exercise, o.elo, config.durationS ?? 60, Date.now()) } : o,
     });
     nav('/battle', { replace: true });
   }
@@ -103,6 +103,23 @@ export function ResultScreen() {
               )}
               <div className="rank-bar"><span style={{ width: `${(barW ?? 0) * 100}%`, background: after.tier.color }} /></div>
               {after.next && <div className="muted" style={{ fontSize: 12, marginTop: 6 }}>Noch {after.pointsToNext} Punkte bis zur nächsten Stufe</div>}
+            </div>
+          </div>
+        )}
+        {dungeon && rec.bossMaxHp != null && (
+          <div>
+            <div className="row" style={{ fontSize: 14 }}>
+              <span className="caps muted" style={{ fontSize: 12 }}>{dungeon.boss}</span>
+              <div className="spacer" />
+              <span className="display">{rec.bossHpLeft} / {rec.bossMaxHp} HP</span>
+            </div>
+            <div className="rank-bar" style={{ height: 14 }}>
+              <span style={{ width: `${((rec.bossHpLeft ?? 0) / rec.bossMaxHp) * 100}%`, background: 'linear-gradient(90deg,#b91c1c,#ef4444)' }} />
+            </div>
+            <div className="row muted" style={{ fontSize: 13, marginTop: 8 }}>
+              <span>Schaden: <b style={{ color: 'var(--text)' }}>{rec.bossMaxHp - (rec.bossHpLeft ?? 0)}</b></span>
+              <span>Beste Combo: <b className="gold">x{rec.maxCombo ?? 0}</b></span>
+              {r === 'loss' && <span>Noch {Math.ceil((rec.bossHpLeft ?? 0) / 100)} Wdh. gefehlt</span>}
             </div>
           </div>
         )}

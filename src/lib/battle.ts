@@ -10,6 +10,8 @@ export interface BattleConfig {
   durationS: number | null;
   opponent?: Opponent & { timeline: number[]; tier?: string };
   dungeonId?: string;
+  /** Dungeon: Wiederholungen bis der Boss fällt */
+  bossHp?: number;
   ranked: boolean;
   /** Lauf wird als teilbares Duell aufgezeichnet */
   challenge?: boolean;

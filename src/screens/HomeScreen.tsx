@@ -57,7 +57,7 @@ export function HomeScreen() {
         <button className="action-card blue" onClick={() => nav('/matchmaking')}>
           <div className="ico"><Icon name="bolt" size={34} /></div>
           <h3>Schnellkampf</h3>
-          <p>Match · 60s</p>
+          <p>Match · 1 vs 1</p>
         </button>
         <button className="action-card dark" onClick={() => nav('/training')}>
           <div className="ico"><Icon name="dumbbell" size={34} /></div>

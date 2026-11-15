@@ -297,7 +297,7 @@ button:disabled { cursor: not-allowed; }
 .setup-card { pointer-events: auto; max-width: 560px; background: rgba(14,15,21,.92); border: 1px solid var(--line); border-radius: 20px; padding: 24px; backdrop-filter: blur(10px); }
 
 /* ---------- Matchmaking ---------- */
-.mm { position: fixed; inset: 0; z-index: 40; background: radial-gradient(ellipse at center, #0d1730 0%, var(--bg) 70%); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 30px; padding: 24px; text-align: center; }
+.mm { position: fixed; inset: 0; z-index: 40; background: radial-gradient(ellipse at center, #0d1730 0%, var(--bg) 70%); display: flex; flex-direction: column; align-items: center; justify-content: safe center; overflow-y: auto; gap: 30px; padding: 24px; text-align: center; }
 .radar { width: 220px; height: 220px; border-radius: 50%; border: 2px solid rgba(63,123,250,.4); position: relative; display: grid; place-items: center; }
 .radar::before, .radar::after { content: ''; position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--blue); animation: ripple 1.6s ease-out infinite; }
 .radar::after { animation-delay: .8s; }
@@ -336,3 +336,13 @@ button:disabled { cursor: not-allowed; }
 .seg { display: flex; background: #181a24; border-radius: 10px; padding: 3px; gap: 3px; }
 .seg button { padding: 8px 12px; border-radius: 8px; font-size: 13px; font-weight: 700; color: var(--muted); }
 .seg button.on { background: var(--blue); color: #fff; }
+
+/* ---------- Bosskampf & Tempo ---------- */
+.boss-bar { position: relative; height: 26px; margin-top: 16px; border-radius: 12px; background: #2a1215; overflow: hidden; box-shadow: 0 0 24px rgba(239,68,68,.35), inset 0 0 0 1px rgba(255,255,255,.08); }
+.boss-hp { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(90deg, #b91c1c, #ef4444 60%, #f97316); transition: width .35s cubic-bezier(.2,.9,.25,1.1); }
+.boss-hp-label { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--display); font-weight: 900; font-size: 14px; letter-spacing: .1em; text-shadow: 0 1px 4px #000; }
+.pace { font-size: 13px; letter-spacing: .12em; color: #c7cad8; margin-top: 6px; font-weight: 700; }
+.hit-layer { position: absolute; inset: 0; z-index: 3; pointer-events: none; overflow: hidden; }
+.hit { position: absolute; top: 34%; font-family: var(--display); font-weight: 900; font-size: clamp(28px, 5vw, 46px); color: #fff; text-shadow: 0 0 18px rgba(239,68,68,.9), 0 2px 0 #000; animation: hitUp .9s ease-out forwards; }
+.hit.crit { color: var(--gold); font-size: clamp(38px, 7vw, 64px); text-shadow: 0 0 24px rgba(245,165,36,.9), 0 2px 0 #000; }
+@keyframes hitUp { 0% { transform: translateY(20px) scale(.6); opacity: 0; } 20% { transform: translateY(0) scale(1.15); opacity: 1; } 100% { transform: translateY(-90px) scale(1); opacity: 0; } }

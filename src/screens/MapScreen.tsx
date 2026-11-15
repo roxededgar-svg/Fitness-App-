@@ -4,7 +4,6 @@ import { useMe } from '../lib/store';
 import { DUNGEONS, RARITY_COLOR } from '../lib/dungeons';
 import { levelFromXp } from '../lib/progression';
 import { EXERCISES } from '../lib/exercises';
-import { botTimeline } from '../lib/bots';
 import { useBattle } from '../lib/battle';
 import { Icon } from '../components/Icon';
 
@@ -41,7 +40,7 @@ export function MapScreen() {
               <div className="boss">
                 <Icon name="skull" size={22} color="var(--red)" />
                 <span>{d.boss}</span>
-                <span className="muted" style={{ fontSize: 14 }}>· {EXERCISES[d.exercise].name} · {d.duration}s</span>
+                <span className="muted" style={{ fontSize: 14 }}>· {EXERCISES[d.exercise].name} · {d.hp * 100} HP · {d.duration}s</span>
                 <div className="spacer" />
                 <span className="chip" style={{ color: d.elementColor, borderColor: d.elementColor }}>{d.element}</span>
               </div>
@@ -61,11 +60,12 @@ export function MapScreen() {
                     exercise: d.exercise,
                     durationS: d.duration,
                     dungeonId: d.id,
+                    bossHp: d.hp,
                     ranked: true,
                     opponent: {
                       id: d.id, name: d.boss, country: '', elo: d.bossElo, arenaPoints: 0, level: d.minLevel + 2,
                       wins: 0, losses: 0, kind: 'boss', color: d.elementColor, tier: d.element,
-                      timeline: botTimeline(d.exercise, d.bossElo, d.duration, Date.now()),
+                      timeline: [],
                     },
                   });
                   nav('/battle');

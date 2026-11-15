@@ -39,6 +39,11 @@ export interface FinishInput {
   dungeonId?: string;
   /** Aufgegeben → zählt als Niederlage */
   forfeit?: boolean;
+  /** Fester Ausgang (Dungeon: Boss besiegt oder nicht) */
+  outcome?: Result;
+  bossMaxHp?: number;
+  bossHpLeft?: number;
+  maxCombo?: number;
 }
 
 interface State {
@@ -127,7 +132,9 @@ export const useStore = create<State>()(
           const ex = EXERCISES[input.exercise];
           const active = input.reps > 0; // Anti-AFK: ohne Wiederholung keine Belohnung
           let result: Result | undefined;
-          if (input.oppReps != null) {
+          if (input.outcome) {
+            result = input.forfeit ? 'loss' : input.outcome;
+          } else if (input.oppReps != null) {
             result = input.forfeit ? 'loss' : input.reps > input.oppReps ? 'win' : input.reps < input.oppReps ? 'loss' : 'draw';
           }
           const score = result === 'win' ? 1 : result === 'draw' ? 0.5 : 0;
@@ -145,7 +152,7 @@ export const useStore = create<State>()(
             }
             if (input.mode === 'dungeon' && result === 'win') {
               const d = DUNGEONS.find((x) => x.id === input.dungeonId)!;
-              firstClear = !me.dungeonsCleared.includes(d.id);
+              firstClear = input.ranked && !me.dungeonsCleared.includes(d.id);
               const f = firstClear ? 1 : 0.4;
               xp += Math.round(d.xp * f);
               gold += Math.round(d.gold * f);
@@ -182,6 +189,9 @@ export const useStore = create<State>()(
             ranked: input.ranked,
             dungeonId: input.dungeonId,
             firstClear,
+            bossMaxHp: input.bossMaxHp,
+            bossHpLeft: input.bossHpLeft,
+            maxCombo: input.maxCombo,
             levelUp: after > before ? after : undefined,
           };
           patchMe((p) => ({

@@ -9,7 +9,7 @@ import { rankFor, rankLabel } from '../lib/progression';
 import { Avatar, flag } from '../components/ui';
 import { Icon } from '../components/Icon';
 
-const DURATION = 60;
+const DURATIONS = [30, 60, 90, 120];
 
 export function MatchmakingScreen() {
   const me = useMe()!;
@@ -20,6 +20,7 @@ export function MatchmakingScreen() {
   const [phase, setPhase] = useState<'choose' | 'search' | 'found'>('choose');
   const [opp, setOpp] = useState<Opponent | null>(null);
   const [ex, setEx] = useState<ExerciseId>('pushup');
+  const [dur, setDur] = useState(60);
 
   useEffect(() => {
     if (phase !== 'search') return;
@@ -36,20 +37,25 @@ export function MatchmakingScreen() {
       start({
         mode: 'pvp',
         exercise: ex,
-        durationS: DURATION,
+        durationS: dur,
         ranked: true,
-        opponent: { ...opp, timeline: botTimeline(ex, opp.elo, DURATION, Date.now()), tier: rankFor(opp.arenaPoints).tier.name },
+        opponent: { ...opp, timeline: botTimeline(ex, opp.elo, dur, Date.now()), tier: rankFor(opp.arenaPoints).tier.name },
       });
       nav('/battle', { replace: true });
     }, 2600);
     return () => clearTimeout(t);
-  }, [phase, opp, ex, nav, start]);
+  }, [phase, opp, ex, dur, nav, start]);
 
   if (phase === 'choose') {
     return (
       <div className="mm">
         <div className="display" style={{ fontSize: 34, letterSpacing: '.12em' }}>SCHNELLKAMPF</div>
-        <div className="muted">1 vs 1 · {DURATION} Sekunden · Wer mehr Wiederholungen schafft, gewinnt</div>
+        <div className="muted">1 vs 1 · Wer in der Zeit mehr Wiederholungen schafft, gewinnt</div>
+        <div className="dur-grid" style={{ width: '100%', maxWidth: 640 }}>
+          {DURATIONS.map((d) => (
+            <button key={d} className={`choice ${dur === d ? 'on blue' : ''}`} onClick={() => setDur(d)}>{d < 60 ? `${d} SEK` : d === 60 ? '1 MIN' : `${d / 60} MIN`}</button>
+          ))}
+        </div>
         <div className="grid2" style={{ width: '100%', maxWidth: 640 }}>
           <button className={`choice ${pick === 'random' ? 'on blue' : ''}`} style={{ gridColumn: '1 / -1', textAlign: 'center' }} onClick={() => setPick('random')}>🎲 Zufällige Übung</button>
           {PVP_EXERCISES.map((id) => (
@@ -73,7 +79,7 @@ export function MatchmakingScreen() {
         <div className="radar"><Avatar src={me.avatar} name={me.name} size={110} /></div>
         <div>
           <div className="display" style={{ fontSize: 28, letterSpacing: '.15em' }}>SUCHE GEGNER…</div>
-          <div className="muted" style={{ marginTop: 8 }}>{EXERCISES[ex].name} · ELO {me.elo} ± 120</div>
+          <div className="muted" style={{ marginTop: 8 }}>{EXERCISES[ex].name} · {dur}s · ELO {me.elo} ± 120</div>
         </div>
         <button className="btn btn-ghost btn-sm" onClick={() => setPhase('choose')}>Abbrechen</button>
       </div>

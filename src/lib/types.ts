@@ -27,6 +27,10 @@ export interface SessionRecord {
   ranked: boolean;
   dungeonId?: string;
   firstClear?: boolean;
+  /** Dungeon: maximale und verbleibende Boss-HP */
+  bossMaxHp?: number;
+  bossHpLeft?: number;
+  maxCombo?: number;
   levelUp?: number;
 }
 
