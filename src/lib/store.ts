@@ -7,6 +7,7 @@ import { todayKey, uid } from './rng';
 import { dailyMissions } from './missions';
 import { DUNGEONS } from './dungeons';
 import { syncBadgeDates } from './badges';
+import { nodeById, starsFor } from './path';
 
 async function sha256(s: string) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
@@ -43,6 +44,10 @@ export interface FinishInput {
   forfeit?: boolean;
   /** Fester Ausgang (Dungeon: Boss besiegt oder nicht) */
   outcome?: Result;
+  /** Trainingspfad-Station */
+  pathNodeId?: string;
+  /** Anteil der Restzeit beim Sieg (0..1) → Sterne */
+  timeLeft?: number;
   bossMaxHp?: number;
   bossHpLeft?: number;
   maxCombo?: number;
@@ -64,6 +69,8 @@ interface State {
   resetProgress(): void;
   /** Erhalt-Daten für bereits verdiente Abzeichen nachtragen (z. B. für bestehende Profile) */
   syncBadges(): void;
+  /** Schatzkiste auf dem Pfad öffnen; gibt Belohnung zurück */
+  openChest(nodeId: string): { xp: number; gold: number; gems: number } | null;
 }
 
 const findByEmail = (profiles: Record<string, Profile>, email: string) =>
@@ -159,12 +166,14 @@ export const useStore = create<State>()(
               gold += Math.round((result === 'win' ? 30 : 10) * f);
             }
             if (input.mode === 'dungeon' && result === 'win') {
-              const d = DUNGEONS.find((x) => x.id === input.dungeonId)!;
-              firstClear = input.ranked && !me.dungeonsCleared.includes(d.id);
+              const node = input.pathNodeId ? nodeById(input.pathNodeId) : undefined;
+              const d = DUNGEONS.find((x) => x.id === input.dungeonId);
+              const reward = node ?? d!;
+              firstClear = input.ranked && (node ? !me.path?.[node.id] && !(node.kind === 'boss' && me.dungeonsCleared.includes(node.worldId)) : !me.dungeonsCleared.includes(d!.id));
               const f = firstClear ? 1 : 0.4;
-              xp += Math.round(d.xp * f);
-              gold += Math.round(d.gold * f);
-              gems += firstClear ? d.gems : 0;
+              xp += Math.round(reward.xp * f);
+              gold += Math.round(reward.gold * f);
+              gems += firstClear ? reward.gems : 0;
             }
           }
           if (!input.ranked) {
@@ -201,6 +210,8 @@ export const useStore = create<State>()(
             bossMaxHp: input.bossMaxHp,
             bossHpLeft: input.bossHpLeft,
             maxCombo: input.maxCombo,
+            pathNodeId: input.pathNodeId,
+            stars: input.pathNodeId && result === 'win' && input.ranked ? starsFor(input.timeLeft ?? 0) : undefined,
             levelUp: after > before ? after : undefined,
           };
           patchMe((p) => ({
@@ -215,15 +226,24 @@ export const useStore = create<State>()(
             draws: p.draws + (isPvp && result === 'draw' ? 1 : 0),
             sessions: [...p.sessions, rec].slice(-500),
             dungeonsCleared:
-              firstClear && input.dungeonId && input.ranked ? [...p.dungeonsCleared, input.dungeonId] : p.dungeonsCleared,
+              result === 'win' && input.dungeonId && input.ranked && !p.dungeonsCleared.includes(input.dungeonId) ? [...p.dungeonsCleared, input.dungeonId] : p.dungeonsCleared,
+            path:
+              rec.stars && input.pathNodeId
+                ? { ...(p.path ?? {}), [input.pathNodeId]: { stars: Math.max(rec.stars, p.path?.[input.pathNodeId]?.stars ?? 0), clearedAt: p.path?.[input.pathNodeId]?.clearedAt ?? Date.now() } }
+                : p.path,
             personalBests:
               input.ranked && input.reps > (p.personalBests[input.exercise] ?? 0) && input.durationS > 0
                 ? { ...p.personalBests, [input.exercise]: input.reps }
                 : p.personalBests,
           }));
-          // Neu erreichte Abzeichen festhalten
+          // Neu erreichte Abzeichen festhalten. Abzeichen, die schon VOR dem Kampf
+          // verdient waren (z. B. bei älteren Profilen ohne Datum), zählen nicht als neu.
+          const baseline = syncBadgeDates(me).badgeDates;
           const updated = get().profiles[get().currentId!];
-          const { badgeDates, added } = syncBadgeDates(updated);
+          const { badgeDates, added } = syncBadgeDates({ ...updated, badgeDates: baseline });
+          if (!added.length && Object.keys(baseline).length !== Object.keys(me.badgeDates ?? {}).length) {
+            patchMe((p) => ({ ...p, badgeDates }));
+          }
           if (added.length) {
             rec.newBadges = added;
             patchMe((p) => ({
@@ -233,6 +253,21 @@ export const useStore = create<State>()(
             }));
           }
           return rec;
+        },
+
+        openChest(nodeId) {
+          const node = nodeById(nodeId);
+          const me = get().profiles[get().currentId!];
+          if (!node || node.kind !== 'chest' || me.path?.[nodeId]) return null;
+          const reward = { xp: node.xp, gold: node.gold, gems: node.gems };
+          patchMe((p) => ({
+            ...p,
+            xp: p.xp + reward.xp,
+            gold: p.gold + reward.gold,
+            gems: p.gems + reward.gems,
+            path: { ...(p.path ?? {}), [nodeId]: { stars: 0, clearedAt: Date.now() } },
+          }));
+          return reward;
         },
 
         syncBadges() {

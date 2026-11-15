@@ -76,8 +76,9 @@ export function ResultScreen() {
 
   let title = 'TRAINING BEENDET';
   let color = 'var(--blue)';
-  if (r === 'win') { title = config.mode === 'dungeon' ? 'BOSS BESIEGT' : 'SIEG'; color = 'var(--green)'; }
-  if (r === 'loss') { title = config.mode === 'dungeon' ? 'BOSS ENTKOMMEN' : 'NIEDERLAGE'; color = 'var(--red)'; }
+  const isPathFight = !!rec.pathNodeId && !rec.dungeonId;
+  if (r === 'win') { title = config.mode === 'dungeon' ? (isPathFight ? 'BESIEGT' : 'BOSS BESIEGT') : 'SIEG'; color = 'var(--green)'; }
+  if (r === 'loss') { title = config.mode === 'dungeon' ? (isPathFight ? 'ENTKOMMEN' : 'BOSS ENTKOMMEN') : 'NIEDERLAGE'; color = 'var(--red)'; }
   if (r === 'draw') { title = 'UNENTSCHIEDEN'; color = 'var(--gold)'; }
   if (!r && config.challenge) title = 'DUELL AUFGEZEICHNET';
 
@@ -140,10 +141,10 @@ export function ResultScreen() {
             </div>
           </div>
         )}
-        {dungeon && rec.bossMaxHp != null && (
+        {rec.bossMaxHp != null && (
           <div>
             <div className="row" style={{ fontSize: 14 }}>
-              <span className="caps muted" style={{ fontSize: 12 }}>{dungeon.boss}</span>
+              <span className="caps muted" style={{ fontSize: 12 }}>{rec.oppName}</span>
               <div className="spacer" />
               <span className="display">{rec.bossHpLeft} / {rec.bossMaxHp} HP</span>
             </div>
@@ -155,6 +156,15 @@ export function ResultScreen() {
               <span>Beste Combo: <b className="gold">x{rec.maxCombo ?? 0}</b></span>
               {r === 'loss' && <span>Noch {Math.ceil((rec.bossHpLeft ?? 0) / 100)} Wdh. gefehlt</span>}
             </div>
+          </div>
+        )}
+        {rec.stars != null && (
+          <div className="result-stars">
+            {[0, 1, 2].map((i) => (
+              <svg key={i} width={i === 1 ? 64 : 50} height={i === 1 ? 64 : 50} viewBox="0 0 24 24" style={{ animationDelay: `${0.3 + i * 0.25}s` }} className={i < (rec.stars ?? 0) ? 'on' : ''}>
+                <path d="M12 2l3 7h7l-5.5 4.5 2 7.5L12 17l-6.5 4 2-7.5L2 9h7z" fill={i < (rec.stars ?? 0) ? '#ffd23f' : '#2a2d3a'} stroke={i < (rec.stars ?? 0) ? '#8a5a00' : '#3d4152'} strokeWidth="1" />
+              </svg>
+            ))}
           </div>
         )}
         {dungeon && r === 'win' && rec.firstClear && (
@@ -196,7 +206,7 @@ export function ResultScreen() {
             <button className="btn btn-ghost" onClick={() => rematch(true)}>Neuer Gegner</button>
           ) : (
             <button className="btn btn-ghost" onClick={() => (config.opponent ? nav(config.mode === 'dungeon' ? '/map' : '/', { replace: true }) : rematch(false))}>
-              {config.opponent ? (config.mode === 'dungeon' ? 'Weltkarte' : 'Zurück') : 'Nochmal'}
+              {config.opponent ? (config.mode === 'dungeon' ? 'Zum Pfad' : 'Zurück') : 'Nochmal'}
             </button>
           )}
           <button className="btn btn-ghost" onClick={() => shareOrCopy(shareText, duelCode ? duelUrl(duelCode) : undefined)}>Ergebnis teilen</button>

@@ -8,12 +8,14 @@ export interface BattleConfig {
   exercise: ExerciseId;
   /** null = unbegrenzt (nur freies Training) */
   durationS: number | null;
-  opponent?: Opponent & { timeline: number[]; tier?: string; rpm?: number };
+  opponent?: Opponent & { timeline: number[]; tier?: string; rpm?: number; icon?: string };
   /** Arena-Modus (nur mode 'pvp') */
   queue?: Queue;
   dungeonId?: string;
   /** Dungeon: Wiederholungen bis der Boss fällt */
   bossHp?: number;
+  /** Station auf dem Trainingspfad */
+  pathNodeId?: string;
   ranked: boolean;
   /** Lauf wird als teilbares Duell aufgezeichnet */
   challenge?: boolean;

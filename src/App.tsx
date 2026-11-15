@@ -16,7 +16,7 @@ import { DuelScreen } from './screens/DuelScreen';
 
 const NAV = [
   { to: '/', label: 'Start', icon: 'home' },
-  { to: '/map', label: 'Karte', icon: 'map' },
+  { to: '/map', label: 'Pfad', icon: 'map' },
   { to: '/arena', label: 'Arena', icon: 'bolt' },
   { to: '/career', label: 'Karriere', icon: 'user' },
 ];

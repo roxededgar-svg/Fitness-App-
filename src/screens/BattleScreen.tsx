@@ -167,6 +167,8 @@ function Battle() {
         bossMaxHp: isBoss ? b.maxHp : undefined,
         bossHpLeft: isBoss ? Math.round(b.hp) : undefined,
         maxCombo: isBoss ? maxComboRef.current : undefined,
+        pathNodeId: config.pathNodeId,
+        timeLeft: durMs ? Math.max(0, (durMs - e) / durMs) : 0,
         ranked,
         queue: config.queue,
         dungeonId: config.dungeonId,
@@ -247,14 +249,14 @@ function Battle() {
             </div>
           </div>
           <div className="timer-box">
-            <div className="mode">{config.mode === 'pvp' && config.queue ? QUEUE_TITLE[config.queue] : MODE_TITLE[config.mode]} · {config.durationS ? `${config.durationS} SEK` : '∞'}</div>
+            <div className="mode">{config.mode === 'pvp' && config.queue ? QUEUE_TITLE[config.queue] : config.pathNodeId && !config.dungeonId ? 'MONSTERKAMPF' : MODE_TITLE[config.mode]} · {config.durationS ? `${config.durationS} SEK` : '∞'}</div>
             <div className={`timer ${hot ? 'hot' : ''}`}>{phase === 'setup' || phase === 'countdown' ? fmt(durMs ?? 0) : fmt(remaining)}</div>
           </div>
           {opp ? (
             <div className="player right">
               <div className="av-ring" style={{ background: 'var(--red)' }}>
                 {opp.kind === 'boss' ? (
-                  <div className="avatar" style={{ width: 58, height: 58, background: '#2a0f12' }}><Icon name="skull" size={32} color="var(--red)" /></div>
+                  <div className="avatar" style={{ width: 58, height: 58, background: `${opp.color ?? '#ef4444'}26` }}><Icon name={opp.icon ?? 'skull'} size={32} color={opp.color ?? 'var(--red)'} /></div>
                 ) : (
                   <Avatar src={opp.avatar} name={opp.name} size={58} color={opp.color} />
                 )}
@@ -351,7 +353,7 @@ function Battle() {
             )}
             {isBoss && (
               <div className="gold" style={{ fontSize: 14, marginBottom: 14 }}>
-                Jede Wiederholung trifft {opp?.name}. Besiege ihn in {config.durationS}s! Schnelle Wiederholungen bauen eine Combo auf –
+                Jede Wiederholung trifft {opp?.name}. Besiege den Gegner in {config.durationS}s! Schnelle Wiederholungen bauen eine Combo auf –
                 wer länger als 3 s pausiert, lässt den Boss heilen.
               </div>
             )}

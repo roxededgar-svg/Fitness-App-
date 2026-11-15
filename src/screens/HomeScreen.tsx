@@ -3,7 +3,7 @@ import { useMe, useStore } from '../lib/store';
 import { levelFromXp, rankFor, rankLabel } from '../lib/progression';
 import { streak, totals, weekStats } from '../lib/stats';
 import { dailyMissions } from '../lib/missions';
-import { DUNGEONS } from '../lib/dungeons';
+import { currentNode, WORLDS } from '../lib/path';
 import { Icon } from '../components/Icon';
 import { RankEmblem } from '../components/RankEmblem';
 import { Gems, Gold, LevelRing, PageHeader, Section, WeekChart, toast } from '../components/ui';
@@ -23,7 +23,8 @@ export function HomeScreen() {
   const st = streak(me.sessions);
   const missions = dailyMissions(me);
   const claimed = missions.filter((m) => m.claimed).length;
-  const nextDungeon = DUNGEONS.find((d) => !me.dungeonsCleared.includes(d.id) && lv.level >= d.minLevel);
+  const nextNode = currentNode(me);
+  const nextWorld = nextNode ? WORLDS.find((w) => w.id === nextNode.worldId) : undefined;
 
   return (
     <div className="page">
@@ -94,8 +95,8 @@ export function HomeScreen() {
           <button className="tile" onClick={() => nav('/map')}>
             <div className="t-ico" style={{ background: '#2a1215', color: 'var(--red)' }}><Icon name="skull" size={24} /></div>
             <div>
-              <div className="t-title">Dungeon</div>
-              <div className="t-sub">{nextDungeon ? `Nächster Boss: ${nextDungeon.boss}` : 'Bosse erneut fordern'}</div>
+              <div className="t-title">Trainingspfad</div>
+              <div className="t-sub">{nextNode && nextWorld ? `${nextWorld.name}: ${nextNode.name}` : 'Alle Welten geschafft'}</div>
             </div>
           </button>
         </div>
