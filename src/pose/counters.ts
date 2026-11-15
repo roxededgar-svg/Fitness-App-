@@ -175,26 +175,6 @@ class AngleCounter implements RepCounter {
 const isHorizontal = (lms: Lm[], side: Side, aspect: number, max = 40) =>
   tilt(j(lms, side, 's'), j(lms, side, 'h'), aspect) < max;
 
-function pushupSpec(): AngleSpec {
-  return {
-    joints: ['s', 'e', 'w', 'h'],
-    up: 160,
-    down: 95,
-    minRepMs: 450,
-    partialHint: 'Tiefer runter!',
-    measure(lms, side, aspect) {
-      if (!isHorizontal(lms, side, aspect, 45)) return null;
-      const value = angle(j(lms, side, 's'), j(lms, side, 'e'), j(lms, side, 'w'), aspect);
-      let hint: string | undefined;
-      if (vis(j(lms, side, 'k')) > MIN_VIS) {
-        const body = angle(j(lms, side, 's'), j(lms, side, 'h'), j(lms, side, 'k'), aspect);
-        if (body < 140) hint = 'Hüfte gerade halten';
-      }
-      return { value, hint };
-    },
-  };
-}
-
 function squatSpec(): AngleSpec {
   return {
     joints: ['h', 'k', 'a', 's'],
@@ -222,6 +202,109 @@ function situpSpec(): AngleSpec {
       return { value: angle(j(lms, side, 's'), j(lms, side, 'h'), j(lms, side, 'k'), aspect) };
     },
   };
+}
+
+/**
+ * Liegestütze – nur die Arme entscheiden.
+ *
+ * Pro sichtbarem Arm werden zwei Signale kombiniert:
+ *  1. Ellbogenwinkel (Schulter–Ellbogen–Handgelenk): gestreckt ≈ 165°, unten ≈ 85°
+ *  2. Höhe der Schulter über dem Handgelenk, relativ zur Armlänge:
+ *     oben ≈ volle Armlänge, unten deutlich kleiner.
+ *     Funktioniert auch, wenn die Kamera frontal vor dem Kopf steht.
+ * Beide Arme werden gemittelt, Hüfte/Beine werden nicht benötigt.
+ * Runter (Tiefe ≥ Schwelle) → wieder hoch (Tiefe ≤ Schwelle) = 1 Wiederholung.
+ */
+class PushupCounter implements RepCounter {
+  readonly exercise = 'pushup' as const;
+  private reps = 0;
+  private phase: 'up' | 'down' = 'up';
+  private smooth: number | null = null;
+  private lastRep = -Infinity;
+  private maxDepthInRep = 0;
+  private armRef: Record<Side, number> = { l: 0, r: 0 };
+  private lostSince: number | null = null;
+  private hint: string | null = null;
+  private hintUntil = 0;
+
+  constructor(private sens: Sensitivity) {}
+
+  reset() {
+    this.reps = 0;
+    this.phase = 'up';
+    this.smooth = null;
+    this.lastRep = -Infinity;
+    this.maxDepthInRep = 0;
+  }
+
+  /** Tiefe 0 (Arm gestreckt) … 1 (ganz unten) für einen Arm, oder null. */
+  private armDepth(lms: Lm[], side: Side, aspect: number): number | null {
+    const sh = j(lms, side, 's'), el = j(lms, side, 'e'), wr = j(lms, side, 'w');
+    if (Math.min(vis(sh), vis(el), vis(wr)) < 0.35) return null;
+    const P = (p: Lm) => pt(p, aspect);
+    const S = P(sh), E = P(el), W = P(wr);
+    const len = Math.hypot(S.x - E.x, S.y - E.y) + Math.hypot(E.x - W.x, E.y - W.y);
+    if (len < 0.02) return null;
+    // Referenz-Armlänge: größte gesehene Länge, passt sich langsam an (Abstand zur Kamera)
+    this.armRef[side] = Math.max(len, this.armRef[side] * 0.995);
+    const ref = this.armRef[side];
+
+    const ang = angle(sh, el, wr, aspect);
+    const dAngle = (165 - ang) / (165 - 85);
+    // Schulter über Handgelenk (Bild-y wächst nach unten)
+    const height = (W.y - S.y) / ref;
+    const dHeight = (0.9 - height) / (0.9 - 0.4);
+    // Steht die Kamera seitlich, ist der Winkel sehr zuverlässig; frontal die Höhe.
+    const sideView = Math.abs(S.x - W.x) < Math.abs(S.y - W.y) * 0.8 ? 0.5 : 0.65;
+    const d = sideView * dAngle + (1 - sideView) * dHeight;
+    return Math.max(-0.3, Math.min(1.3, d));
+  }
+
+  update(lms: Lm[] | null, t: number, aspect = 1): CounterFrame {
+    if (t > this.hintUntil) this.hint = null;
+    const keep = (tracking: boolean, hint: string | null): CounterFrame => ({
+      reps: this.reps, tracking, depth: Math.max(0, Math.min(1, this.smooth ?? 0)), hint, repped: false,
+    });
+    if (!lms) return keep(false, this.hint);
+
+    const ds = (['l', 'r'] as Side[]).map((sd) => this.armDepth(lms, sd, aspect)).filter((d): d is number => d != null);
+    if (!ds.length) {
+      this.lostSince ??= t;
+      // kurze Aussetzer überbrücken, Zustand bleibt erhalten
+      return keep(false, t - this.lostSince > 800 ? 'Arme ins Bild bringen' : this.hint);
+    }
+    this.lostSince = null;
+    const raw = ds.reduce((a, b) => a + b, 0) / ds.length;
+    this.smooth = this.smooth == null ? raw : this.smooth * 0.4 + raw * 0.6;
+    const d = this.smooth;
+
+    const s = SENS[this.sens];
+    const downAt = 0.62 - s * 0.12; // locker 0.50 · normal 0.62 · streng 0.74
+    const upAt = 0.3 + s * 0.08; //    locker 0.38 · normal 0.30 · streng 0.22
+    let repped = false;
+
+    if (this.phase === 'up') {
+      this.maxDepthInRep = Math.max(this.maxDepthInRep, d);
+      if (d >= downAt) {
+        this.phase = 'down';
+      } else if (d <= upAt) {
+        if (this.maxDepthInRep > downAt * 0.6) {
+          this.hint = 'Tiefer runter!';
+          this.hintUntil = t + 1500;
+        }
+        this.maxDepthInRep = 0;
+      }
+    } else if (d <= upAt) {
+      this.phase = 'up';
+      this.maxDepthInRep = 0;
+      if (t - this.lastRep >= 350) {
+        this.reps += 1;
+        this.lastRep = t;
+        repped = true;
+      }
+    }
+    return { reps: this.reps, tracking: true, depth: Math.max(0, Math.min(1, d)), hint: this.hint, repped };
+  }
 }
 
 /** Jumping Jacks: offen (Arme oben + Beine gespreizt) ↔ geschlossen. */
@@ -373,7 +456,7 @@ class PlankCounter implements RepCounter {
 export function createCounter(ex: ExerciseId, sens: Sensitivity = 'normal'): RepCounter {
   switch (ex) {
     case 'pushup':
-      return new AngleCounter(ex, pushupSpec(), sens);
+      return new PushupCounter(sens);
     case 'squat':
       return new AngleCounter(ex, squatSpec(), sens);
     case 'situp':

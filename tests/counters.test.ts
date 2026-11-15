@@ -51,14 +51,46 @@ describe('Liegestütz-Zähler', () => {
     expect(res.reps).toBe(0);
   });
 
-  it('ignoriert Armbeugen im Stehen (nicht waagrecht)', () => {
-    const standing = (elbow: number) => {
+  it('braucht keine Hüfte / Beine – nur die Arme', () => {
+    const armsOnly = (elbow: number) => {
       const p = pushup(elbow);
-      p[LM.lHip] = { x: 0.31, y: 0.85, visibility: 0.99 };
+      for (const k of ['lHip', 'lKnee', 'lAnkle'] as const) p[LM[k]] = { x: 0, y: 0, visibility: 0 };
       return p;
     };
     const one = [...sweep(170, 80), ...sweep(80, 170)];
-    expect(run('pushup', [...one, ...one].map(standing)).reps).toBe(0);
+    expect(run('pushup', [...one, ...one].map(armsOnly)).reps).toBe(2);
+  });
+
+  it('zählt auch nicht ganz durchgestreckte Arme (oben ~150°)', () => {
+    const one = [...sweep(150, 85), ...sweep(85, 150)];
+    expect(run('pushup', [...one, ...one, ...one].map(pushup)).reps).toBe(3);
+  });
+
+  it('übersteht kurze Erkennungsaussetzer', () => {
+    const c = createCounter('pushup');
+    let t = 0;
+    const feed = (f: Lm[] | null) => c.update(f, (t += 60));
+    sweep(170, 80).forEach((a) => feed(pushup(a)));
+    feed(pose({}));
+    feed(pose({}));
+    const last = sweep(80, 170).map((a) => feed(pushup(a))).pop()!;
+    expect(last.reps).toBe(1);
+  });
+
+  it('zählt frontal (Kamera vor dem Kopf): Schultern sinken Richtung Hände', () => {
+    // depth 0 = oben, 1 = unten
+    const front = (depth: number) => {
+      const sy = 0.4 + depth * 0.26;
+      return pose({
+        lShoulder: [0.42, sy], rShoulder: [0.58, sy],
+        lElbow: [0.36 - depth * 0.1, (sy + 0.8) / 2], rElbow: [0.64 + depth * 0.1, (sy + 0.8) / 2],
+        lWrist: [0.36, 0.8], rWrist: [0.64, 0.8],
+      });
+    };
+    const one = [...sweep(0, 1), ...sweep(1, 0)];
+    expect(run('pushup', [...one, ...one].map(front)).reps).toBe(2);
+    const half = [...sweep(0, 0.3), ...sweep(0.3, 0)];
+    expect(run('pushup', [...half, ...half].map(front)).reps).toBe(0);
   });
 
   it('meldet fehlendes Tracking ohne sichtbare Gelenke', () => {
