@@ -10,13 +10,14 @@ import { fromNorm, humanTimeline, rankedOpponentRpm, recentPaceNorm, tierPaceNor
 import type { Queue } from '../lib/types';
 import { Avatar, Flag } from '../components/ui';
 import { Icon } from '../components/Icon';
+import { RankEmblem } from '../components/RankEmblem';
 
 const DURATIONS = [30, 60, 90, 120];
 const RANKED_DURATION = 60;
 
 export const QUEUE_INFO: Record<Queue, { title: string; sub: string; color: string }> = {
-  ranked: { title: 'RANKED', sub: 'Rang-Punkte & ELO · Gegner-Tempo passt sich deinem Rang an', color: 'var(--blue)' },
-  casual: { title: 'SCHNELLKAMPF', sub: 'Locker kämpfen · Übung & Dauer frei wählbar · keine Rang-Punkte', color: 'var(--purple)' },
+  ranked: { title: 'RANKED', sub: 'Trophäen & ELO · Gegner-Tempo passt sich deinem Rang an', color: 'var(--blue)' },
+  casual: { title: 'SCHNELLKAMPF', sub: 'Locker kämpfen · Übung & Dauer frei wählbar · keine Trophäen', color: 'var(--purple)' },
   custom: { title: 'EIGENES TEMPO', sub: 'Du bestimmst, wie schnell dein Gegner ist · ungewertet', color: 'var(--gold)' },
 };
 
@@ -89,10 +90,10 @@ export function MatchmakingScreen() {
         {queue === 'ranked' && (
           <div className="card" style={{ width: '100%', maxWidth: 640, textAlign: 'left' }}>
             <div className="row">
-              <Icon name="shield" size={34} color={rank.tier.color} />
+              <RankEmblem tier={rank.tier} division={rank.division} size={46} />
               <div>
                 <div className="display" style={{ fontSize: 20 }}>{rankLabel(me.arenaPoints)}</div>
-                <div className="muted" style={{ fontSize: 13 }}>{me.arenaPoints} Punkte · {me.elo} ELO</div>
+                <div className="muted" style={{ fontSize: 13 }}>{me.arenaPoints} Trophäen · {me.elo} ELO</div>
               </div>
               <div className="spacer" />
               <div style={{ textAlign: 'right' }}>

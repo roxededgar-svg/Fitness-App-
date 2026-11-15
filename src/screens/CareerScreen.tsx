@@ -1,11 +1,16 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useMe, useStore } from '../lib/store';
 import { levelFromXp, rankFor, TIERS } from '../lib/progression';
-import { bestPaceNorm, recentPaceNorm, TIER_PACE } from '../lib/pace';
-import { BADGES } from '../lib/badges';
+import { bestPaceNorm, recentPaceNorm, tierPaceNorm, TIER_PACE } from '../lib/pace';
+import { BADGES, type Badge } from '../lib/badges';
 import { EXERCISES, EXERCISE_LIST } from '../lib/exercises';
 import { Icon } from '../components/Icon';
-import { Avatar, BadgeMedal, Gems, Gold, PageHeader, Section, Sheet, toast } from '../components/ui';
+import { Avatar, Gems, Gold, PageHeader, Section, Sheet, toast } from '../components/ui';
+import { RankEmblem, tierPalette } from '../components/RankEmblem';
+import { BadgeBack, BadgeFront, RankBack, RankFront } from '../components/MedalFaces';
+import { MedalViewer } from '../components/MedalViewer';
+import { cssClip, METALS, styleFor } from '../lib/badgeStyles';
+import type { Tier } from '../lib/progression';
 import type { SessionRecord } from '../lib/types';
 
 async function resizeImage(file: File, size = 256): Promise<string> {
@@ -30,6 +35,10 @@ export function CareerScreen() {
   const fileRef = useRef<HTMLInputElement>(null);
   const [badgesOpen, setBadgesOpen] = useState(false);
   const [ladderOpen, setLadderOpen] = useState(false);
+  const [viewBadge, setViewBadge] = useState<Badge | null>(null);
+  const [viewTier, setViewTier] = useState<Tier | null>(null);
+  const syncBadges = useStore((s) => s.syncBadges);
+  useEffect(() => syncBadges(), [syncBadges]);
   const best = bestPaceNorm(me);
   const recentPace = recentPaceNorm(me);
   const [editName, setEditName] = useState(false);
@@ -87,7 +96,7 @@ export function CareerScreen() {
       <div className="grid2" style={{ marginTop: 14 }}>
         <button className="tile primary" style={{ minHeight: 170 }} onClick={() => setLadderOpen(true)}>
           <div className="row" style={{ gap: 12 }}>
-            <Icon name="shield" size={46} color={rank.tier.color} />
+            <RankEmblem tier={rank.tier} division={rank.division} size={58} />
             <div style={{ minWidth: 0 }}>
               <div className="caps" style={{ fontSize: 11, color: 'rgba(255,255,255,.8)' }}>Rang</div>
               <div className="t-title" style={{ fontSize: 18 }}>{rank.tier.name} {rank.division ?? ''}</div>
@@ -96,8 +105,8 @@ export function CareerScreen() {
           <div>
             {rank.next && <div className="rank-bar" style={{ background: 'rgba(0,0,0,.25)', marginTop: 0 }}><span style={{ width: `${rank.progress * 100}%`, background: '#fff' }} /></div>}
             <div className="t-sub" style={{ marginTop: 8 }}>
-              {me.arenaPoints} Punkte{rank.next ? ` · noch ${rank.pointsToNext} bis zum Aufstieg` : ''}<br />
-              Rang-Tempo {TIER_PACE[rank.tier.id]} Wdh./Min* · Rang-Leiter ›
+              {me.arenaPoints} Trophäen{rank.next ? ` · noch ${rank.pointsToNext} bis zum Aufstieg` : ''}<br />
+              Rang-Tempo {Math.round(tierPaceNorm(me.arenaPoints))} Wdh./Min* · Rang-Leiter ›
             </div>
           </div>
         </button>
@@ -121,7 +130,9 @@ export function CareerScreen() {
           {Array.from({ length: 6 }, (_, i) => {
             const b = favs[i];
             return b ? (
-              <div key={i} title={b.name}><BadgeMedal icon={b.icon} color={b.color} size={84} /></div>
+              <button key={i} className="medal-thumb" title={b.name} onClick={() => setViewBadge(b)} style={{ width: 88, height: 88 }}>
+                <BadgeFront badge={b} earned />
+              </button>
             ) : (
               <button key={i} className="badge-slot" onClick={() => setBadgesOpen(true)}>+</button>
             );
@@ -175,10 +186,10 @@ export function CareerScreen() {
               const reached = me.arenaPoints >= t.min;
               return (
                 <div key={t.id} className={`board-row ${current ? 'me' : ''}`} style={{ opacity: reached || current ? 1 : 0.6 }}>
-                  <Icon name="shield" size={30} color={t.color} />
+                  <button className="medal-thumb" onClick={() => setViewTier(t)} aria-label={`${t.name} ansehen`}><RankEmblem tier={t} size={46} glow={reached} /></button>
                   <div>
                     <div className="name">{t.name} {current && <span className="me-tag">DU</span>}</div>
-                    <div className="sub">ab {t.min} Punkten{t.id !== 'legend' ? ' · Divisionen IV–I' : ''}</div>
+                    <div className="sub">ab {t.min} Trophäen{t.id !== 'legend' ? ' · Divisionen IV–I' : ''}</div>
                   </div>
                   <div className="pts">
                     <b style={{ color: best >= TIER_PACE[t.id] ? 'var(--green)' : 'var(--gold)' }}>{TIER_PACE[t.id]}</b>
@@ -198,19 +209,14 @@ export function CareerScreen() {
 
       {badgesOpen && (
         <Sheet title="ABZEICHEN" onClose={() => setBadgesOpen(false)}>
-          <div className="muted" style={{ marginBottom: 16 }}>Tippe auf freigeschaltete Abzeichen, um bis zu 6 Favoriten zu wählen. Tempo-Abzeichen (*) zählen im Liegestütz-Maßstab, gemessen in gewerteten Einheiten ab 30 s.</div>
+          <div className="muted" style={{ marginBottom: 16 }}>Tippe auf ein Abzeichen, um es in 3D anzusehen und zu drehen. Dort kannst du es auch als Favorit wählen (max. 6). Tempo-Abzeichen (*) zählen im Liegestütz-Maßstab, gemessen in gewerteten Einheiten ab 30 s.</div>
           <div className="badge-grid">
             {BADGES.map((b) => {
               const has = b.earned(me);
               const fav = me.favBadges.includes(b.id);
               return (
-                <button key={b.id} className={`badge-item ${has ? '' : 'off'} ${fav ? 'fav' : ''}`} disabled={!has}
-                  onClick={() => {
-                    if (fav) update({ favBadges: me.favBadges.filter((x) => x !== b.id) });
-                    else if (me.favBadges.length < 6) update({ favBadges: [...me.favBadges, b.id] });
-                    else toast('Maximal 6 Favoriten');
-                  }}>
-                  <div className="b-ico"><BadgeMedal icon={b.icon} color={b.color} size={62} /></div>
+                <button key={b.id} className={`badge-item ${has ? '' : 'off'} ${fav ? 'fav' : ''}`} onClick={() => setViewBadge(b)}>
+                  <div className="b-ico"><div style={{ width: 76, height: 76 }}><BadgeFront badge={b} earned={has} /></div></div>
                   <div className="b-name">{b.name}</div>
                   <div className="b-desc">{b.desc}</div>
                 </button>
@@ -218,6 +224,48 @@ export function CareerScreen() {
             })}
           </div>
         </Sheet>
+      )}
+      {viewBadge && (() => {
+        const b = viewBadge;
+        const has = b.earned(me);
+        const fav = me.favBadges.includes(b.id);
+        const at = me.badgeDates?.[b.id];
+        return (
+          <MedalViewer
+            key={b.id}
+            front={<BadgeFront badge={b} earned={has} />}
+            back={<BadgeBack badge={b} earnedAt={has ? at ?? Date.now() : undefined} />}
+            edge={has ? METALS[styleFor(b.id).metal][2] : '#3a3e52'}
+            clip={cssClip(styleFor(b.id).shape)}
+            color={has ? styleFor(b.id).colors[1] : '#4b4f63'}
+            title={b.name}
+            subtitle={has ? <>{b.desc}<br />Erhalten am {new Date(at ?? Date.now()).toLocaleDateString('de-DE')}</> : <>Noch gesperrt · {b.desc}</>}
+            actions={has && (
+              <button className={`btn btn-sm ${fav ? 'btn-ghost' : 'btn-purple'}`} onClick={() => {
+                if (fav) update({ favBadges: me.favBadges.filter((x) => x !== b.id) });
+                else if (me.favBadges.length < 6) update({ favBadges: [...me.favBadges, b.id] });
+                else toast('Maximal 6 Favoriten');
+              }}>
+                <Icon name="star" size={16} /> {fav ? 'Kein Favorit mehr' : 'Als Favorit'}
+              </button>
+            )}
+            onClose={() => setViewBadge(null)}
+          />
+        );
+      })()}
+
+      {viewTier && (
+        <MedalViewer
+          key={viewTier.id}
+          front={<RankFront tier={viewTier} division={viewTier.id === rank.tier.id ? rank.division : null} />}
+          back={<RankBack tier={viewTier} />}
+          edge={tierPalette(viewTier.id).mid}
+          color={tierPalette(viewTier.id).mid}
+          shape="circle"
+          title={viewTier.name}
+          subtitle={me.arenaPoints >= viewTier.min ? 'Erreicht' : `Noch ${viewTier.min - me.arenaPoints} Trophäen bis zu diesem Rang`}
+          onClose={() => setViewTier(null)}
+        />
       )}
     </div>
   );

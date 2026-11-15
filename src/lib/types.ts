@@ -34,6 +34,11 @@ export interface SessionRecord {
   bossMaxHp?: number;
   bossHpLeft?: number;
   maxCombo?: number;
+  /** In diesem Kampf neu erhaltene Abzeichen */
+  newBadges?: string[];
+  /** Trainingspfad-Station und erreichte Sterne */
+  pathNodeId?: string;
+  stars?: number;
   levelUp?: number;
 }
 
@@ -75,6 +80,10 @@ export interface Profile {
   friends: Friend[];
   dungeonsCleared: string[];
   personalBests: Partial<Record<ExerciseId, number>>;
+  /** Zeitpunkt, an dem jedes Abzeichen erreicht wurde */
+  badgeDates?: Record<string, number>;
+  /** Trainingspfad: Fortschritt pro Station */
+  path?: Record<string, { stars: number; clearedAt: number }>;
 }
 
 export interface Settings {

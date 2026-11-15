@@ -30,5 +30,22 @@ export const BADGES: Badge[] = [
   { id: 'pace30', name: 'Tempomacher', desc: 'Tempo 30 Wdh./Min*', icon: 'stopwatch', color: '#38bdf8', earned: (p) => bestPaceNorm(p) >= 30 },
   { id: 'pace40', name: 'Turbo', desc: 'Tempo 40 Wdh./Min*', icon: 'rocket', color: '#a855f7', earned: (p) => bestPaceNorm(p) >= 40 },
   { id: 'pace50', name: 'Blitzschlag', desc: 'Tempo 50 Wdh./Min*', icon: 'bolt', color: '#f5b100', earned: (p) => bestPaceNorm(p) >= 50 },
+  { id: 'ranked1', name: 'Erste Trophäen', desc: 'Gewinne deinen ersten Ranked-Kampf', icon: 'trophy', color: '#3f7bfa', earned: (p) => p.sessions.some((s) => s.mode === 'pvp' && (s.queue ?? 'ranked') === 'ranked' && s.result === 'win' && s.ranked) },
+  { id: 'earlybird', name: 'Frühaufsteher', desc: 'Trainiere vor 8 Uhr morgens', icon: 'sun', color: '#f59e0b', earned: (p) => p.sessions.some((s) => s.reps > 0 && new Date(s.ts).getHours() < 8) },
+  { id: 'nightowl', name: 'Nachteule', desc: 'Trainiere nach 22 Uhr', icon: 'moon', color: '#6366f1', earned: (p) => p.sessions.some((s) => s.reps > 0 && new Date(s.ts).getHours() >= 22) },
+  { id: 'bosses3', name: 'Bossjäger', desc: 'Besiege 3 verschiedene Bosse', icon: 'skull', color: '#dc2626', earned: (p) => p.dungeonsCleared.length >= 3 },
   { id: 'friend', name: 'Rivalität', desc: 'Schließe ein Freundes-Duell ab', icon: 'rivals', color: '#ec4899', earned: (p) => p.sessions.some((s) => s.mode === 'ghost') },
 ];
+
+/** Ergänzt fehlende Erhalt-Daten; gibt Profil-Patch und neu erhaltene IDs zurück. */
+export function syncBadgeDates(p: Profile, now = Date.now()): { badgeDates: Record<string, number>; added: string[] } {
+  const dates = { ...(p.badgeDates ?? {}) };
+  const added: string[] = [];
+  for (const b of BADGES) {
+    if (!dates[b.id] && b.earned(p)) {
+      dates[b.id] = now;
+      added.push(b.id);
+    }
+  }
+  return { badgeDates: dates, added };
+}

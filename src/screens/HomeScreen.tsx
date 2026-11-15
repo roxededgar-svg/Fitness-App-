@@ -3,8 +3,9 @@ import { useMe, useStore } from '../lib/store';
 import { levelFromXp, rankFor, rankLabel } from '../lib/progression';
 import { streak, totals, weekStats } from '../lib/stats';
 import { dailyMissions } from '../lib/missions';
-import { DUNGEONS } from '../lib/dungeons';
+import { currentNode, WORLDS } from '../lib/path';
 import { Icon } from '../components/Icon';
+import { RankEmblem } from '../components/RankEmblem';
 import { Gems, Gold, LevelRing, PageHeader, Section, WeekChart, toast } from '../components/ui';
 
 function greeting() {
@@ -22,7 +23,8 @@ export function HomeScreen() {
   const st = streak(me.sessions);
   const missions = dailyMissions(me);
   const claimed = missions.filter((m) => m.claimed).length;
-  const nextDungeon = DUNGEONS.find((d) => !me.dungeonsCleared.includes(d.id) && lv.level >= d.minLevel);
+  const nextNode = currentNode(me);
+  const nextWorld = nextNode ? WORLDS.find((w) => w.id === nextNode.worldId) : undefined;
 
   return (
     <div className="page">
@@ -44,10 +46,10 @@ export function HomeScreen() {
           <button className="mini" style={{ textAlign: 'left' }} onClick={() => nav('/career')}>
             <div className="l">Rang</div>
             <div className="v" style={{ fontSize: 20, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Icon name="shield" size={22} color={rank.tier.color} />
+              <RankEmblem tier={rank.tier} division={rank.division} size={30} />
               <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{rankLabel(me.arenaPoints)}</span>
             </div>
-            <div className="s">{me.arenaPoints} Punkte</div>
+            <div className="s ico-inline"><Icon name="trophy" size={12} /> {me.arenaPoints} Trophäen</div>
           </button>
           <div className="mini">
             <div className="l">ELO</div>
@@ -73,14 +75,14 @@ export function HomeScreen() {
             <div className="t-ico"><Icon name="shield" size={24} /></div>
             <div>
               <div className="t-title">Ranked</div>
-              <div className="t-sub">Um Rang-Punkte kämpfen</div>
+              <div className="t-sub">Um Trophäen kämpfen</div>
             </div>
           </button>
           <button className="tile" onClick={() => nav('/matchmaking?q=casual')}>
             <div className="t-ico" style={{ background: '#221d3a', color: 'var(--purple)' }}><Icon name="bolt" size={24} /></div>
             <div>
               <div className="t-title">Schnellkampf</div>
-              <div className="t-sub">1 vs 1 ohne Rang-Punkte</div>
+              <div className="t-sub">1 vs 1 ohne Trophäen</div>
             </div>
           </button>
           <button className="tile" onClick={() => nav('/training')}>
@@ -93,8 +95,8 @@ export function HomeScreen() {
           <button className="tile" onClick={() => nav('/map')}>
             <div className="t-ico" style={{ background: '#2a1215', color: 'var(--red)' }}><Icon name="skull" size={24} /></div>
             <div>
-              <div className="t-title">Dungeon</div>
-              <div className="t-sub">{nextDungeon ? `Nächster Boss: ${nextDungeon.boss}` : 'Bosse erneut fordern'}</div>
+              <div className="t-title">Trainingspfad</div>
+              <div className="t-sub">{nextNode && nextWorld ? `${nextWorld.name}: ${nextNode.name}` : 'Alle Welten geschafft'}</div>
             </div>
           </button>
         </div>

@@ -136,3 +136,92 @@ describe('Tempo & Ranked', () => {
     }
   });
 });
+
+import { BADGES, syncBadgeDates } from '../src/lib/badges';
+
+describe('Abzeichen-Daten', () => {
+  it('trägt nur neu erreichte Abzeichen mit Datum ein', () => {
+    const p = { wins: 1, arenaPoints: 0, sessions: [], dungeonsCleared: [], badgeDates: {} } as unknown as Profile;
+    const r1 = syncBadgeDates(p, 1000);
+    expect(r1.added).toContain('first_blood');
+    expect(r1.badgeDates.first_blood).toBe(1000);
+    const r2 = syncBadgeDates({ ...p, badgeDates: r1.badgeDates } as Profile, 2000);
+    expect(r2.added).toEqual([]);
+    expect(r2.badgeDates.first_blood).toBe(1000);
+  });
+  it('jedes Abzeichen hat ein gültiges Symbol', () => {
+    for (const b of BADGES) expect(b.icon).toMatch(/^[a-z0-9]+$/);
+  });
+});
+
+import { ALL_NODES, WORLDS, currentNode, isUnlocked, starsFor, worldStars } from '../src/lib/path';
+
+describe('Trainingspfad', () => {
+  const prof = (path: Record<string, { stars: number; clearedAt: number }> = {}, dungeonsCleared: string[] = []) =>
+    ({ path, dungeonsCleared } as unknown as Profile);
+
+  it('7 Welten mit je 6 Stationen: 4 Kämpfe, 1 Kiste, 1 Boss', () => {
+    expect(WORLDS).toHaveLength(7);
+    for (const w of WORLDS) {
+      expect(w.nodes.map((n) => n.kind)).toEqual(['fight', 'fight', 'chest', 'fight', 'fight', 'boss']);
+      for (const n of w.nodes.filter((x) => x.kind !== 'chest')) expect(n.hp).toBeGreaterThan(0);
+    }
+  });
+  it('Stationen schalten nacheinander frei', () => {
+    const p = prof();
+    expect(isUnlocked(p, ALL_NODES[0])).toBe(true);
+    expect(isUnlocked(p, ALL_NODES[1])).toBe(false);
+    const p2 = prof({ [ALL_NODES[0].id]: { stars: 2, clearedAt: 1 } });
+    expect(isUnlocked(p2, ALL_NODES[1])).toBe(true);
+    expect(currentNode(p2)?.id).toBe(ALL_NODES[1].id);
+  });
+  it('besiegter Alt-Boss schaltet die nächste Welt frei', () => {
+    const p = prof({}, ['neonwald']);
+    expect(currentNode(p)?.worldId).toBe('kristall');
+    expect(worldStars(p, WORLDS[0]).got).toBe(5);
+  });
+  it('Sterne nach Restzeit', () => {
+    expect(starsFor(0.5)).toBe(3);
+    expect(starsFor(0.2)).toBe(2);
+    expect(starsFor(0.01)).toBe(1);
+  });
+  it('spätere Welten sind schwerer', () => {
+    const first = WORLDS[0].nodes[0], late = WORLDS[6].nodes[0];
+    const perMin = (n: typeof first) => (n.hp! / n.durationS!) * 60;
+    expect(perMin(late)).toBeGreaterThan(perMin(first) * 0.9);
+  });
+});
+
+import { useStore } from '../src/lib/store';
+
+describe('Neue Abzeichen nach Kampf', () => {
+  it('meldet bereits vorher verdiente Abzeichen nicht als neu', () => {
+    const p = {
+      id: 'x', email: 'x@y.de', passHash: '', name: 'Test', code: 'ABC123', country: 'DE', createdAt: 0, xp: 0, gold: 0, gems: 0,
+      elo: 1000, arenaPoints: 0, wins: 3, losses: 0, draws: 0, sessions: [], claimed: {}, favBadges: [], friends: [],
+      dungeonsCleared: [], personalBests: {},
+    } as unknown as Profile;
+    useStore.setState({ profiles: { x: p }, currentId: 'x' });
+    const rec = useStore.getState().finishMatch({ mode: 'training', exercise: 'squat', durationS: 30, reps: 5, timeline: [], ranked: true });
+    expect(rec.newBadges ?? []).not.toContain('first_blood');
+    expect(useStore.getState().profiles.x.badgeDates?.first_blood).toBeDefined();
+  });
+});
+
+describe('Pfad-Kampf speichert Sterne', () => {
+  it('Sieg mit viel Restzeit = 3 Sterne, nächste Station frei', () => {
+    const p = {
+      id: 'y', email: 'y@y.de', passHash: '', name: 'Test', code: 'ABC124', country: 'DE', createdAt: 0, xp: 0, gold: 0, gems: 0,
+      elo: 1000, arenaPoints: 0, wins: 0, losses: 0, draws: 0, sessions: [], claimed: {}, favBadges: [], friends: [],
+      dungeonsCleared: [], personalBests: {},
+    } as unknown as Profile;
+    useStore.setState({ profiles: { y: p }, currentId: 'y' });
+    const n = ALL_NODES[0];
+    const rec = useStore.getState().finishMatch({ mode: 'dungeon', exercise: n.exercise!, durationS: n.durationS!, reps: n.hp!, timeline: [], ranked: true, outcome: 'win', pathNodeId: n.id, timeLeft: 0.6 });
+    expect(rec.stars).toBe(3);
+    const after = useStore.getState().profiles.y;
+    expect(after.path?.[n.id]?.stars).toBe(3);
+    expect(currentNode(after)?.id).toBe(ALL_NODES[1].id);
+    expect(rec.xp).toBeGreaterThan(0);
+  });
+});

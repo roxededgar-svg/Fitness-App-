@@ -9,6 +9,7 @@ import { PVP_EXERCISES, EXERCISES, type ExerciseId } from '../lib/exercises';
 import { useBattle } from '../lib/battle';
 import { tierPaceNorm } from '../lib/pace';
 import { Icon } from '../components/Icon';
+import { RankEmblem } from '../components/RankEmblem';
 import { Flag, PageHeader, Section, Sheet, toast } from '../components/ui';
 
 type Tab = 'global' | 'land' | 'friends';
@@ -56,11 +57,11 @@ export function ArenaScreen() {
       {/* Rang-Übersicht */}
       <div className="card">
         <div className="rank-summary">
-          <Icon name="shield" size={54} color={rank.tier.color} />
+          <RankEmblem tier={rank.tier} division={rank.division} size={72} />
           <div style={{ minWidth: 0 }}>
             <div className="r-name">{rankLabel(me.arenaPoints)}</div>
             <div className="r-sub">
-              {me.arenaPoints} Rang-Punkte{rank.next ? ` · noch ${rank.pointsToNext} bis zur nächsten Stufe` : ''}
+              <span className="ico-inline"><Icon name="trophy" size={13} color="var(--gold)" /> {me.arenaPoints} Trophäen</span>{rank.next ? ` · noch ${rank.pointsToNext} bis zur nächsten Stufe` : ''}
             </div>
             {rank.next && <div className="rank-bar"><span style={{ width: `${rank.progress * 100}%`, background: rank.tier.color }} /></div>}
           </div>
@@ -83,14 +84,14 @@ export function ArenaScreen() {
             <div className="t-ico"><Icon name="shield" size={24} /></div>
             <div>
               <div className="t-title">Ranked</div>
-              <div className="t-sub">Rang-Punkte & ELO · Gegner im Tempo deines Rangs · 60 s</div>
+              <div className="t-sub">Trophäen & ELO · Gegner im Tempo deines Rangs · 60 s</div>
             </div>
           </button>
           <button className="tile" onClick={() => nav('/matchmaking?q=casual')}>
             <div className="t-ico" style={{ background: '#221d3a', color: 'var(--purple)' }}><Icon name="bolt" size={24} /></div>
             <div>
               <div className="t-title">Schnellkampf</div>
-              <div className="t-sub">Übung & Dauer frei wählbar · keine Rang-Punkte</div>
+              <div className="t-sub">Übung & Dauer frei wählbar · keine Trophäen</div>
             </div>
           </button>
           <button className="tile" onClick={() => nav('/matchmaking?q=custom')}>
