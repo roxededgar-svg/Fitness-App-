@@ -5,7 +5,7 @@ import { streak, totals, weekStats } from '../lib/stats';
 import { dailyMissions } from '../lib/missions';
 import { DUNGEONS } from '../lib/dungeons';
 import { Icon } from '../components/Icon';
-import { LevelRing, PageHeader, Section, WeekChart, toast } from '../components/ui';
+import { Gems, Gold, LevelRing, PageHeader, Section, WeekChart, toast } from '../components/ui';
 
 function greeting() {
   const h = new Date().getHours();
@@ -31,8 +31,8 @@ export function HomeScreen() {
         title={me.name}
         right={
           <>
-            <span className="currency gold">🪙 {me.gold}</span>
-            <span className="currency blue">💎 {me.gems}</span>
+            <span className="currency gold"><Gold /> {me.gold}</span>
+            <span className="currency blue"><Gems /> {me.gems}</span>
           </>
         }
       />
@@ -56,7 +56,7 @@ export function HomeScreen() {
           </div>
           <div className="mini">
             <div className="l">Streak</div>
-            <div className="v purple">{st} {st > 0 && '🔥'}</div>
+            <div className="v purple ico-inline">{st} {st > 0 && <Icon name="fire" size={24} color="#f97316" />}</div>
             <div className="s">{st === 1 ? 'Tag' : 'Tage'} in Folge</div>
           </div>
           <div className="mini">
@@ -119,7 +119,7 @@ export function HomeScreen() {
                 disabled={!m.done || m.claimed}
                 onClick={() => { claim(m.id); toast(`+${m.xp} XP · +${m.gold} Gold eingefordert!`); }}
               >
-                {m.claimed ? '✓' : 'Einfordern'}
+                {m.claimed ? <Icon name="check" size={18} /> : 'Einfordern'}
               </button>
             </div>
           ))}

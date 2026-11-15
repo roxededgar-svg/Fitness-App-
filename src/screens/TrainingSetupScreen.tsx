@@ -66,7 +66,7 @@ export function TrainingSetupScreen() {
         ))}
       </div>
       <button className={`choice ${custom ? 'on' : ''}`} style={{ width: '100%', marginTop: 12, textAlign: 'center' }} onClick={() => setCustom(true)}>
-        ✎ Eigene Zeit
+        <span className="ico-inline"><Icon name="edit" size={18} /> Eigene Zeit</span>
       </button>
       {custom && (
         <div className="row" style={{ marginTop: 12, justifyContent: 'center' }}>
@@ -79,8 +79,8 @@ export function TrainingSetupScreen() {
       <div className="caps" style={{ fontSize: 14, margin: '28px 0 14px' }}>Gegner</div>
       <div className="grid4" style={{ gridTemplateColumns: pbSession ? 'repeat(3,1fr)' : 'repeat(2,1fr)' }}>
         <button className={`choice ${opp === 'solo' ? 'on' : ''}`} onClick={() => setOpp('solo')}>Solo<small>Nur du</small></button>
-        <button className={`choice ${opp === 'bot' ? 'on' : ''}`} onClick={() => setOpp('bot')}>🤖 Test-Bot<small>Tempo selbst einstellen</small></button>
-        {pbSession && <button className={`choice ${opp === 'pb' ? 'on' : ''}`} onClick={() => setOpp('pb')}>👻 Rekord<small>{pb} {exo.unit}</small></button>}
+        <button className={`choice ${opp === 'bot' ? 'on' : ''}`} onClick={() => setOpp('bot')}><span className="ico-inline"><Icon name="robot" size={20} /> Test-Bot</span><small>Tempo selbst einstellen</small></button>
+        {pbSession && <button className={`choice ${opp === 'pb' ? 'on' : ''}`} onClick={() => setOpp('pb')}><span className="ico-inline"><Icon name="ghost" size={20} /> Rekord</span><small>{pb} {exo.unit}</small></button>}
       </div>
 
       {opp === 'bot' && ex !== 'plank' && (
@@ -109,7 +109,7 @@ export function TrainingSetupScreen() {
       {opp === 'bot' && ex === 'plank' && <div className="muted" style={{ marginTop: 10, fontSize: 13 }}>Für Plank gibt es keinen Test-Bot.</div>}
 
       <div className="card" style={{ marginTop: 18, fontSize: 14 }}>
-        <b>📷 Kamera-Tipp:</b> <span className="muted">{EXERCISES[ex].setup}</span>
+        <b className="ico-inline"><Icon name="camera" size={16} /> Kamera-Tipp:</b> <span className="muted">{EXERCISES[ex].setup}</span>
       </div>
 
       <div className="sticky-bottom">

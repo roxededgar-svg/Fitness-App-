@@ -6,7 +6,7 @@ import { levelFromXp } from '../lib/progression';
 import { EXERCISES } from '../lib/exercises';
 import { useBattle } from '../lib/battle';
 import { Icon } from '../components/Icon';
-import { PageHeader } from '../components/ui';
+import { Gems, Gold, PageHeader } from '../components/ui';
 
 export function MapScreen() {
   const me = useMe()!;
@@ -37,11 +37,11 @@ export function MapScreen() {
                   <div className="muted" style={{ fontSize: 13 }}>{d.boss} · {EXERCISES[d.exercise].name}</div>
                 </div>
                 <span className="chip" style={{ color: d.elementColor, borderColor: d.elementColor }}>{d.element}</span>
-                <span className="pill" style={{ background: '#1d2236', color: '#c7cad8', whiteSpace: 'nowrap' }}>🔒 LVL {d.minLevel}</span>
+                <span className="pill" style={{ background: '#1d2236', color: '#c7cad8', whiteSpace: 'nowrap' }}><span className="ico-inline"><Icon name="lock" size={12} /> LVL {d.minLevel}</span></span>
               </div>
             ) : (
             <div className={`card dungeon`}>
-              {cleared && <div className="cleared-badge">👑 BESIEGT</div>}
+              {cleared && <div className="cleared-badge ico-inline"><Icon name="crown" size={16} /> BESIEGT</div>}
               <div className="row">
                 <div className="num" style={{ borderColor: locked && d.rarity === 'COMMON' ? '#4b4f63' : rc, color: rc }}>{i + 1}</div>
                 <div>
@@ -61,9 +61,9 @@ export function MapScreen() {
               {!locked && <div className="muted" style={{ fontSize: 14, marginBottom: 12 }}>{d.lore}</div>}
               <div className="rewards">
                 <span>+{d.xp} XP</span>
-                <span className="gold">+{d.gold}g</span>
-                <span className="blue">+{d.gems}💎</span>
-                {cleared && <span className="muted" style={{ fontSize: 13, marginLeft: 'auto' }}>Wiederholung: 40 % Belohnung, keine 💎</span>}
+                <span className="gold ico-inline">+{d.gold} <Gold /></span>
+                <span className="blue ico-inline">+{d.gems} <Gems /></span>
+                {cleared && <span className="muted" style={{ fontSize: 13, marginLeft: 'auto' }}>Wiederholung: 40 % Belohnung, keine Edelsteine</span>}
               </div>
               <button
                 className="btn btn-primary"

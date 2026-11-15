@@ -8,7 +8,7 @@ import { useBattle } from '../lib/battle';
 import { rankFor, rankLabel } from '../lib/progression';
 import { fromNorm, humanTimeline, rankedOpponentRpm, recentPaceNorm, tierPaceNorm } from '../lib/pace';
 import type { Queue } from '../lib/types';
-import { Avatar, flag } from '../components/ui';
+import { Avatar, Flag } from '../components/ui';
 import { Icon } from '../components/Icon';
 
 const DURATIONS = [30, 60, 90, 120];
@@ -119,7 +119,7 @@ export function MatchmakingScreen() {
         )}
 
         <div className="grid2" style={{ width: '100%', maxWidth: 640 }}>
-          <button className={`choice ${pick === 'random' ? 'on blue' : ''}`} style={{ gridColumn: '1 / -1', textAlign: 'center' }} onClick={() => setPick('random')}>🎲 Zufällige Übung</button>
+          <button className={`choice ${pick === 'random' ? 'on blue' : ''}`} style={{ gridColumn: '1 / -1', textAlign: 'center' }} onClick={() => setPick('random')}><span className="ico-inline"><Icon name="dice" size={20} /> Zufällige Übung</span></button>
           {PVP_EXERCISES.map((id) => (
             <button key={id} className={`choice ${pick === id ? 'on blue' : ''}`} onClick={() => { setPick(id); setRpm(null); }}>{EXERCISES[id].name}</button>
           ))}
@@ -183,14 +183,14 @@ export function MatchmakingScreen() {
         <div className="big-vs">VS</div>
         <div className="side r">
           <Avatar name={opp.name} size={120} color={opp.color} ring="var(--red)" />
-          <div className="display red" style={{ fontSize: 22 }}>{flag(opp.country)} {opp.name}</div>
+          <div className="display red" style={{ fontSize: 22 }}><Flag cc={opp.country} /> {opp.name}</div>
           <div className="muted" style={{ fontSize: 13 }}>
             {queue === 'casual' ? `${rankLabel(opp.arenaPoints)} · ${opp.elo} ELO` : `Tempo ~${Math.round(oppRpm)} Wdh./Min`}
           </div>
         </div>
       </div>
       <div className="display gold" style={{ fontSize: 22, letterSpacing: '.2em' }}>ÜBUNG: {EXERCISES[ex].name.toUpperCase()} · {dur}s</div>
-      <div className="muted" style={{ maxWidth: 520 }}>📷 {EXERCISES[ex].setup}</div>
+      <div className="muted ico-inline" style={{ maxWidth: 520 }}><Icon name="camera" size={16} /> {EXERCISES[ex].setup}</div>
     </div>
   );
 }

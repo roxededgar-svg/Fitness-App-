@@ -242,7 +242,7 @@ function Battle() {
             <div style={{ minWidth: 0 }}>
               <div className="pname blue">{me.name.toUpperCase()}</div>
               <div className="ptier" style={{ color: myRank.tier.color }}>{myRank.tier.name}</div>
-              <div className="ptroph">🏆 {me.elo}</div>
+              <div className="ptroph ico-inline"><Icon name="trophy" size={15} /> {me.elo}</div>
             </div>
           </div>
           <div className="timer-box">
@@ -253,7 +253,7 @@ function Battle() {
             <div className="player right">
               <div className="av-ring" style={{ background: 'var(--red)' }}>
                 {opp.kind === 'boss' ? (
-                  <div className="avatar" style={{ width: 58, height: 58, background: '#2a0f12', fontSize: 30 }}>💀</div>
+                  <div className="avatar" style={{ width: 58, height: 58, background: '#2a0f12' }}><Icon name="skull" size={32} color="var(--red)" /></div>
                 ) : (
                   <Avatar src={opp.avatar} name={opp.name} size={58} color={opp.color} />
                 )}
@@ -262,7 +262,7 @@ function Battle() {
               <div style={{ minWidth: 0 }}>
                 <div className="pname red">{opp.name}</div>
                 <div className="ptier" style={{ color: '#c7cad8' }}>{opp.tier ?? oppRank?.tier.name}</div>
-                <div className="ptroph">{isBoss ? `❤️ ${Math.ceil(boss.hp)}` : opp.elo > 0 ? `🏆 ${opp.elo}` : '🤖'}</div>
+                <div className="ptroph ico-inline" style={{ justifyContent: 'flex-end' }}>{isBoss ? <><Icon name="heart" size={15} color="var(--red)" /> {Math.ceil(boss.hp)}</> : opp.elo > 0 ? <><Icon name="trophy" size={15} /> {opp.elo}</> : <Icon name="robot" size={18} />}</div>
               </div>
             </div>
           ) : (
@@ -281,9 +281,9 @@ function Battle() {
           <div>
             <div key={`m${bumpMine}`} className="n blue bump">{myReps}</div>
             <div className="lbl">{ex.unit === 'Sek.' ? 'Sekunden' : 'Deine Reps'}</div>
-            {myPace != null && ex.unit !== 'Sek.' && <div className="pace">⚡ {myPace} / Min</div>}
+            {myPace != null && ex.unit !== 'Sek.' && <div className="pace ico-inline"><Icon name="bolt" size={13} /> {myPace} / Min</div>}
           </div>
-          <div className="vs">{isBoss ? '⚔️' : opp ? 'VS' : ''}</div>
+          <div className="vs">{isBoss ? <Icon name="swords" size={40} /> : opp ? 'VS' : ''}</div>
           <div>
             {isBoss && (
               <>
@@ -296,7 +296,7 @@ function Battle() {
               <>
                 <div key={`o${bumpOpp}`} className="n red bump">{oppReps}</div>
                 <div className="lbl">Gegner-Reps</div>
-                {oppPace != null && <div className="pace">⚡ {oppPace} / Min</div>}
+                {oppPace != null && <div className="pace ico-inline"><Icon name="bolt" size={13} /> {oppPace} / Min</div>}
               </>
             )}
             {!opp && config.durationS == null && phase === 'live' && (
@@ -344,17 +344,17 @@ function Battle() {
             )}
             {camOk && (
               <>
-                <div className="display" style={{ fontSize: 22 }}>{tracker.frame.tracking ? '✅ Körper erkannt – gleich geht’s los!' : 'Positioniere dich'}</div>
+                <div className="display" style={{ fontSize: 22 }}>{tracker.frame.tracking ? <span className="ico-inline green"><Icon name="check" size={22} /> <span style={{ color: 'var(--text)' }}>Körper erkannt – gleich geht’s los!</span></span> : 'Positioniere dich'}</div>
                 <div className="muted" style={{ margin: '10px 0 16px', fontSize: 15 }}>{ex.setup}</div>
               </>
             )}
             {isBoss && (
               <div className="gold" style={{ fontSize: 14, marginBottom: 14 }}>
-                ⚔️ Jede Wiederholung trifft {opp?.name}. Besiege ihn in {config.durationS}s! Schnelle Wiederholungen bauen eine Combo auf –
+                Jede Wiederholung trifft {opp?.name}. Besiege ihn in {config.durationS}s! Schnelle Wiederholungen bauen eine Combo auf –
                 wer länger als 3 s pausiert, lässt den Boss heilen.
               </div>
             )}
-            {config.challenge && <div className="purple" style={{ fontSize: 14, marginBottom: 14 }}>🎬 Dein Lauf wird als Duell-Link aufgezeichnet.</div>}
+            {config.challenge && <div className="purple" style={{ fontSize: 14, marginBottom: 14 }}><Icon name="record" size={12} color="var(--red)" /> Dein Lauf wird als Duell-Link aufgezeichnet.</div>}
             <div className="stack" style={{ gap: 10 }}>
               {camOk && <button className="btn btn-primary solid" onClick={() => { unlockAudio(); setPhase('countdown'); }}>Jetzt starten</button>}
               {(settings.tapMode || camFailed) && (settings.tapMode || config.mode === 'training') && (

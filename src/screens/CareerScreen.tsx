@@ -5,7 +5,7 @@ import { bestPaceNorm, recentPaceNorm, TIER_PACE } from '../lib/pace';
 import { BADGES } from '../lib/badges';
 import { EXERCISES, EXERCISE_LIST } from '../lib/exercises';
 import { Icon } from '../components/Icon';
-import { Avatar, PageHeader, Section, Sheet, toast } from '../components/ui';
+import { Avatar, BadgeMedal, Gems, Gold, PageHeader, Section, Sheet, toast } from '../components/ui';
 import type { SessionRecord } from '../lib/types';
 
 async function resizeImage(file: File, size = 256): Promise<string> {
@@ -70,10 +70,10 @@ export function CareerScreen() {
             </div>
           )}
           <div className="chips">
-            <span className="pill" style={{ background: '#1d2236', color: '#c7cad8' }}>🎖 LVL {lv}</span>
-            <span className="pill" style={{ background: '#1d2236', color: '#c7cad8' }}>📅 Seit {joined}</span>
-            <span className="pill" style={{ background: '#1d2236', color: 'var(--gold)' }}>🪙 {me.gold}</span>
-            <span className="pill" style={{ background: '#1d2236', color: 'var(--blue)' }}>💎 {me.gems}</span>
+            <span className="pill ico-inline" style={{ background: '#1d2236', color: '#c7cad8' }}><Icon name="star" size={13} /> LVL {lv}</span>
+            <span className="pill ico-inline" style={{ background: '#1d2236', color: '#c7cad8' }}><Icon name="calendar" size={13} /> Seit {joined}</span>
+            <span className="pill ico-inline" style={{ background: '#1d2236', color: 'var(--gold)' }}><Gold size={13} /> {me.gold}</span>
+            <span className="pill ico-inline" style={{ background: '#1d2236', color: 'var(--blue)' }}><Gems size={13} /> {me.gems}</span>
           </div>
           <button className="row" style={{ marginTop: 14, gap: 10 }} onClick={() => { navigator.clipboard?.writeText(me.code); toast('Spieler-Code kopiert'); }}>
             <span className="caps muted" style={{ fontSize: 11 }}>Spieler-Code</span>
@@ -103,7 +103,7 @@ export function CareerScreen() {
         </button>
         <button className="tile" style={{ minHeight: 170 }} onClick={() => setBadgesOpen(true)}>
           <div className="row" style={{ gap: 12 }}>
-            <div className="t-ico" style={{ background: '#221d3a', fontSize: 26 }}>🏅</div>
+            <div className="t-ico" style={{ background: '#221d3a', color: 'var(--purple)' }}><Icon name="medal" size={26} /></div>
             <div>
               <div className="caps purple" style={{ fontSize: 11 }}>Abzeichen</div>
               <div className="t-title" style={{ fontSize: 18 }}>{earned.length} / {BADGES.length}</div>
@@ -121,7 +121,7 @@ export function CareerScreen() {
           {Array.from({ length: 6 }, (_, i) => {
             const b = favs[i];
             return b ? (
-              <div key={i} className="badge-slot full" style={{ background: `${b.color}22` }} title={b.name}>{b.icon}</div>
+              <div key={i} title={b.name}><BadgeMedal icon={b.icon} color={b.color} size={84} /></div>
             ) : (
               <button key={i} className="badge-slot" onClick={() => setBadgesOpen(true)}>+</button>
             );
@@ -210,7 +210,7 @@ export function CareerScreen() {
                     else if (me.favBadges.length < 6) update({ favBadges: [...me.favBadges, b.id] });
                     else toast('Maximal 6 Favoriten');
                   }}>
-                  <div className="b-ico">{b.icon}</div>
+                  <div className="b-ico"><BadgeMedal icon={b.icon} color={b.color} size={62} /></div>
                   <div className="b-name">{b.name}</div>
                   <div className="b-desc">{b.desc}</div>
                 </button>

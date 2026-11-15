@@ -9,7 +9,7 @@ import { PVP_EXERCISES, EXERCISES, type ExerciseId } from '../lib/exercises';
 import { useBattle } from '../lib/battle';
 import { tierPaceNorm } from '../lib/pace';
 import { Icon } from '../components/Icon';
-import { PageHeader, Section, Sheet, flag, toast } from '../components/ui';
+import { Flag, PageHeader, Section, Sheet, toast } from '../components/ui';
 
 type Tab = 'global' | 'land' | 'friends';
 type Row = Pick<Opponent, 'id' | 'name' | 'country' | 'elo' | 'arenaPoints' | 'level' | 'wins' | 'losses'> & { me?: boolean };
@@ -94,7 +94,7 @@ export function ArenaScreen() {
             </div>
           </button>
           <button className="tile" onClick={() => nav('/matchmaking?q=custom')}>
-            <div className="t-ico" style={{ background: '#2a2108' }}>⏱️</div>
+            <div className="t-ico" style={{ background: '#2a2108', color: 'var(--gold)' }}><Icon name="stopwatch" size={24} /></div>
             <div>
               <div className="t-title">Eigenes Tempo</div>
               <div className="t-sub">Gegner-Tempo selbst einstellen · ungewertet</div>
@@ -114,7 +114,7 @@ export function ArenaScreen() {
             {me.friends.filter((f) => f.duel).map((f) => (
               <div className="board-row" key={f.code}>
                 <div>
-                  <div className="name">{flag(f.country)} {f.name}</div>
+                  <div className="name"><Flag cc={f.country} /> {f.name}</div>
                   <div className="sub">Ghost-Duell verfügbar</div>
                 </div>
                 <button className="btn btn-purple btn-sm" style={{ marginLeft: 'auto' }} onClick={() => nav(`/duel?c=${f.duel}`)}>Antreten</button>
@@ -127,7 +127,7 @@ export function ArenaScreen() {
       <Section title="Rangliste" action={<span className="blue display" style={{ fontSize: 14 }}>{rows.length} Spieler</span>}>
         <div className="tabs">
           <button className={tab === 'global' ? 'on' : ''} onClick={() => setTab('global')}><Icon name="globe" size={18} />GLOBAL</button>
-          <button className={tab === 'land' ? 'on' : ''} onClick={() => setTab('land')}><Icon name="flag" size={18} />{flag(me.country)} LAND</button>
+          <button className={tab === 'land' ? 'on' : ''} onClick={() => setTab('land')}><Icon name="flag" size={18} /><Flag cc={me.country} size={14} /> LAND</button>
           <button className={tab === 'friends' ? 'on' : ''} onClick={() => setTab('friends')}><Icon name="users" size={18} />FREUNDE</button>
         </div>
         <div className="board" style={{ marginTop: 12 }}>
@@ -137,7 +137,7 @@ export function ArenaScreen() {
               <div className={`board-row ${r.me ? 'me' : ''}`}>
                 <div className={`pos p${i + 1}`}>{String(i + 1).padStart(2, '0')}</div>
                 <div style={{ minWidth: 0 }}>
-                  <div className="name">{flag(r.country)} {r.name} {r.me && <span className="me-tag">ME</span>}</div>
+                  <div className="name"><Flag cc={r.country} /> {r.name} {r.me && <span className="me-tag">ME</span>}</div>
                   <div className="sub">LVL {r.level} · {r.elo} ELO<span className="rk"> · {rankLabel(r.arenaPoints)}</span></div>
                 </div>
                 <div className="pts"><b>{r.arenaPoints}</b><small>{r.wins}W · {r.losses}L</small></div>
@@ -198,7 +198,7 @@ function FriendsSheet({ onClose }: { onClose: () => void }) {
       ) : (
         me.friends.map((f) => (
           <div className="history-row" key={f.code}>
-            <span style={{ fontSize: 22 }}>{flag(f.country)}</span>
+            <Flag cc={f.country} size={22} />
             <div style={{ flex: 1 }}>
               <div className="display">{f.name}</div>
               <div className="muted" style={{ fontSize: 12 }}>{f.code} · LVL {f.level} · {f.elo} ELO</div>
