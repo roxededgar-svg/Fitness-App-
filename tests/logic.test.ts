@@ -136,3 +136,20 @@ describe('Tempo & Ranked', () => {
     }
   });
 });
+
+import { BADGES, syncBadgeDates } from '../src/lib/badges';
+
+describe('Abzeichen-Daten', () => {
+  it('trägt nur neu erreichte Abzeichen mit Datum ein', () => {
+    const p = { wins: 1, arenaPoints: 0, sessions: [], dungeonsCleared: [], badgeDates: {} } as unknown as Profile;
+    const r1 = syncBadgeDates(p, 1000);
+    expect(r1.added).toContain('first_blood');
+    expect(r1.badgeDates.first_blood).toBe(1000);
+    const r2 = syncBadgeDates({ ...p, badgeDates: r1.badgeDates } as Profile, 2000);
+    expect(r2.added).toEqual([]);
+    expect(r2.badgeDates.first_blood).toBe(1000);
+  });
+  it('jedes Abzeichen hat ein gültiges Symbol', () => {
+    for (const b of BADGES) expect(b.icon).toMatch(/^[a-z0-9]+$/);
+  });
+});

@@ -47,11 +47,17 @@ const P: Record<string, string> = {
   down: 'M12 5v14M5.5 12.5L12 19l6.5-6.5',
   record: 'M12 6a6 6 0 1 0 0 12 6 6 0 0 0 0-12z',
   target: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zm0 4a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0 4a1 1 0 1 0 0 2 1 1 0 0 0 0-2z',
+  sun: 'M12 7.5a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9zM12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8',
+  moon: 'M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5z',
   cog: 'M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1',
 };
 
 
 const FILLED = new Set(['home', 'bolt', 'user', 'gear', 'flag', 'lock', 'skull', 'users', 'camera', 'share', 'play', 'crown', 'shield', 'star', 'fire', 'dumbbell', 'map', 'copy', 'heart', 'record']);
+
+/** Roh-Pfad eines Symbols, um es in andere SVGs einzubetten (ohne foreignObject). */
+export const iconPath = (name: string) => P[name] ?? '';
+export const iconFilled = (name: string) => FILLED.has(name);
 
 export function Icon({ name, size = 24, color, style }: { name: keyof typeof P | string; size?: number; color?: string; style?: React.CSSProperties }) {
   const fill = FILLED.has(name);

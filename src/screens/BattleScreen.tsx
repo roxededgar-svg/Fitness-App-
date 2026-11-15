@@ -10,6 +10,7 @@ import { sfx, unlockAudio } from '../lib/feedback';
 import { Avatar, TugBar } from '../components/ui';
 import { applyRegen, applyRep, comboWindowMs, createBoss, type BossState } from '../lib/boss';
 import { Icon } from '../components/Icon';
+import { RankEmblem } from '../components/RankEmblem';
 
 type Phase = 'setup' | 'countdown' | 'live' | 'done';
 
@@ -237,12 +238,12 @@ function Battle() {
           <div className="player">
             <div className="av-ring" style={{ background: 'var(--blue)' }}>
               <Avatar src={me.avatar} name={me.name} size={58} />
-              <div className="tier-dot" style={{ background: myRank.tier.color }}><Icon name="shield" size={13} color="#fff" /></div>
+              <div className="tier-emblem"><RankEmblem tier={myRank.tier} size={30} glow={false} /></div>
             </div>
             <div style={{ minWidth: 0 }}>
               <div className="pname blue">{me.name.toUpperCase()}</div>
               <div className="ptier" style={{ color: myRank.tier.color }}>{myRank.tier.name}</div>
-              <div className="ptroph ico-inline"><Icon name="trophy" size={15} /> {me.elo}</div>
+              <div className="ptroph ico-inline"><Icon name="trophy" size={15} /> {me.arenaPoints}</div>
             </div>
           </div>
           <div className="timer-box">
@@ -257,12 +258,12 @@ function Battle() {
                 ) : (
                   <Avatar src={opp.avatar} name={opp.name} size={58} color={opp.color} />
                 )}
-                <div className="tier-dot" style={{ background: oppRank?.tier.color ?? '#555' }}><Icon name="shield" size={13} color="#fff" /></div>
+                {oppRank && opp.kind === 'bot' && opp.elo > 0 && <div className="tier-emblem"><RankEmblem tier={oppRank.tier} size={30} glow={false} /></div>}
               </div>
               <div style={{ minWidth: 0 }}>
                 <div className="pname red">{opp.name}</div>
                 <div className="ptier" style={{ color: '#c7cad8' }}>{opp.tier ?? oppRank?.tier.name}</div>
-                <div className="ptroph ico-inline" style={{ justifyContent: 'flex-end' }}>{isBoss ? <><Icon name="heart" size={15} color="var(--red)" /> {Math.ceil(boss.hp)}</> : opp.elo > 0 ? <><Icon name="trophy" size={15} /> {opp.elo}</> : <Icon name="robot" size={18} />}</div>
+                <div className="ptroph ico-inline" style={{ justifyContent: 'flex-end' }}>{isBoss ? <><Icon name="heart" size={15} color="var(--red)" /> {Math.ceil(boss.hp)}</> : opp.elo > 0 ? <><Icon name="trophy" size={15} /> {opp.arenaPoints}</> : <Icon name="robot" size={18} />}</div>
               </div>
             </div>
           ) : (

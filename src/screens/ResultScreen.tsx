@@ -12,25 +12,44 @@ import { levelFromXp } from '../lib/progression';
 import { shareOrCopy } from '../lib/share';
 import { Icon } from '../components/Icon';
 import { Gems, Gold, RaceChart } from '../components/ui';
+import { RankEmblem, tierPalette } from '../components/RankEmblem';
+import { BadgeBack, BadgeFront, RankBack, RankFront } from '../components/MedalFaces';
+import { MedalViewer } from '../components/MedalViewer';
+import { BADGES } from '../lib/badges';
 
 export function ResultScreen() {
   const last = useBattle((s) => s.last);
   const start = useBattle((s) => s.start);
   const me = useMe()!;
   const nav = useNavigate();
-  const [showLevel, setShowLevel] = useState(false);
   const [barW, setBarW] = useState<number | null>(null);
 
   const rec = last?.rec;
+  const before = rec ? rankFor(rec.arenaBefore ?? 0) : null;
+  const after = rec ? rankFor((rec.arenaBefore ?? 0) + (rec.arenaDelta ?? 0)) : rankFor(me.arenaPoints);
+  const DIVS = ['IV', 'III', 'II', 'I'];
+  const rankedUp = !!before && (rec?.arenaDelta ?? 0) > 0 &&
+    (before.tier.min < after.tier.min || (before.tier.id === after.tier.id && DIVS.indexOf(after.division ?? '') > DIVS.indexOf(before.division ?? '')));
+
+  // Belohnungs-Enthüllungen nacheinander: Level-Up → Rang-Aufstieg → neue Abzeichen
+  type Reveal = { kind: 'level' } | { kind: 'rank' } | { kind: 'badge'; id: string };
+  const [queue, setQueue] = useState<Reveal[]>([]);
+  const [showQueue, setShowQueue] = useState(false);
   useEffect(() => {
-    if (rec?.levelUp) {
-      const t = setTimeout(() => setShowLevel(true), 900);
+    if (!rec) return;
+    const q: Reveal[] = [];
+    if (rec.levelUp) q.push({ kind: 'level' });
+    if (rankedUp) q.push({ kind: 'rank' });
+    for (const id of rec.newBadges ?? []) q.push({ kind: 'badge', id });
+    setQueue(q);
+    if (q.length) {
+      const t = setTimeout(() => setShowQueue(true), 1100);
       return () => clearTimeout(t);
     }
-  }, [rec]);
-
-  const before = rec ? rankFor(rec.arenaBefore ?? 0) : null;
-  const after = rankFor(me.arenaPoints);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rec?.id]);
+  const nextReveal = () => setQueue((q) => q.slice(1));
+  const current = showQueue ? queue[0] : undefined;
   useEffect(() => {
     if (!before) return;
     setBarW(before.progress);
@@ -108,12 +127,15 @@ export function ResultScreen() {
             </div>
             <div style={{ textAlign: 'center' }}>
               <div className="caps muted" style={{ fontSize: 12 }}>Rang</div>
-              <div className="display" style={{ fontSize: 22, marginTop: 6, color: after.tier.color }}>{rankLabel(me.arenaPoints)}</div>
+              <div className="row" style={{ justifyContent: 'center', gap: 10, marginTop: 6 }}>
+                <RankEmblem tier={after.tier} division={after.division} size={44} />
+                <div className="display" style={{ fontSize: 20, color: after.tier.color }}>{rankLabel((rec.arenaBefore ?? 0) + (rec.arenaDelta ?? 0))}</div>
+              </div>
               {before && before.tier.id !== after.tier.id && (
                 <div className="display gold" style={{ fontSize: 14 }}><span className="ico-inline">{(rec.arenaDelta ?? 0) > 0 ? <><Icon name="up" size={14} /> AUFSTIEG!</> : <><Icon name="down" size={14} /> ABSTIEG</>}</span></div>
               )}
               <div className="rank-bar"><span style={{ width: `${(barW ?? 0) * 100}%`, background: after.tier.color }} /></div>
-              {after.next && <div className="muted" style={{ fontSize: 12, marginTop: 6 }}>Noch {after.pointsToNext} Punkte bis zur nächsten Stufe</div>}
+              {after.next && <div className="muted" style={{ fontSize: 12, marginTop: 6 }}>Noch {after.pointsToNext} Trophäen bis zur nächsten Stufe</div>}
             </div>
           </div>
         )}
@@ -142,7 +164,7 @@ export function ResultScreen() {
           <div className="reward-row"><Gold size={24} />Gold erhalten<b className="gold">+{rec.gold}</b></div>
         </div>
         {(rec.mode === 'pvp' && rec.ranked && (rec.queue ?? 'ranked') === 'ranked') && (
-          <div className="reward-row"><Icon name="trophy" size={24} color={(rec.arenaDelta ?? 0) >= 0 ? 'var(--green)' : 'var(--red)'} />Arena-Punkte
+          <div className="reward-row"><Icon name="trophy" size={24} color={(rec.arenaDelta ?? 0) >= 0 ? 'var(--green)' : 'var(--red)'} />Trophäen
             <b style={{ color: (rec.arenaDelta ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>{(rec.arenaDelta ?? 0) >= 0 ? '+' : ''}{rec.arenaDelta}</b></div>
         )}
         {rec.gems > 0 && <div className="reward-row"><Gems size={24} />Edelsteine<b className="blue">+{rec.gems}</b></div>}
@@ -181,13 +203,43 @@ export function ResultScreen() {
         <button className="btn btn-ghost" onClick={() => nav('/', { replace: true })}>Hauptmenü</button>
       </div>
 
-      {showLevel && rec.levelUp && (
-        <div className="levelup" onClick={() => setShowLevel(false)}>
+      {current?.kind === 'level' && (
+        <div className="levelup" onClick={nextReveal}>
           <div className="caps gold">Level Up!</div>
           <div className="num">{rec.levelUp}</div>
           <div className="muted">Tippen zum Fortfahren</div>
         </div>
       )}
+      {current?.kind === 'rank' && (
+        <MedalViewer
+          front={<RankFront tier={after.tier} division={after.division} />}
+          back={<RankBack tier={after.tier} />}
+          edge={tierPalette(after.tier.id).mid}
+          color={tierPalette(after.tier.id).mid}
+          shape="circle"
+          title={before && before.tier.id !== after.tier.id ? `Aufstieg: ${after.tier.name}` : `Aufstieg: ${rankLabel((rec.arenaBefore ?? 0) + (rec.arenaDelta ?? 0))}`}
+          subtitle={after.next ? `Noch ${after.pointsToNext} Trophäen bis zur nächsten Stufe` : 'Höchster Rang erreicht'}
+          actions={<button className="btn btn-primary solid btn-sm" onClick={nextReveal}>Weiter</button>}
+          onClose={nextReveal}
+        />
+      )}
+      {current?.kind === 'badge' && (() => {
+        const b = BADGES.find((x) => x.id === current.id);
+        if (!b) return null;
+        return (
+          <MedalViewer
+            key={b.id}
+            front={<BadgeFront badge={b} earned />}
+            back={<BadgeBack badge={b} earnedAt={rec.ts} />}
+            edge={b.color}
+            color={b.color}
+            title={`Neues Abzeichen: ${b.name}`}
+            subtitle={b.desc}
+            actions={<button className="btn btn-purple btn-sm" onClick={nextReveal}>Weiter</button>}
+            onClose={nextReveal}
+          />
+        );
+      })()}
     </div>
   );
 }

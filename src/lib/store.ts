@@ -6,6 +6,7 @@ import { arenaDelta, eloDelta, levelFromXp } from './progression';
 import { todayKey, uid } from './rng';
 import { dailyMissions } from './missions';
 import { DUNGEONS } from './dungeons';
+import { syncBadgeDates } from './badges';
 
 async function sha256(s: string) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
@@ -61,6 +62,8 @@ interface State {
   addFriend(f: Omit<Friend, 'addedAt'>): void;
   removeFriend(code: string): void;
   resetProgress(): void;
+  /** Erhalt-Daten für bereits verdiente Abzeichen nachtragen (z. B. für bestehende Profile) */
+  syncBadges(): void;
 }
 
 const findByEmail = (profiles: Record<string, Profile>, email: string) =>
@@ -218,7 +221,25 @@ export const useStore = create<State>()(
                 ? { ...p.personalBests, [input.exercise]: input.reps }
                 : p.personalBests,
           }));
+          // Neu erreichte Abzeichen festhalten
+          const updated = get().profiles[get().currentId!];
+          const { badgeDates, added } = syncBadgeDates(updated);
+          if (added.length) {
+            rec.newBadges = added;
+            patchMe((p) => ({
+              ...p,
+              badgeDates,
+              sessions: p.sessions.map((x) => (x.id === rec.id ? { ...x, newBadges: added } : x)),
+            }));
+          }
           return rec;
+        },
+
+        syncBadges() {
+          patchMe((p) => {
+            const { badgeDates, added } = syncBadgeDates(p);
+            return added.length ? { ...p, badgeDates } : p;
+          });
         },
 
         claimMission(id) {

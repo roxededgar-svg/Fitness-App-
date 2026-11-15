@@ -34,6 +34,8 @@ export interface SessionRecord {
   bossMaxHp?: number;
   bossHpLeft?: number;
   maxCombo?: number;
+  /** In diesem Kampf neu erhaltene Abzeichen */
+  newBadges?: string[];
   levelUp?: number;
 }
 
@@ -75,6 +77,8 @@ export interface Profile {
   friends: Friend[];
   dungeonsCleared: string[];
   personalBests: Partial<Record<ExerciseId, number>>;
+  /** Zeitpunkt, an dem jedes Abzeichen erreicht wurde */
+  badgeDates?: Record<string, number>;
 }
 
 export interface Settings {

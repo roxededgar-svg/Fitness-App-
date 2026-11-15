@@ -422,3 +422,19 @@ button:disabled { cursor: not-allowed; }
 .medal > svg { position: absolute; inset: 0; }
 .medal-ico { position: relative; display: grid; place-items: center; filter: drop-shadow(0 1px 2px rgba(0,0,0,.5)); }
 .ico-inline { display: inline-flex; align-items: center; gap: 5px; vertical-align: middle; }
+
+/* ---------- 3D-Medaillen ---------- */
+.spin3d { position: relative; user-select: none; -webkit-user-select: none; }
+.spin3d:active { cursor: grabbing; }
+.spin3d-shine { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen; background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,.38) 48%, transparent 60%); background-size: 250% 100%; }
+.medal-viewer { position: fixed; inset: 0; z-index: 80; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 26px; padding: 24px 16px calc(24px + var(--safe-b)); animation: fade .25s ease; overflow-y: auto; }
+.medal-close { position: absolute; top: calc(16px + var(--safe-t)); right: 16px; }
+.medal-stage { position: relative; display: grid; place-items: center; }
+.medal-floor { position: absolute; bottom: -34px; width: 70%; height: 40px; filter: blur(8px); pointer-events: none; }
+.medal-info { text-align: center; max-width: 460px; }
+.medal-thumb { position: relative; display: grid; place-items: center; transition: transform .15s; }
+.medal-thumb:active { transform: scale(.94); }
+.medal-thumb svg { display: block; }
+.rank-up { position: fixed; inset: 0; z-index: 75; }
+
+.av-ring .tier-emblem { position: absolute; right: -10px; bottom: -10px; filter: drop-shadow(0 2px 3px rgba(0,0,0,.7)); }
