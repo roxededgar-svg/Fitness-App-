@@ -15,6 +15,7 @@ import { Gems, Gold, RaceChart } from '../components/ui';
 import { RankEmblem, tierPalette } from '../components/RankEmblem';
 import { BadgeBack, BadgeFront, RankBack, RankFront } from '../components/MedalFaces';
 import { MedalViewer } from '../components/MedalViewer';
+import { cssClip, METALS, styleFor } from '../lib/badgeStyles';
 import { BADGES } from '../lib/badges';
 
 export function ResultScreen() {
@@ -231,8 +232,9 @@ export function ResultScreen() {
             key={b.id}
             front={<BadgeFront badge={b} earned />}
             back={<BadgeBack badge={b} earnedAt={rec.ts} />}
-            edge={b.color}
-            color={b.color}
+            edge={METALS[styleFor(b.id).metal][2]}
+            clip={cssClip(styleFor(b.id).shape)}
+            color={styleFor(b.id).colors[1]}
             title={`Neues Abzeichen: ${b.name}`}
             subtitle={b.desc}
             actions={<button className="btn btn-purple btn-sm" onClick={nextReveal}>Weiter</button>}

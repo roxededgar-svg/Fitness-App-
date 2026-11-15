@@ -5,9 +5,9 @@ import { Icon } from './Icon';
 
 /** Vollbild-Ansicht einer drehbaren 3D-Medaille (Abzeichen oder Rang). */
 export function MedalViewer({
-  front, back, edge, shape = 'hex', title, subtitle, color, spinIn = true, actions, onClose,
+  front, back, edge, shape = 'hex', clip, title, subtitle, color, spinIn = true, actions, onClose,
 }: {
-  front: ReactNode; back: ReactNode; edge: string; shape?: MedalShape; title: string; subtitle?: ReactNode;
+  front: ReactNode; back: ReactNode; edge: string; shape?: MedalShape; clip?: string; title: string; subtitle?: ReactNode;
   color: string; spinIn?: boolean; actions?: ReactNode; onClose: () => void;
 }) {
   useEffect(() => {
@@ -20,7 +20,7 @@ export function MedalViewer({
     <div className="medal-viewer" style={{ background: `radial-gradient(circle at 50% 38%, ${color}40, rgba(6,7,10,.97) 62%)` }}>
       <button className="icon-btn medal-close" onClick={onClose} aria-label="Schließen"><Icon name="close" size={22} /></button>
       <div className="medal-stage">
-        <Spin3D front={front} back={back} size={size} edge={edge} shape={shape} spinIn={spinIn} idle />
+        <Spin3D front={front} back={back} size={size} edge={edge} shape={shape} clip={clip} spinIn={spinIn} idle />
         <div className="medal-floor" style={{ background: `radial-gradient(ellipse, ${color}55, transparent 70%)` }} />
       </div>
       <div className="medal-info">

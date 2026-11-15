@@ -9,6 +9,7 @@ import { Avatar, Gems, Gold, PageHeader, Section, Sheet, toast } from '../compon
 import { RankEmblem, tierPalette } from '../components/RankEmblem';
 import { BadgeBack, BadgeFront, RankBack, RankFront } from '../components/MedalFaces';
 import { MedalViewer } from '../components/MedalViewer';
+import { cssClip, METALS, styleFor } from '../lib/badgeStyles';
 import type { Tier } from '../lib/progression';
 import type { SessionRecord } from '../lib/types';
 
@@ -234,8 +235,9 @@ export function CareerScreen() {
             key={b.id}
             front={<BadgeFront badge={b} earned={has} />}
             back={<BadgeBack badge={b} earnedAt={has ? at ?? Date.now() : undefined} />}
-            edge={has ? b.color : '#4b4f63'}
-            color={has ? b.color : '#4b4f63'}
+            edge={has ? METALS[styleFor(b.id).metal][2] : '#3a3e52'}
+            clip={cssClip(styleFor(b.id).shape)}
+            color={has ? styleFor(b.id).colors[1] : '#4b4f63'}
             title={b.name}
             subtitle={has ? <>{b.desc}<br />Erhalten am {new Date(at ?? Date.now()).toLocaleDateString('de-DE')}</> : <>Noch gesperrt · {b.desc}</>}
             actions={has && (

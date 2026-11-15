@@ -20,6 +20,8 @@ interface Props {
   back: ReactNode;
   size?: number;
   shape?: MedalShape;
+  /** Eigene Form als CSS clip-path (überschreibt shape) */
+  clip?: string;
   /** Farbe des Randes */
   edge?: string;
   /** Dicke in px */
@@ -31,12 +33,13 @@ interface Props {
   interactive?: boolean;
 }
 
-export function Spin3D({ front, back, size = 240, shape = 'hex', edge = '#64748b', depth, spinIn = false, idle = false, interactive = true }: Props) {
+export function Spin3D({ front, back, size = 240, shape = 'hex', clip, edge = '#64748b', depth, spinIn = false, idle = false, interactive = true }: Props) {
   const rootRef = useRef<HTMLDivElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
   const shineRef = useRef<HTMLDivElement>(null);
   // spinIn: Start so wählen, dass der Schwung genau auf der Vorderseite ausläuft (Summe ≈ v0 / (1 - Reibung))
   const st = useRef({ ry: spinIn ? -22 / (1 - 0.955) : 0, rx: 0, vy: spinIn ? 22 : 0, vx: 0, dragging: false, lx: 0, ly: 0, lt: 0, t0: performance.now(), last: performance.now() });
+  const clipPath = clip ?? CLIP[shape];
   const thick = depth ?? Math.max(6, Math.round(size / 22));
   const layers = Math.max(6, Math.round(thick / 1.2));
 
@@ -103,7 +106,7 @@ export function Spin3D({ front, back, size = 240, shape = 'hex', edge = '#64748b
     s.vy = Math.max(-40, Math.min(40, s.vy));
   }
 
-  const face: React.CSSProperties = { position: 'absolute', inset: 0, backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', clipPath: CLIP[shape], WebkitClipPath: CLIP[shape] };
+  const face: React.CSSProperties = { position: 'absolute', inset: 0, backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', clipPath, WebkitClipPath: clipPath };
 
   return (
     <div
@@ -121,7 +124,7 @@ export function Spin3D({ front, back, size = 240, shape = 'hex', edge = '#64748b
           const z = -thick / 2 + (thick * (i + 0.5)) / layers;
           const shade = 0.55 + 0.35 * Math.abs(Math.sin((i / layers) * Math.PI));
           return (
-            <div key={i} style={{ position: 'absolute', inset: 1, clipPath: CLIP[shape], WebkitClipPath: CLIP[shape], transform: `translateZ(${z}px)`, background: edge, filter: `brightness(${shade})` }} />
+            <div key={i} style={{ position: 'absolute', inset: 1, clipPath, WebkitClipPath: clipPath, transform: `translateZ(${z}px)`, background: edge, filter: `brightness(${shade})` }} />
           );
         })}
         <div style={{ ...face, transform: `translateZ(${thick / 2}px)` }}>

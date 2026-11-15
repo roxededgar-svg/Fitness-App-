@@ -224,7 +224,8 @@ button:disabled { cursor: not-allowed; }
 .badge-slot.full { border: 0; font-size: 38px; box-shadow: inset 0 0 0 2px rgba(255,255,255,.08); }
 .badge-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
 .badge-item { background: var(--card2); border: 1px solid var(--line); border-radius: 16px; padding: 16px; text-align: center; }
-.badge-item.off { opacity: .35; filter: grayscale(1); }
+.badge-item.off { opacity: .7; }
+.badge-item.off .b-name, .badge-item.off .b-desc { opacity: .6; }
 .badge-item.fav { border-color: var(--purple); box-shadow: 0 0 0 1px var(--purple); }
 .badge-item .b-ico { display: flex; justify-content: center; }
 .badge-item .b-name { font-family: var(--display); font-weight: 800; margin-top: 6px; }
