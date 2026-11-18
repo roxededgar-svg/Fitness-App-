@@ -352,7 +352,7 @@ function Battle() {
         </div>
       )}
       {attacking && (pathKind === 'dragon' || pathKind === 'demon') && <div key={`f${attackN}`} className="screen-flash" />}
-      {regen && <div className="roar">GRRR!</div>}
+      {regen && <div className="roar-vignette" />}
       {isBoss && (
         <div className="hit-layer">
           {hits.map((h) => (

@@ -1056,3 +1056,71 @@ button.mini { border-top-color: var(--blue); }
 .roar { position: absolute; right: 8%; bottom: 46%; z-index: 3; font-family: var(--display); font-weight: 900; font-style: italic; font-size: 44px; color: var(--red); -webkit-text-stroke: 3px var(--ink); paint-order: stroke fill; text-shadow: 4px 4px 0 var(--ink); animation: pop 1.2s ease-out forwards; pointer-events: none; }
 @media (prefers-reduced-motion: reduce) { .battle-monster, .battle.shake, .screen-flash { animation: none !important; } }
 .pnode.boss .boss-plate { color: #fff; background: #b8261a; border-color: var(--ink) !important; }
+
+/* =====================================================================
+   Monster: schwer und bedrohlich statt cartoonhaft.
+   Gleichnamige Keyframes überschreiben die früheren Definitionen.
+   ===================================================================== */
+.monster .m-rig { filter: saturate(.85) contrast(1.08); }
+/* Ruhe: langsames, schweres Atmen und Lauern – kein Hüpfen, kein Gummi */
+@keyframes mSquish { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.015, 1.03); } }
+@keyframes mBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+@keyframes mHop { 0%, 100% { transform: translateX(0) rotate(0); } 50% { transform: translateX(-3px) rotate(-1.2deg); } }
+@keyframes mWiggle { 0%, 100% { transform: rotate(-1.5deg); } 50% { transform: rotate(1.5deg); } }
+@keyframes mStomp { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px) scale(1.01, 1.02); } }
+@keyframes mFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@keyframes mSwim { 0%, 100% { transform: translate(0, 0) rotate(-1deg); } 50% { transform: translate(4px, -3px) rotate(1deg); } }
+@keyframes mSneak { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(-3px) rotate(-1deg); } }
+@keyframes mBreath { 50% { transform: scale(1.012, 1.025); } }
+.m-idle .m-squish, .m-idle .m-bob, .m-idle .m-hop, .m-idle .m-wiggle, .m-idle .m-stomp, .m-idle .m-sneak { animation-duration: 3.4s; animation-timing-function: ease-in-out; }
+.m-idle .m-float, .m-idle .m-hover, .m-idle .m-swim { animation-duration: 4.2s; }
+/* Augen: selten blinzeln, glühen leicht pulsierend */
+@keyframes mBlink { 0%, 96%, 100% { transform: scaleY(1); } 97.5% { transform: scaleY(.15); } }
+.m-idle .m-eye { animation-duration: 7s; }
+.m-eyes { animation: mEyeGlow 3.2s ease-in-out infinite; }
+@keyframes mEyeGlow { 50% { opacity: .82; } }
+@keyframes mLook { 0%, 50%, 100% { transform: translateX(0); } 65%, 85% { transform: translateX(-2px); } }
+@keyframes mChomp { 0%, 88%, 100% { transform: scaleY(1); } 93% { transform: scaleY(1.15); } }
+/* Flügel/Schwanz/Tentakel: langsamer, kraftvoller */
+.m-wing-l, .m-wing-r { animation-duration: 1.6s !important; }
+@keyframes mFlapL { 50% { transform: rotate(12deg) scaleY(.85); } }
+@keyframes mFlapR { 50% { transform: rotate(-12deg) scaleY(.85); } }
+.m-tail { animation-duration: 2.6s !important; }
+.m-tentacle { animation-duration: 3s !important; }
+@keyframes mTent { 50% { transform: skewX(6deg); } }
+.m-leg-l, .m-leg-r { animation: none; }
+.m-ear-l, .m-ear-r { animation-duration: 5s; }
+/* Schatten ruhiger */
+@keyframes mShadow { 50% { transform: scaleX(.96); opacity: .3; } }
+/* Boss-Aura: rauchiges Glühen statt Strichkreis */
+.m-aura { animation: mAuraPulse 3.6s ease-in-out infinite; transform-origin: 100px 112px; }
+@keyframes mAuraPulse { 0%, 100% { opacity: .55; transform: scale(.94); } 50% { opacity: 1; transform: scale(1.05); } }
+
+/* Treffer: kurzes Zurückweichen, rot aufblitzen */
+@keyframes mHit {
+  0% { transform: none; filter: none; }
+  15% { transform: translateX(9px) rotate(2deg); filter: brightness(1.5) sepia(1) saturate(6) hue-rotate(-30deg); }
+  45% { transform: translateX(3px); filter: brightness(1.1); }
+  100% { transform: none; filter: none; }
+}
+.m-hit .m-rig { animation-duration: .38s; animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+
+/* Tod: zusammensacken und zu Staub zerfallen */
+@keyframes mDead {
+  0% { transform: none; filter: none; opacity: 1; }
+  20% { transform: translateY(-4px) rotate(-2deg); filter: brightness(1.8) sepia(1) saturate(4) hue-rotate(-30deg); }
+  55% { transform: translateY(10px) scale(1.02, .9); filter: brightness(.6) grayscale(.6); opacity: .9; }
+  100% { transform: translateY(16px) scale(1.08, .82); filter: grayscale(1) brightness(.35) blur(6px); opacity: 0; }
+}
+.m-dead .m-rig { animation-duration: 1.6s; animation-timing-function: ease-in; }
+
+/* Angriff: kurz ausholen, dann schnell zuschlagen */
+@keyframes mLunge { 0%, 100% { transform: none; } 35% { transform: translateX(8px) rotate(2deg); } 50% { transform: translateX(-30px) rotate(-3deg); } 62% { transform: translateX(-24px); } }
+.m-attack .m-rig { animation-timing-function: cubic-bezier(.6,0,.2,1); }
+
+/* Brüllen: roter Puls am Rand statt Comic-Text */
+.roar { display: none; }
+.roar-vignette { position: absolute; inset: 0; z-index: 2; pointer-events: none; box-shadow: inset 0 0 120px 30px rgba(180,10,10,.55); animation: roarPulse 1.2s ease-in-out infinite; }
+@keyframes roarPulse { 50% { box-shadow: inset 0 0 160px 50px rgba(200,15,15,.7); } }
+.hit { font-style: normal; color: #f2e6d0; -webkit-text-stroke: 2px #1a0505; text-shadow: 0 0 12px rgba(200,20,20,.8), 3px 3px 0 #000; }
+.hit.crit { color: #ffcf3a; }
