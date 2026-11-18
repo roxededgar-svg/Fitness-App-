@@ -32,14 +32,14 @@ export function ProgressChart({ sessions }: { sessions: SessionRecord[] }) {
       <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="170" preserveAspectRatio="none" style={{ display: 'block' }}>
         <defs>
           <linearGradient id="pc-fill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="#3f7bfa" stopOpacity=".45" />
-            <stop offset="1" stopColor="#3f7bfa" stopOpacity="0" />
+            <stop offset="0" stopColor="#D7FF3B" stopOpacity=".45" />
+            <stop offset="1" stopColor="#D7FF3B" stopOpacity="0" />
           </linearGradient>
         </defs>
-        {[0.25, 0.5, 0.75].map((f) => <line key={f} x1={P} x2={W - P} y1={P + f * (H - 2 * P)} y2={P + f * (H - 2 * P)} stroke="#1f2230" />)}
+        {[0.25, 0.5, 0.75].map((f) => <line key={f} x1={P} x2={W - P} y1={P + f * (H - 2 * P)} y2={P + f * (H - 2 * P)} stroke="#2c2924" />)}
         {list.length > 1 && <path d={area} fill="url(#pc-fill)" />}
-        {list.length > 1 && <path d={line} fill="none" stroke="#3f7bfa" strokeWidth="3" vectorEffect="non-scaling-stroke" strokeLinejoin="round" />}
-        {list.map((s, i) => <circle key={s.id} cx={x(i)} cy={y(s.reps)} r="4" fill={s.mode === 'pvp' || s.mode === 'ghost' ? '#a855f7' : '#3f7bfa'} stroke="#0b0c12" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />)}
+        {list.length > 1 && <path d={line} fill="none" stroke="#D7FF3B" strokeWidth="3" vectorEffect="non-scaling-stroke" strokeLinejoin="round" />}
+        {list.map((s, i) => <circle key={s.id} cx={x(i)} cy={y(s.reps)} r="4" fill={s.mode === 'pvp' || s.mode === 'ghost' ? '#FF8A3D' : '#D7FF3B'} stroke="#0b0c12" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />)}
       </svg>
       <div className="legend" style={{ marginTop: 6 }}><span><i style={{ background: 'var(--blue)' }} />Training / Pfad</span><span><i style={{ background: 'var(--purple)' }} />Kampf</span></div>
     </div>

@@ -8,6 +8,8 @@ import {
   type PathNode, type World,
 } from '../lib/path';
 import { Icon } from '../components/Icon';
+import { Art } from '../components/Art';
+import { artIdForNode } from '../lib/art';
 import { Gems, Gold, MyAvatar, Sheet, toast } from '../components/ui';
 import { Backdrop, Particles, Scenery } from '../components/Scenery';
 
@@ -26,7 +28,7 @@ function Stars({ n, size = 14 }: { n: number; size?: number }) {
     <div className="pnode-stars">
       {[0, 1, 2].map((i) => (
         <svg key={i} width={size} height={size} viewBox="0 0 24 24" style={{ transform: i === 1 ? 'translateY(-3px)' : undefined }}>
-          <path d="M12 2l3 7h7l-5.5 4.5 2 7.5L12 17l-6.5 4 2-7.5L2 9h7z" fill={i < n ? '#ffd23f' : '#2a2d3a'} stroke={i < n ? '#8a5a00' : '#3d4152'} strokeWidth="1.2" />
+          <path d="M12 2l3 7h7l-5.5 4.5 2 7.5L12 17l-6.5 4 2-7.5L2 9h7z" fill={i < n ? '#ffd23f' : '#34302a'} stroke={i < n ? '#8a5a00' : '#4a443b'} strokeWidth="1.2" />
         </svg>
       ))}
     </div>
@@ -143,6 +145,7 @@ export function MapScreen() {
               <div className="world-inner" style={{ height: H }}>
 
               {/* Kinoreifer Welttitel */}
+              <Art id={`world-${w.id}`} className="world-art" fallback={null} />
               <div className="world-title">
                 <div className="chapter" style={{ color: w.glow }}>KAPITEL {ROMAN[wi]}</div>
                 <h2 className="world-name" style={{ backgroundImage: `linear-gradient(180deg, #fff 20%, ${w.glow})`, filter: `drop-shadow(0 0 18px ${w.glow}aa)` }}>{w.name.toUpperCase()}</h2>
@@ -215,20 +218,20 @@ export function MapScreen() {
                         <svg className="boss-frame" viewBox="0 0 160 160" width="150" height="150">
                           <defs>
                             <radialGradient id={`bf${wi}`} cx="50%" cy="40%" r="60%">
-                              <stop offset="0" stopColor={open ? '#ff8a6a' : '#4b4f63'} />
-                              <stop offset=".6" stopColor={open ? '#b91c1c' : '#2a2d3a'} />
+                              <stop offset="0" stopColor={open ? '#ff8a6a' : '#5c564d'} />
+                              <stop offset=".6" stopColor={open ? '#b91c1c' : '#34302a'} />
                               <stop offset="1" stopColor={open ? '#2a0303' : '#111218'} />
                             </radialGradient>
                           </defs>
                           {/* Hörner */}
-                          <path d="M44 52C28 44 20 26 24 6c8 14 18 22 32 28zM116 52c16-8 24-26 20-46-8 14-18 22-32 28z" fill={open ? '#e7d3a8' : '#3a3e52'} stroke="#000" strokeOpacity=".5" strokeWidth="2" />
+                          <path d="M44 52C28 44 20 26 24 6c8 14 18 22 32 28zM116 52c16-8 24-26 20-46-8 14-18 22-32 28z" fill={open ? '#e7d3a8' : '#4a443b'} stroke="#000" strokeOpacity=".5" strokeWidth="2" />
                           {/* Zackenkranz */}
-                          <polygon points={Array.from({ length: 28 }, (_, k) => { const a = (k * Math.PI) / 14; const r = k % 2 ? 58 : 70; return `${80 + Math.cos(a) * r},${84 + Math.sin(a) * r}`; }).join(' ')} fill={open ? '#3a0a06' : '#1a1b22'} stroke={open ? '#ef4444' : '#3a3e52'} strokeWidth="2" />
-                          <circle cx="80" cy="84" r="52" fill={`url(#bf${wi})`} stroke={open ? '#fca5a5' : '#4b4f63'} strokeWidth="3" />
+                          <polygon points={Array.from({ length: 28 }, (_, k) => { const a = (k * Math.PI) / 14; const r = k % 2 ? 58 : 70; return `${80 + Math.cos(a) * r},${84 + Math.sin(a) * r}`; }).join(' ')} fill={open ? '#3a0a06' : '#1d1b18'} stroke={open ? '#ef4444' : '#4a443b'} strokeWidth="2" />
+                          <circle cx="80" cy="84" r="52" fill={`url(#bf${wi})`} stroke={open ? '#fca5a5' : '#5c564d'} strokeWidth="3" />
                           <circle cx="80" cy="84" r="44" fill="none" stroke="#000" strokeOpacity=".35" strokeWidth="4" />
                         </svg>
                         <div className="boss-face">
-                          <Icon name={open ? n.icon : 'lock'} size={54} color={open ? '#fff' : '#6b7085'} />
+                          {open ? <Art id={artIdForNode(n.id)} size={86} style={{ borderRadius: '50%' }} fallback={<Icon name={n.icon} size={54} color="#fff" />} /> : <Icon name="lock" size={54} color="#7a7368" />}
                         </div>
                         <div className="boss-tag">BOSS</div>
                       </div>
@@ -237,7 +240,7 @@ export function MapScreen() {
                         <div className="pnode-side" />
                         <div className="pnode-top">
                           <div className="pnode-inner">
-                            <Icon name={open ? n.icon : 'lock'} size={32} color={done || open ? '#fff' : '#6b7085'} />
+                            {open ? <Art id={artIdForNode(n.id)} size={52} fallback={<Icon name={n.icon} size={32} color="#fff" />} /> : <Icon name="lock" size={32} color="#7a7368" />}
                           </div>
                         </div>
                       </div>
@@ -253,15 +256,15 @@ export function MapScreen() {
               {next && (
                 <div className={`portal ${bossBeaten ? 'portal-open' : ''}`} style={{ ['--glow' as string]: next.glow }}>
                   <div className="portal-gate">
-                    <div className="portal-vortex" style={{ background: bossBeaten ? `conic-gradient(from 0deg, ${next.glow}, transparent 25%, ${next.glow}aa 40%, transparent 60%, ${next.glow} 80%, transparent)` : 'radial-gradient(circle, #16171f, #07070a)' }} />
+                    <div className="portal-vortex" style={{ background: bossBeaten ? `conic-gradient(from 0deg, ${next.glow}, transparent 25%, ${next.glow}aa 40%, transparent 60%, ${next.glow} 80%, transparent)` : 'radial-gradient(circle, #1d1b18, #07070a)' }} />
                     <svg viewBox="0 0 180 150" width="180" height="150" className="portal-arch">
                       <path d="M22 148V70a68 62 0 0 1 136 0v78" fill="none" stroke="#1a1814" strokeWidth="22" />
-                      <path d="M22 148V70a68 62 0 0 1 136 0v78" fill="none" stroke={bossBeaten ? next.glow : '#4b4f63'} strokeWidth="5" />
+                      <path d="M22 148V70a68 62 0 0 1 136 0v78" fill="none" stroke={bossBeaten ? next.glow : '#5c564d'} strokeWidth="5" />
                       {Array.from({ length: 9 }, (_, k) => {
                         const a = Math.PI + (k * Math.PI) / 8;
-                        return <rect key={k} x={90 + Math.cos(a) * 68 - 5} y={70 + Math.sin(a) * 62 - 5} width="10" height="10" transform={`rotate(45 ${90 + Math.cos(a) * 68} ${70 + Math.sin(a) * 62})`} fill={bossBeaten ? next.glow : '#3a3e52'} />;
+                        return <rect key={k} x={90 + Math.cos(a) * 68 - 5} y={70 + Math.sin(a) * 62 - 5} width="10" height="10" transform={`rotate(45 ${90 + Math.cos(a) * 68} ${70 + Math.sin(a) * 62})`} fill={bossBeaten ? next.glow : '#4a443b'} />;
                       })}
-                      {!bossBeaten && <path d="M58 100h64M58 116h64M70 92v34M110 92v34" stroke="#4b4f63" strokeWidth="4" strokeLinecap="round" />}
+                      {!bossBeaten && <path d="M58 100h64M58 116h64M70 92v34M110 92v34" stroke="#5c564d" strokeWidth="4" strokeLinecap="round" />}
                     </svg>
                   </div>
                   <div className="caps portal-text" style={{ color: bossBeaten ? next.glow : 'var(--muted)' }}>
@@ -280,7 +283,7 @@ export function MapScreen() {
         <Sheet title={sel.kind === 'boss' ? 'BOSSKAMPF' : 'STATION'} onClose={() => setSel(null)}>
           <div className="row" style={{ gap: 16 }}>
             <div className="station-ico" style={{ background: `${sel.kind === 'boss' ? '#ef4444' : selWorld.glow}22`, color: sel.kind === 'boss' ? '#ef4444' : selWorld.glow }}>
-              <Icon name={sel.icon} size={40} />
+              <Art id={artIdForNode(sel.id)} size={72} style={{ borderRadius: 20 }} fallback={<Icon name={sel.icon} size={40} />} />
             </div>
             <div style={{ flex: 1 }}>
               <div className="display" style={{ fontSize: 24 }}>{sel.name}</div>
@@ -312,7 +315,7 @@ export function MapScreen() {
               <div className="row" style={{ gap: 18, fontFamily: 'var(--display)', fontWeight: 900, fontSize: 20 }}>
                 <span className="blue">+{chestReward.xp} XP</span>
                 <span className="gold ico-inline"><Gold size={20} /> +{chestReward.gold}</span>
-                <span className="ico-inline" style={{ color: '#60a5fa' }}><Gems size={20} /> +{chestReward.gems}</span>
+                <span className="ico-inline" style={{ color: '#4CC9F0' }}><Gems size={20} /> +{chestReward.gems}</span>
               </div>
             ) : isCleared(me, sel) ? (
               <div className="muted">Diese Kiste hast du schon geöffnet.</div>

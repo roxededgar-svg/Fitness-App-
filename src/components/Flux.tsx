@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useArt } from '../lib/art';
 
 /**
  * Flux – der Begleiter. Ein schwebender Energiegeist mit Gesichtsausdrücken.
@@ -7,6 +8,9 @@ import { useEffect, useState } from 'react';
 export type Mood = 'happy' | 'excited' | 'think' | 'wink' | 'proud';
 
 export function Flux({ mood = 'happy', size = 140 }: { mood?: Mood; size?: number }) {
+  const moodArt = useArt(`flux-${mood}`);
+  const baseArt = useArt('flux');
+  const art = moodArt ?? baseArt;
   const [blink, setBlink] = useState(false);
   useEffect(() => {
     let t: ReturnType<typeof setTimeout>;
@@ -40,30 +44,27 @@ export function Flux({ mood = 'happy', size = 140 }: { mood?: Mood; size?: numbe
     proud: 'M48 67 q12 12 24 0',
   }[mood];
 
+  if (art) return <div className={`flux flux-${mood}`} style={{ width: size, height: size }}><img src={art} alt="Flux" className="art-img" style={{ width: size, height: size }} /></div>;
   return (
     <div className={`flux flux-${mood}`} style={{ width: size, height: size }}>
       <svg viewBox="0 0 120 120" width={size} height={size} style={{ overflow: 'visible' }}>
         <defs>
           <radialGradient id="flux-body" cx="40%" cy="35%" r="70%">
-            <stop offset="0" stopColor="#e0f2fe" />
-            <stop offset=".35" stopColor="#7dd3fc" />
-            <stop offset=".75" stopColor="#3f7bfa" />
-            <stop offset="1" stopColor="#5b21b6" />
-          </radialGradient>
-          <radialGradient id="flux-glow">
-            <stop offset="0" stopColor="#60a5fa" stopOpacity=".55" />
-            <stop offset="1" stopColor="#60a5fa" stopOpacity="0" />
+            <stop offset="0" stopColor="#FAFFD6" />
+            <stop offset=".35" stopColor="#E8FF7A" />
+            <stop offset=".75" stopColor="#C6F02A" />
+            <stop offset="1" stopColor="#8DB800" />
           </radialGradient>
         </defs>
-        <circle cx="60" cy="60" r="58" fill="url(#flux-glow)" className="flux-aura" />
+        
         {/* Flammen-Schopf */}
-        <path className="flux-tuft" d="M44 24c-2-10 6-16 8-22 2 8 6 10 8 16 2-8 8-10 10-16 2 8 2 16-2 22z" fill="#a78bfa" />
+        <path className="flux-tuft" d="M44 24c-2-10 6-16 8-22 2 8 6 10 8 16 2-8 8-10 10-16 2 8 2 16-2 22z" fill="#FF8A3D" stroke="#111" strokeWidth="3" strokeLinejoin="round" />
         {/* Körper */}
-        <path d="M60 18c24 0 40 18 40 42 0 20-14 36-32 40l-8 12-8-12C34 96 20 80 20 60c0-24 16-42 40-42z" fill="url(#flux-body)" stroke="#1e3a8a" strokeOpacity=".4" strokeWidth="1.5" />
+        <path d="M60 18c24 0 40 18 40 42 0 20-14 36-32 40l-8 12-8-12C34 96 20 80 20 60c0-24 16-42 40-42z" fill="url(#flux-body)" stroke="#111" strokeWidth="3.5" strokeLinejoin="round" />
         <ellipse cx="44" cy="36" rx="12" ry="7" fill="#fff" opacity=".45" transform="rotate(-25 44 36)" />
         {/* Arme */}
-        <path className="flux-arm-l" d="M22 66c-8 2-12-2-14-8" stroke="#7dd3fc" strokeWidth="6" fill="none" strokeLinecap="round" />
-        <path className="flux-arm-r" d="M98 66c8 2 12-2 14-8" stroke="#7dd3fc" strokeWidth="6" fill="none" strokeLinecap="round" />
+        <path className="flux-arm-l" d="M22 66c-8 2-12-2-14-8" stroke="#111" strokeWidth="10" fill="none" strokeLinecap="round" /><path className="flux-arm-l" d="M22 66c-8 2-12-2-14-8" stroke="#D7FF3B" strokeWidth="5" fill="none" strokeLinecap="round" />
+        <path className="flux-arm-r" d="M98 66c8 2 12-2 14-8" stroke="#111" strokeWidth="10" fill="none" strokeLinecap="round" /><path className="flux-arm-r" d="M98 66c8 2 12-2 14-8" stroke="#D7FF3B" strokeWidth="5" fill="none" strokeLinecap="round" />
         {/* Wangen */}
         <ellipse cx="38" cy="66" rx="6" ry="3.5" fill="#f472b6" opacity=".55" />
         <ellipse cx="82" cy="66" rx="6" ry="3.5" fill="#f472b6" opacity=".55" />

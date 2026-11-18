@@ -59,7 +59,7 @@ export function ArenaScreen() {
       <div className="season-bar">
         <span className="caps" style={{ fontSize: 11 }}>Saison {seasonName(seasonId())}</span>
         <span className="spacer" />
-        <span className="muted" style={{ fontSize: 13 }}>Endet in {Math.ceil(seasonEndsIn() / 864e5)} Tagen · Belohnung jetzt: <b className="gold">{seasonReward(Math.max(me.season?.peak ?? 0, me.arenaPoints)).gold} Gold</b> + <b style={{ color: '#60a5fa' }}>{seasonReward(Math.max(me.season?.peak ?? 0, me.arenaPoints)).gems} Edelsteine</b></span>
+        <span className="muted" style={{ fontSize: 13 }}>Endet in {Math.ceil(seasonEndsIn() / 864e5)} Tagen · Belohnung jetzt: <b className="gold">{seasonReward(Math.max(me.season?.peak ?? 0, me.arenaPoints)).gold} Gold</b> + <b style={{ color: '#4CC9F0' }}>{seasonReward(Math.max(me.season?.peak ?? 0, me.arenaPoints)).gems} Edelsteine</b></span>
       </div>
 
       {/* Rang-Übersicht */}
@@ -96,7 +96,7 @@ export function ArenaScreen() {
             </div>
           </button>
           <button className="tile" onClick={() => nav('/matchmaking?q=casual')}>
-            <div className="t-ico" style={{ background: '#221d3a', color: 'var(--purple)' }}><Icon name="bolt" size={24} /></div>
+            <div className="t-ico" style={{ background: '#2e2216', color: 'var(--purple)' }}><Icon name="bolt" size={24} /></div>
             <div>
               <div className="t-title">Schnellkampf</div>
               <div className="t-sub">Übung & Dauer frei wählbar · keine Trophäen</div>
@@ -114,7 +114,7 @@ export function ArenaScreen() {
 
       <Section title="Mit Freunden">
         <button className="card plan-cta friends-cta" onClick={() => nav('/friends')}>
-          <div className="t-ico" style={{ width: 56, height: 56, background: 'linear-gradient(135deg, #3f7bfa33, #ef444433)', color: '#fff' }}><Icon name="users" size={28} /></div>
+          <div className="t-ico" style={{ width: 56, height: 56, background: 'linear-gradient(135deg, #D7FF3B33, #ef444433)', color: '#fff' }}><Icon name="users" size={28} /></div>
           <div style={{ flex: 1 }}>
             <div className="display" style={{ fontSize: 18 }}>Gegeneinander oder im Team</div>
             <div className="muted" style={{ fontSize: 13 }}>1 vs 1 oder 2 vs 2 – zu zweit an einem Gerät oder per Team-Link</div>
@@ -126,8 +126,8 @@ export function ArenaScreen() {
       <Section title="1v1 Duelle" action={<button className="section-link" onClick={() => setChallengeOpen(true)}>+ Herausfordern</button>}>
         {me.friends.filter((f) => f.duel).length === 0 ? (
           <div className="empty">
-            <Icon name="shield" size={30} color="#6b7085" />
-            <div style={{ marginTop: 8 }}>Keine offenen Duelle. Fordere einen Freund heraus!</div>
+            <Icon name="shield" size={30} color="#7a7368" />
+            <div style={{ marginTop: 8 }}>Gerade fordert dich keiner heraus. Dann mach du den ersten Schritt.</div>
           </div>
         ) : (
           <div className="board">

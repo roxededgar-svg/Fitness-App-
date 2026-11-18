@@ -64,13 +64,13 @@ export function BadgeMedal({ icon, color, size = 64, off = false }: { icon: stri
 
 /** Währungs-Symbole */
 export const Gold = ({ size = 16 }: { size?: number }) => <Icon name="coin" size={size} color="var(--gold)" />;
-export const Gems = ({ size = 16 }: { size?: number }) => <Icon name="gem" size={size} color="#60a5fa" />;
+export const Gems = ({ size = 16 }: { size?: number }) => <Icon name="gem" size={size} color="#4CC9F0" />;
 
-export function Avatar({ src, name, size = 56, color = '#3f7bfa', ring }: { src?: string; name: string; size?: number; color?: string; ring?: string }) {
+export function Avatar({ src, name, size = 56, color = '#D7FF3B', ring }: { src?: string; name: string; size?: number; color?: string; ring?: string }) {
   const inner = src ? (
     <img src={src} alt="" className="avatar" style={{ width: size, height: size }} />
   ) : (
-    <div className="avatar" style={{ width: size, height: size, fontSize: size * 0.38, background: `linear-gradient(${color}33, ${color}33), #12131b`, color }}>
+    <div className="avatar" style={{ width: size, height: size, fontSize: size * 0.38, background: `linear-gradient(${color}33, ${color}33), #191714`, color }}>
       {name.slice(0, 2).toUpperCase()}
     </div>
   );
@@ -168,7 +168,7 @@ export function LevelRing({ level, xp, need }: { level: number; xp: number; need
   return (
     <div className="ring-wrap">
       <svg viewBox="0 0 100 100">
-        <circle cx="50" cy="50" r={r} fill="none" stroke="#171922" strokeWidth="6" />
+        <circle cx="50" cy="50" r={r} fill="none" stroke="#24211d" strokeWidth="6" />
         <circle cx="50" cy="50" r={r} fill="none" stroke="var(--blue)" strokeWidth="6" strokeLinecap="round"
           strokeDasharray={c} strokeDashoffset={c * (1 - pct)} style={{ transition: 'stroke-dashoffset 1s ease', filter: 'drop-shadow(0 0 6px rgba(63,123,250,.6))' }} />
       </svg>
@@ -252,7 +252,7 @@ export function RaceChart({ mine, theirs, durationS, oppName }: { mine: number[]
         <div className="legend"><span><i style={{ background: 'var(--blue)' }} />Du</span>{theirs && <span><i style={{ background: 'var(--red)' }} />{oppName}</span>}</div>
       </div>
       <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none">
-        {[0.25, 0.5, 0.75].map((f) => <line key={f} x1={pad} x2={W - pad} y1={H * f} y2={H * f} stroke="#1f2230" />)}
+        {[0.25, 0.5, 0.75].map((f) => <line key={f} x1={pad} x2={W - pad} y1={H * f} y2={H * f} stroke="#2c2924" />)}
         {theirs && <path d={path(theirs)} fill="none" stroke="var(--red)" strokeWidth="3" vectorEffect="non-scaling-stroke" />}
         <path d={path(mine)} fill="none" stroke="var(--blue)" strokeWidth="3" vectorEffect="non-scaling-stroke" />
       </svg>

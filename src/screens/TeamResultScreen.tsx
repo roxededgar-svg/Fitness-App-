@@ -67,7 +67,7 @@ export function TeamResultScreen() {
       {rec.xp > 0 && <div className="muted" style={{ textAlign: 'center', marginTop: 12 }}>Du erhältst +{rec.xp} XP · +{rec.gold} Gold</div>}
 
       {canShare && (
-        <div className="card" style={{ marginTop: 16, borderColor: '#3b2a6b' }}>
+        <div className="card" style={{ marginTop: 16, borderColor: '#5a4320' }}>
           <div className="display purple ico-inline" style={{ fontSize: 18 }}><Icon name="users" size={20} /> {duo ? 'Fordert ein anderes Duo heraus' : 'Hol einen Freund in dein Team'}</div>
           <div className="muted" style={{ margin: '6px 0 14px', fontSize: 14 }}>
             {duo

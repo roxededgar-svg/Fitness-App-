@@ -19,7 +19,7 @@ interface Cam {
   resetCount(): void;
 }
 
-const LEFT = '#3f7bfa';
+const LEFT = '#D7FF3B';
 const RIGHT = '#ef4444';
 
 export function TeamBattleScreen() {
@@ -152,7 +152,7 @@ function TeamBattle({ config, cam, core }: { config: TeamConfig; cam: Cam; core:
     <div className="tm-member">
       {m.me ? <MyAvatar size={30} ring={color} /> : (
         <div className="av-ring" style={{ background: color }}>
-          {m.kind === 'bot' ? <div className="avatar" style={{ width: 30, height: 30, background: '#1a1b22' }}><Icon name="robot" size={16} color="#9aa0b8" /></div> : <Avatar name={m.name} size={30} color={color} />}
+          {m.kind === 'bot' ? <div className="avatar" style={{ width: 30, height: 30, background: '#1d1b18' }}><Icon name="robot" size={16} color="#a39b8f" /></div> : <Avatar name={m.name} size={30} color={color} />}
         </div>
       )}
       <span className="tm-name">{m.name}{m.kind === 'ghost' && <small> · Lauf</small>}{m.kind === 'bot' && <small> · KI</small>}{m.kind === 'live' && lives === 2 && <small> · {m.slot === 0 ? 'links' : 'rechts'}</small>}</span>

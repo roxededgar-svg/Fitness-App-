@@ -42,7 +42,7 @@ export function TrainingSetupScreen() {
         <button className="icon-btn" onClick={() => nav(-1)} aria-label="Zurück"><Icon name="back" size={22} /></button>
         <div style={{ flex: 1, textAlign: 'center', marginRight: 48 }}>
           <div className="display gold" style={{ fontSize: 'clamp(28px,4vw,40px)', letterSpacing: '.08em' }}>Freies Training</div>
-          <div className="muted" style={{ letterSpacing: '.25em', fontSize: 12, marginTop: 4 }}>· TRAINING VORBEREITEN ·</div>
+          <div className="muted" style={{ letterSpacing: '.04em', fontSize: 12, marginTop: 4 }}>· TRAINING VORBEREITEN ·</div>
         </div>
       </div>
 
@@ -122,7 +122,7 @@ export function TrainingSetupScreen() {
       </div>
 
       <div className="sticky-bottom">
-        <div className="muted" style={{ textAlign: 'center', letterSpacing: '.2em', marginBottom: 12 }}>
+        <div className="muted" style={{ textAlign: 'center', letterSpacing: '.04em', marginBottom: 12 }}>
           {effective ? `${fmt(effective)} · Countdown` : '∞ · Offenes Ende'}
         </div>
         <button
@@ -136,7 +136,7 @@ export function TrainingSetupScreen() {
               opponent: opp === 'bot' && ex !== 'plank'
                 ? { id: 'testbot', name: 'Test-Bot', country: '', elo: 0, arenaPoints: 0, level: 0, wins: 0, losses: 0, kind: 'bot', color: '#f5a524', tier: `${botRpm} Wdh./Min`, timeline: paceTimeline(botRpm, effective ?? 1800, Date.now()) }
                 : opp === 'pb' && pbSession && effective
-                ? { id: 'pb', name: 'Dein Rekord', country: me.country, elo: me.elo, arenaPoints: me.arenaPoints, level: 0, wins: 0, losses: 0, kind: 'ghost', avatar: me.avatar, color: '#a855f7', timeline: pbSession.timeline, tier: 'Ghost' }
+                ? { id: 'pb', name: 'Dein Rekord', country: me.country, elo: me.elo, arenaPoints: me.arenaPoints, level: 0, wins: 0, losses: 0, kind: 'ghost', avatar: me.avatar, color: '#FF8A3D', timeline: pbSession.timeline, tier: 'Ghost' }
                 : undefined,
             });
             nav('/battle');

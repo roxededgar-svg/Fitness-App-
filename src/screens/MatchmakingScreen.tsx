@@ -84,7 +84,7 @@ export function MatchmakingScreen() {
     const rank = rankFor(me.arenaPoints);
     return (
       <div className="mm">
-        <div className="display" style={{ fontSize: 34, letterSpacing: '.12em', color: info.color }}>{info.title}</div>
+        <div className="display" style={{ fontSize: 34, letterSpacing: '.04em', color: info.color }}>{info.title}</div>
         <div className="muted" style={{ maxWidth: 640 }}>{info.sub}</div>
 
         {queue === 'ranked' && (
@@ -164,7 +164,7 @@ export function MatchmakingScreen() {
       <div className="mm">
         <div className="radar"><MyAvatar size={110} /></div>
         <div>
-          <div className="display" style={{ fontSize: 28, letterSpacing: '.15em' }}>SUCHE GEGNER…</div>
+          <div className="display" style={{ fontSize: 28, letterSpacing: '.04em' }}>SUCHE GEGNER…</div>
           <div className="muted" style={{ marginTop: 8 }}>{info.title} · {EXERCISES[ex].name} · {dur}s{queue === 'casual' ? ' · ähnliche Stärke' : ` · ~${Math.round(oppRpm)} Wdh./Min`}</div>
         </div>
         <button className="btn btn-ghost btn-sm" onClick={() => setPhase('choose')}>Abbrechen</button>
@@ -190,7 +190,7 @@ export function MatchmakingScreen() {
           </div>
         </div>
       </div>
-      <div className="display gold" style={{ fontSize: 22, letterSpacing: '.2em' }}>ÜBUNG: {EXERCISES[ex].name.toUpperCase()} · {dur}s</div>
+      <div className="display gold" style={{ fontSize: 22, letterSpacing: '.04em' }}>ÜBUNG: {EXERCISES[ex].name.toUpperCase()} · {dur}s</div>
       <div className="muted ico-inline" style={{ maxWidth: 520 }}><Icon name="camera" size={16} /> {EXERCISES[ex].setup}</div>
     </div>
   );

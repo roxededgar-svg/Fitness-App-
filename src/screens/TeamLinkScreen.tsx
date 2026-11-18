@@ -43,7 +43,7 @@ export function TeamLinkScreen() {
           {duo ? <MyAvatar size={96} /> : (
             <div className="row" style={{ gap: -10 }}>
               <MyAvatar size={86} />
-              <Avatar name={team.members[0].n} size={86} color="#a855f7" ring="var(--blue)" />
+              <Avatar name={team.members[0].n} size={86} color="#FF8A3D" ring="var(--blue)" />
             </div>
           )}
           <div className="display blue" style={{ fontSize: 18 }}>{duo ? 'Euer Duo' : `${me.name} & ${team.members[0].n}`}</div>
@@ -52,7 +52,7 @@ export function TeamLinkScreen() {
         <div className="side r">
           <div className="row" style={{ gap: 6 }}>
             {duo ? team.members.map((m) => <Avatar key={m.c} name={m.n} size={80} color="#ef4444" ring="var(--red)" />) : (
-              <><div className="avatar" style={{ width: 80, height: 80, background: '#1a1b22' }}><Icon name="robot" size={36} color="#9aa0b8" /></div><div className="avatar" style={{ width: 80, height: 80, background: '#1a1b22' }}><Icon name="robot" size={36} color="#9aa0b8" /></div></>
+              <><div className="avatar" style={{ width: 80, height: 80, background: '#1d1b18' }}><Icon name="robot" size={36} color="#a39b8f" /></div><div className="avatar" style={{ width: 80, height: 80, background: '#1d1b18' }}><Icon name="robot" size={36} color="#a39b8f" /></div></>
             )}
           </div>
           <div className="display red" style={{ fontSize: 18 }}>{duo ? team.members.map((m) => m.n).join(' & ') : '2 KI-Gegner'}</div>
