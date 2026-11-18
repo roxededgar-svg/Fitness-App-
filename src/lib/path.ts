@@ -9,7 +9,7 @@ import { DUNGEONS, type Dungeon } from './dungeons';
 import { EXERCISES, type ExerciseId } from './exercises';
 import type { Profile } from './types';
 
-export type Theme = 'forest' | 'ice' | 'fire' | 'shadow' | 'sky' | 'abyss' | 'olymp';
+export type Theme = 'forest' | 'ice' | 'fire' | 'shadow' | 'sky' | 'abyss' | 'olymp' | 'dragon';
 export type NodeKind = 'fight' | 'chest' | 'boss';
 
 export interface PathNode {
@@ -56,6 +56,8 @@ const THEMES: Record<string, { theme: Theme; sky: string; ground: string; glow: 
     monsters: [['Windgeist', 'wind'], ['Donnervogel', 'bolt'], ['Wolkenreiter', 'storm'], ['Sturmsphinx', 'crown']], ex: ['jumpingjack', 'burpee', 'jumpingjack', 'mountainclimber'] },
   abyss: { theme: 'abyss', sky: '#042f3a', ground: '#021318', glow: '#22d3ee', tagline: 'Lichtlose Tiefe, uralte Wesen',
     monsters: [['Tiefseeaal', 'wind'], ['Korallenkrabbe', 'shield'], ['Laternenfisch', 'sun'], ['Krakenbrut', 'trident']], ex: ['mountainclimber', 'situp', 'plank', 'burpee'] },
+  drachenhort: { theme: 'dragon', sky: '#2a0d07', ground: '#0d0504', glow: '#ff6a2b', tagline: 'Hinter dem Aschenpass schläft der Drache',
+    monsters: [['Höhlengoblin', 'skull'], ['Bergtroll', 'shield'], ['Schattenreiter', 'ghost'], ['Flammendämon', 'fire']], ex: ['squat', 'pushup', 'burpee', 'mountainclimber'] },
   olymp: { theme: 'olymp', sky: '#3b2a05', ground: '#1a1203', glow: '#fcd34d', tagline: 'Der letzte Aufstieg zum Thron',
     monsters: [['Goldener Hüter', 'shield'], ['Titanenwache', 'swords'], ['Sonnenläufer', 'sun'], ['Schatten des Champions', 'ghost']], ex: ['pushup', 'burpee', 'squat', 'plank'] },
 };

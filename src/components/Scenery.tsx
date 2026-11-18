@@ -127,6 +127,7 @@ const SETS: Record<Theme, ((p: P) => ReactElement)[]> = {
   sky: [Cloud, Island, Cloud],
   abyss: [Coral, Bubbles, Coral],
   olymp: [Column, Orb, Column],
+  dragon: [Volcano, LavaRock, Obelisk],
 };
 
 /** Deterministische Verteilung von Requisiten an den Rändern einer Welt */
@@ -160,6 +161,7 @@ const BACKDROP: Record<Theme, { layers: [Ridge, Ridge, Ridge]; particle: 'firefl
   sky: { layers: ['clouds', 'clouds', 'clouds'], particle: 'rain' },
   abyss: { layers: ['reef', 'hills', 'reef'], particle: 'bubble' },
   olymp: { layers: ['hills', 'temple', 'temple'], particle: 'spark' },
+  dragon: { layers: ['peaks', 'spires', 'peaks'], particle: 'ember' },
 };
 
 function rnd(seed: number) {

@@ -70,6 +70,17 @@ Format: **quadratisch, 512 × 512 px**, transparent. Werden rund bzw. sechseckig
 | `monster-olymp-3` | Sonnenläufer | Thron der Legenden |
 | `monster-olymp-4` | Schatten des Champions | Thron der Legenden |
 
+### Welt 8: Drachenhort
+
+| Dateiname | Monster | Welt |
+|---|---|---|
+| `monster-drachenhort-0` | Höhlengoblin | Drachenhort |
+| `monster-drachenhort-1` | Bergtroll | Drachenhort |
+| `monster-drachenhort-3` | Schattenreiter | Drachenhort |
+| `monster-drachenhort-4` | Flammendämon | Drachenhort |
+
+> Hinweis: Eigene Fantasy-Kreaturen – bitte **keine** Figuren aus bestehenden Werken (z. B. Tolkien, Warcraft) nachzeichnen.
+
 ## Bosse
 
 Format: **quadratisch, 768 × 768 px**, transparent. Bedrohlicher und detailreicher als die Monster.
@@ -82,6 +93,7 @@ Format: **quadratisch, 768 × 768 px**, transparent. Bedrohlicher und detailreic
 | `boss-schatten` | Dunkelmagier Zoraq | Boss der Welt „Schattentempel“ |
 | `boss-himmel` | Sturmherr Aeolos | Boss der Welt „Himmelsfestung“ |
 | `boss-abyss` | Tiefenwächter Tholos | Boss der Welt „Abyss Zone“ |
+| `boss-drachenhort` | Aschendrache Vyrmax | Boss der Welt „Drachenhort“ |
 | `boss-olymp` | Der Ewige Champion | Boss der Welt „Thron der Legenden“ |
 
 ## Welten (Titelbild hinter dem Kapitel-Namen)
@@ -96,6 +108,7 @@ Format: **Querformat, 1600 × 600 px**, JPG oder WebP. Wird oben halbtransparent
 | `world-schatten` | Schattentempel | Alte Runen, flüsternde Schatten |
 | `world-himmel` | Himmelsfestung | Über den Wolken tobt der Sturm |
 | `world-abyss` | Abyss Zone | Lichtlose Tiefe, uralte Wesen |
+| `world-drachenhort` | Drachenhort | Vulkanberg, Goldhort, Asche und Glut |
 | `world-olymp` | Thron der Legenden | Der letzte Aufstieg zum Thron |
 
 ## Fotos

@@ -161,7 +161,7 @@ describe('Trainingspfad', () => {
     ({ path, dungeonsCleared } as unknown as Profile);
 
   it('7 Welten mit je 6 Stationen: 4 Kämpfe, 1 Kiste, 1 Boss', () => {
-    expect(WORLDS).toHaveLength(7);
+    expect(WORLDS).toHaveLength(8);
     for (const w of WORLDS) {
       expect(w.nodes.map((n) => n.kind)).toEqual(['fight', 'fight', 'chest', 'fight', 'fight', 'boss']);
       for (const n of w.nodes.filter((x) => x.kind !== 'chest')) expect(n.hp).toBeGreaterThan(0);

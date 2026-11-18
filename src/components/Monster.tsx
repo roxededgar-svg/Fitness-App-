@@ -8,8 +8,8 @@ import type { Theme } from '../lib/path';
  * damit es immer gleich aussieht. Zustände: idle (atmen, blinzeln, bewegen),
  * hit (zusammenzucken + aufblitzen), dead (umkippen und verblassen).
  */
-export type MonsterKind = 'blob' | 'beast' | 'shroom' | 'imp' | 'spider' | 'worm' | 'golem' | 'bug' | 'flyer' | 'ghost' | 'fish' | 'squid';
-export type MonsterState = 'idle' | 'hit' | 'dead';
+export type MonsterKind = 'blob' | 'beast' | 'shroom' | 'imp' | 'spider' | 'worm' | 'golem' | 'bug' | 'flyer' | 'ghost' | 'fish' | 'squid' | 'goblin' | 'troll' | 'wraith' | 'demon' | 'dragon';
+export type MonsterState = 'idle' | 'hit' | 'dead' | 'attack';
 
 const KINDS: Record<Theme, MonsterKind[]> = {
   forest: ['blob', 'beast', 'shroom', 'beast'],
@@ -19,8 +19,9 @@ const KINDS: Record<Theme, MonsterKind[]> = {
   sky: ['ghost', 'flyer', 'flyer', 'beast'],
   abyss: ['worm', 'bug', 'fish', 'squid'],
   olymp: ['golem', 'golem', 'flyer', 'ghost'],
+  dragon: ['goblin', 'troll', 'wraith', 'demon'],
 };
-const BOSS: Record<Theme, MonsterKind> = { forest: 'beast', ice: 'ghost', fire: 'golem', shadow: 'ghost', sky: 'flyer', abyss: 'squid', olymp: 'golem' };
+const BOSS: Record<Theme, MonsterKind> = { forest: 'beast', ice: 'ghost', fire: 'golem', shadow: 'ghost', sky: 'flyer', abyss: 'squid', olymp: 'golem', dragon: 'dragon' };
 
 /** Farbpaletten je Welt: Körper hell/dunkel, Akzent, Augenfarbe */
 const PAL: Record<Theme, { body: string[]; accent: string; eye: string }> = {
@@ -31,6 +32,7 @@ const PAL: Record<Theme, { body: string[]; accent: string; eye: string }> = {
   sky: { body: ['#ffe27a', '#8fd3ff', '#ffffff', '#ffd23f'], accent: '#ffffff', eye: '#16324f' },
   abyss: { body: ['#3fd2c7', '#1f9fb0', '#62e6d8', '#13788c'], accent: '#c2fff8', eye: '#fff36b' },
   olymp: { body: ['#f5d27a', '#e0b44a', '#fff0b8', '#c9952b'], accent: '#ffffff', eye: '#3a2400' },
+  dragon: { body: ['#7a8a5a', '#8a8f86', '#5e6b4a', '#7d7f7a'], accent: '#ff8a3d', eye: '#ffd23f' },
 };
 
 const INK = '#111';
@@ -282,6 +284,128 @@ function Body({ l }: { l: Look }) {
           <g transform="translate(36 0)"><Mouth type="fangs" y={126} w={16} /></g>
         </g>
       );
+    case 'goblin':
+      return (
+        <g className="m-body m-sneak">
+          <path className="m-leg-l" d="M82 150 l-6 26 h14 l2 -22" fill="#4b5a35" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+          <path className="m-leg-r" d="M112 150 l4 26 h14 l-4 -26" fill="#4b5a35" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+          <path d="M70 156 C66 128 78 110 100 110 C122 110 134 128 130 156 L120 150 L112 160 L100 150 L88 160 L80 150Z" fill="#6b4a2e" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+          <path className="m-dagger" d="M128 132 l30 -26 l6 4 l-28 30Z M126 136 l6 6" fill="#cfd6e0" stroke={INK} strokeWidth="3" strokeLinejoin="round" />
+          <circle cx="130" cy="138" r="7" fill="#7a8a5a" stroke={INK} strokeWidth="3" />
+          <path className="m-ear-l" d="M66 84 L18 66 L60 104Z" fill="#7a8a5a" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+          <path className="m-ear-r" d="M134 84 L182 66 L140 104Z" fill="#7a8a5a" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+          <path d="M58 92 C58 62 78 48 100 48 C122 48 142 62 142 92 C142 118 124 130 100 130 C76 130 58 118 58 92Z" fill="#8a9a66" stroke={INK} strokeWidth="4" />
+          <path d="M74 76 l18 6 M126 76 l-18 6" stroke={INK} strokeWidth="4" strokeLinecap="round" />
+          <ellipse cx="84" cy="90" rx="9" ry="10" fill="#ffd23f" stroke={INK} strokeWidth="3" className="m-eye" style={{ transformOrigin: '84px 90px' }} />
+          <ellipse cx="116" cy="90" rx="9" ry="10" fill="#ffd23f" stroke={INK} strokeWidth="3" className="m-eye" style={{ transformOrigin: '116px 90px' }} />
+          <rect x="82" y="86" width="4" height="9" rx="2" fill={INK} /><rect x="114" y="86" width="4" height="9" rx="2" fill={INK} />
+          <path className="m-mouth" d="M82 112 Q100 122 120 108" fill="none" stroke={INK} strokeWidth="4" strokeLinecap="round" />
+          <path d="M90 113 l3 6 3 -5 M108 113 l3 5 3 -6" fill="#fff4dc" stroke={INK} strokeWidth="2" strokeLinejoin="round" />
+        </g>
+      );
+    case 'troll':
+      return (
+        <g className="m-body m-stomp">
+          <path className="m-leg-l" d="M62 160 v20 h26 v-18" fill="#5f6458" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+          <path className="m-leg-r" d="M112 160 v20 h26 v-18" fill="#5f6458" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+          <path d="M34 150 C24 104 50 70 100 68 C150 70 176 104 166 150 C150 172 50 172 34 150Z" fill="#8a8f86" stroke={INK} strokeWidth="4" />
+          <path d="M60 130 C70 150 130 150 140 130" fill="none" stroke="#5f6458" strokeWidth="3" />
+          <circle cx="62" cy="104" r="6" fill="#6e8a4a" opacity=".7" /><circle cx="136" cy="118" r="8" fill="#6e8a4a" opacity=".7" />
+          <path d="M34 120 C18 124 14 150 26 158" fill="none" stroke={INK} strokeWidth="16" strokeLinecap="round" />
+          <path d="M34 120 C18 124 14 150 26 158" fill="none" stroke="#8a8f86" strokeWidth="10" strokeLinecap="round" />
+          <g className="m-club">
+            <path d="M160 118 L186 40" stroke={INK} strokeWidth="14" strokeLinecap="round" />
+            <path d="M160 118 L186 40" stroke="#7a5230" strokeWidth="8" strokeLinecap="round" />
+            <path d="M172 50 C168 28 186 10 200 18 C214 26 206 54 190 60Z" fill="#7a5230" stroke={INK} strokeWidth="4" />
+            <path d="M184 22 l-4 -8 M200 32 l8 -4 M196 50 l8 4" stroke={INK} strokeWidth="3" strokeLinecap="round" />
+            <circle cx="160" cy="120" r="12" fill="#8a8f86" stroke={INK} strokeWidth="4" />
+          </g>
+          <path d="M76 74 C76 52 88 42 100 42 C112 42 124 52 124 74 C124 92 112 100 100 100 C88 100 76 92 76 74Z" fill="#9aa094" stroke={INK} strokeWidth="4" />
+          <path d="M80 62 l14 4 M120 62 l-14 4" stroke={INK} strokeWidth="5" strokeLinecap="round" />
+          <circle cx="90" cy="72" r="5" fill="#ffd23f" stroke={INK} strokeWidth="2.5" /><circle cx="110" cy="72" r="5" fill="#ffd23f" stroke={INK} strokeWidth="2.5" />
+          <path d="M100 74 l-6 10 h12Z" fill="#7d7f7a" stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />
+          <path className="m-mouth" d="M84 90 Q100 98 116 90" fill="none" stroke={INK} strokeWidth="4" strokeLinecap="round" />
+          <path d="M86 90 l2 -12 4 11 M114 90 l-2 -12 -4 11" fill="#fff4dc" stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />
+        </g>
+      );
+    case 'wraith':
+      return (
+        <g className="m-body m-float">
+          <path className="m-wisp" d="M60 170 C40 160 36 140 50 128" fill="none" stroke="#6b5c9a" strokeWidth="4" strokeLinecap="round" opacity=".6" />
+          <path className="m-wisp" d="M142 172 C162 160 166 140 152 126" fill="none" stroke="#6b5c9a" strokeWidth="4" strokeLinecap="round" opacity=".6" />
+          <path className="m-hem" d="M100 26 C68 28 58 60 56 92 L46 178 L62 166 L72 182 L86 168 L98 184 L110 168 L124 182 L136 166 L152 178 L144 92 C142 60 132 28 100 26Z" fill="#1d1828" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+          <path d="M72 100 C80 120 76 150 70 170 M128 100 C120 120 124 150 130 170" fill="none" stroke="#2e2840" strokeWidth="3" />
+          <g className="m-sword">
+            <path d="M138 118 L186 22" stroke={INK} strokeWidth="11" strokeLinecap="round" />
+            <path d="M138 118 L186 22" stroke="#cfd6e0" strokeWidth="5" strokeLinecap="round" />
+            <path d="M128 112 L152 124" stroke={INK} strokeWidth="7" strokeLinecap="round" />
+            <path d="M136 120 C140 130 132 140 126 136" fill="#cdbfa4" stroke={INK} strokeWidth="3" />
+          </g>
+          <path d="M100 46 C80 46 74 66 76 86 C82 100 118 100 124 86 C126 66 120 46 100 46Z" fill="#050407" stroke={INK} strokeWidth="3" />
+          <g className="m-glow">
+            <ellipse cx="90" cy="76" rx="5" ry="3" fill="#9be7ff" /><ellipse cx="110" cy="76" rx="5" ry="3" fill="#9be7ff" />
+            <circle cx="90" cy="76" r="10" fill="#9be7ff" opacity=".25" /><circle cx="110" cy="76" r="10" fill="#9be7ff" opacity=".25" />
+          </g>
+          <path d="M82 40 L86 26 L92 38 L100 22 L108 38 L114 26 L118 40" fill="none" stroke="#5a5470" strokeWidth="4" strokeLinejoin="round" />
+        </g>
+      );
+    case 'demon':
+      return (
+        <g className="m-body m-stomp">
+          <path className="m-wing-l" d="M70 92 C36 50 6 56 0 82 C20 82 22 98 12 112 C34 104 44 116 40 132 C56 122 64 110 72 104Z" fill="#2a0f0c" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+          <path className="m-wing-r" d="M130 92 C164 50 194 56 200 82 C180 82 178 98 188 112 C166 104 156 116 160 132 C144 122 136 110 128 104Z" fill="#2a0f0c" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+          <g className="m-flame">
+            <path d="M58 70 C50 40 70 30 66 8 C82 22 84 36 88 46 C90 26 102 18 100 0 C116 18 116 36 112 46 C118 34 130 30 134 14 C146 36 142 56 142 70Z" fill="#ff6a2b" stroke={INK} strokeWidth="3" strokeLinejoin="round" />
+            <path d="M74 66 C70 48 82 40 82 26 C92 40 96 50 100 56 C104 44 112 38 114 28 C122 44 124 56 126 66Z" fill="#ffd23f" />
+          </g>
+          <path d="M50 168 C40 120 56 74 100 70 C144 74 160 120 150 168Z" fill="#3a1410" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+          <path className="m-glow" d="M74 100 L86 118 L78 136 M120 96 L112 116 L124 132 M98 140 L104 160" fill="none" stroke="#ff8a3d" strokeWidth="4" strokeLinecap="round" />
+          <path d="M70 62 C50 50 46 30 56 14 C60 32 70 40 80 46Z M130 62 C150 50 154 30 144 14 C140 32 130 40 120 46Z" fill="#1a0a08" stroke={INK} strokeWidth="3" strokeLinejoin="round" />
+          <path d="M72 86 C72 60 84 50 100 50 C116 50 128 60 128 86 C128 104 116 112 100 112 C84 112 72 104 72 86Z" fill="#4a1a14" stroke={INK} strokeWidth="4" />
+          <path d="M80 76 l14 6 M120 76 l-14 6" stroke={INK} strokeWidth="4" strokeLinecap="round" />
+          <ellipse cx="88" cy="86" rx="7" ry="5" fill="#ffd23f" className="m-glow" /><ellipse cx="112" cy="86" rx="7" ry="5" fill="#ffd23f" className="m-glow" />
+          <path className="m-mouth" d="M84 100 Q100 112 116 100Z" fill="#ff6a2b" stroke={INK} strokeWidth="3" strokeLinejoin="round" />
+          <g className="m-whip">
+            <path d="M150 140 C176 150 188 176 168 192 C150 204 124 196 112 186" fill="none" stroke={INK} strokeWidth="7" strokeLinecap="round" />
+            <path d="M150 140 C176 150 188 176 168 192 C150 204 124 196 112 186" fill="none" stroke="#ff8a3d" strokeWidth="3" strokeLinecap="round" />
+          </g>
+          {[0, 1, 2, 3].map((i) => <circle key={i} className={`m-ember m-e${i}`} cx={70 + i * 20} cy="40" r="3" fill="#ffd23f" />)}
+        </g>
+      );
+    case 'dragon':
+      return (
+        <g className="m-body">
+          <path className="m-wing-l" d="M100 96 L50 14 L58 54 L30 46 L46 78 L16 80 L74 116Z" fill="#4a2a1e" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+          <path className="m-wing-r" d="M128 94 L178 10 L170 52 L198 44 L182 78 L204 86 L148 116Z" fill="#4a2a1e" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+          <path d="M100 96 L58 54 M100 96 L46 78 M128 94 L170 52 M128 94 L182 78" stroke="#2a150e" strokeWidth="3" />
+          <path className="m-tail" d="M160 158 C196 162 208 132 196 108 l12 -6 -2 16" fill="none" stroke={INK} strokeWidth="14" strokeLinecap="round" />
+          <path className="m-tail" d="M160 158 C196 162 208 132 196 108" fill="none" stroke="#8a3a1e" strokeWidth="8" strokeLinecap="round" />
+          <ellipse cx="126" cy="142" rx="50" ry="34" fill="#8a3a1e" stroke={INK} strokeWidth="4" />
+          <path d="M98 160 C110 170 140 172 156 160" fill="none" stroke="#e8b46a" strokeWidth="9" strokeLinecap="round" />
+          <path d="M104 162 v6 M118 166 v6 M132 167 v6 M146 164 v6" stroke="#8a3a1e" strokeWidth="2" />
+          <path d="M96 168 v14 l-6 6 M104 170 v14 l2 6 M146 170 v14 l6 6" fill="none" stroke={INK} strokeWidth="5" strokeLinecap="round" />
+          {[0, 1, 2, 3, 4].map((i) => <path key={i} d={`M${108 + i * 12} ${110 - (i % 2) * 2} l6 -12 6 12`} fill="#e8b46a" stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />)}
+          <g className="m-neck">
+            <path d="M112 134 C92 124 82 108 76 96 L60 106 C68 122 82 136 102 148Z" fill="#8a3a1e" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+            <g className="m-head">
+              <path d="M30 80 C34 60 60 56 80 68 L86 92 C72 100 52 102 40 98 L20 100 C18 92 24 84 30 80Z" fill="#a4471f" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+              <path className="m-jaw" d="M22 100 L40 98 C52 100 66 100 82 94 L78 104 C62 114 40 114 24 108Z" fill="#8a3a1e" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+              <path d="M28 100 l4 6 4 -5 4 6 4 -6" fill="#fff4dc" stroke={INK} strokeWidth="2" strokeLinejoin="round" />
+              <path d="M62 64 L70 34 L76 66Z M74 68 L94 42 L86 74Z" fill="#e8b46a" stroke={INK} strokeWidth="3" strokeLinejoin="round" />
+              <ellipse cx="58" cy="76" rx="8" ry="6" fill="#ffd23f" stroke={INK} strokeWidth="3" className="m-glow" />
+              <rect x="56" y="70" width="3" height="12" rx="1.5" fill={INK} />
+              <circle cx="28" cy="86" r="3" fill={INK} />
+              <circle className="m-smoke m-s0" cx="22" cy="80" r="6" fill="#6b6460" opacity=".5" />
+              <circle className="m-smoke m-s1" cx="18" cy="74" r="5" fill="#6b6460" opacity=".4" />
+              <g className="m-fire">
+                <path d="M20 102 C0 88 -40 92 -90 74 C-60 100 -76 110 -100 128 C-60 116 -30 118 20 108Z" fill="#ff4d1f" stroke={INK} strokeWidth="3" strokeLinejoin="round" />
+                <path d="M18 103 C0 96 -26 98 -60 90 C-40 106 -50 110 -66 118 C-40 112 -16 112 18 107Z" fill="#ffb020" />
+                <path d="M16 104 C2 101 -10 102 -30 100 C-18 106 -22 108 -30 112 C-12 110 0 108 16 106Z" fill="#fff3b0" />
+              </g>
+            </g>
+          </g>
+        </g>
+      );
     default: // squid
       return (
         <g className="m-body m-float">
@@ -303,7 +427,7 @@ function MonsterSvg({ id, theme, index = 0, boss = false, size = 120, state = 'i
   const l = monsterLook(id, theme, index, boss);
   const delay = `${-(hashStr(id) % 2000) / 1000}s`;
   return (
-    <div className={`monster m-${l.kind} ${state === 'hit' ? 'm-idle m-hit' : `m-${state}`} ${boss ? 'm-boss' : ''}`} style={{ width: size, height: size, ['--md' as string]: delay }}>
+    <div className={`monster m-${l.kind} ${state === 'hit' ? 'm-idle m-hit' : state === 'attack' ? 'm-idle m-attack' : `m-${state}`} ${boss ? 'm-boss' : ''}`} style={{ width: size, height: size, ['--md' as string]: delay }}>
       <svg viewBox="0 0 200 200" width={size} height={size} style={{ overflow: 'visible' }}>
         <ellipse className="m-shadow" cx="100" cy="182" rx="56" ry="9" fill="#000" opacity=".35" />
         {boss && <circle className="m-aura" cx="100" cy="110" r="88" fill="none" stroke="#ff4d3d" strokeWidth="5" strokeDasharray="10 12" opacity=".7" />}
@@ -318,3 +442,6 @@ function MonsterSvg({ id, theme, index = 0, boss = false, size = 120, state = 'i
 }
 
 export const Monster = memo(MonsterSvg);
+
+/** Monster-Typ (für typabhängige Effekte im Kampf) */
+export const monsterKind = (id: string, theme: Theme, index: number, boss: boolean) => monsterLook(id, theme, index, boss).kind;

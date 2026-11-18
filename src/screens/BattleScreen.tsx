@@ -11,7 +11,7 @@ import { Avatar, MyAvatar, TugBar } from '../components/ui';
 import { applyRegen, applyRep, comboWindowMs, createBoss, type BossState } from '../lib/boss';
 import { Icon } from '../components/Icon';
 import { Art } from '../components/Art';
-import { Monster } from '../components/Monster';
+import { Monster, monsterKind } from '../components/Monster';
 import { monsterIndex, nodeById, WORLDS } from '../lib/path';
 import { artIdForNode } from '../lib/art';
 import { RankEmblem } from '../components/RankEmblem';
@@ -66,6 +66,10 @@ function Battle() {
   const pathNode = config.pathNodeId ? nodeById(config.pathNodeId) : undefined;
   const pathWorld = pathNode ? WORLDS.find((w) => w.id === pathNode.worldId) : undefined;
   const [hitCount, setHitCount] = useState(0);
+  const pathKind = pathNode && pathWorld ? monsterKind(pathNode.id, pathWorld.theme, monsterIndex(pathNode), pathNode.kind === 'boss') : null;
+  const [attackN, setAttackN] = useState(0);
+  const [attacking, setAttacking] = useState(false);
+  const [shaking, setShaking] = useState(false);
   const windowMs = comboWindowMs(ex.baseRpm);
 
   const onRep = useCallback(() => {
@@ -227,6 +231,26 @@ function Battle() {
   const myPace = pace(myReps);
   const oppPace = opp && !isBoss ? pace(oppReps) : null;
   const regen = isBoss && phase === 'live' && boss.hp > 0 && elapsed - boss.lastRepAt > 3500;
+
+  // Monster greift regelmäßig an (rein optisch) – Drache speit Feuer, Troll schlägt zu
+  useEffect(() => {
+    if (!isBoss || !pathNode || phase !== 'live') return;
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    const len = pathKind === 'dragon' ? 1800 : 1100;
+    const id = setInterval(() => {
+      if (bossRef.current.hp <= 0) return;
+      setAttackN((n) => n + 1);
+      setAttacking(true);
+      sfx.roar();
+      if (pathKind === 'troll' || pathKind === 'dragon') timers.push(setTimeout(() => { setShaking(true); sfx.slam(); timers.push(setTimeout(() => setShaking(false), 460)); }, pathKind === 'dragon' ? 900 : 770));
+      timers.push(setTimeout(() => setAttacking(false), len));
+    }, pathNode.kind === 'boss' ? 6500 : 8000);
+    return () => { clearInterval(id); timers.forEach(clearTimeout); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isBoss, phase, pathKind]);
+
+  // Brüllen, wenn du pausierst und es heilt
+  useEffect(() => { if (regen) sfx.roar(); }, [regen]);
   const hot = !!durMs && phase === 'live' && remaining <= 10000;
   const myRank = rankFor(me.arenaPoints);
   const oppRank = opp ? rankFor(opp.arenaPoints) : null;
@@ -234,7 +258,7 @@ function Battle() {
   const camFailed = ['denied', 'unsupported', 'error'].includes(tracker.status);
 
   return (
-    <div className="battle" onPointerDown={() => unlockAudio()}>
+    <div className={`battle ${shaking ? 'shake' : ''}`} onPointerDown={() => unlockAudio()}>
       <video ref={tracker.videoRef} playsInline muted autoPlay className={settings.mirror && settings.facing === 'user' ? 'mirror' : ''} />
       <canvas ref={tracker.canvasRef} className={`overlay ${settings.mirror && settings.facing === 'user' ? 'mirror' : ''}`} />
       <div className="shade" />
@@ -322,11 +346,13 @@ function Battle() {
       {isBoss && pathNode && pathWorld && (
         <div className="battle-monster">
           <Art id={artIdForNode(pathNode.id)} size={220} fallback={
-            <Monster key={boss.hp <= 0 ? 'dead' : `h${hitCount}`} id={pathNode.id} theme={pathWorld.theme} index={monsterIndex(pathNode)} boss={pathNode.kind === 'boss'}
-              size={pathNode.kind === 'boss' ? 250 : 210} state={boss.hp <= 0 ? 'dead' : hitCount > 0 ? 'hit' : 'idle'} />
+            <Monster key={boss.hp <= 0 ? 'dead' : attacking ? `a${attackN}` : `h${hitCount}`} id={pathNode.id} theme={pathWorld.theme} index={monsterIndex(pathNode)} boss={pathNode.kind === 'boss'}
+              size={pathNode.kind === 'boss' ? 250 : 210} state={boss.hp <= 0 ? 'dead' : attacking ? 'attack' : hitCount > 0 ? 'hit' : 'idle'} />
           } />
         </div>
       )}
+      {attacking && (pathKind === 'dragon' || pathKind === 'demon') && <div key={`f${attackN}`} className="screen-flash" />}
+      {regen && <div className="roar">GRRR!</div>}
       {isBoss && (
         <div className="hit-layer">
           {hits.map((h) => (
