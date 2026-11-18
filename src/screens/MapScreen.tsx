@@ -4,12 +4,13 @@ import { useMe, useStore } from '../lib/store';
 import { useBattle } from '../lib/battle';
 import { EXERCISES } from '../lib/exercises';
 import {
-  WORLDS, currentNode, isCleared, isUnlocked, starsOf, totalStars, worldStars,
+  WORLDS, currentNode, isCleared, isUnlocked, monsterIndex, starsOf, totalStars, worldStars,
   type PathNode, type World,
 } from '../lib/path';
 import { Icon } from '../components/Icon';
 import { Art } from '../components/Art';
 import { artIdForNode } from '../lib/art';
+import { Monster } from '../components/Monster';
 import { Gems, Gold, MyAvatar, Sheet, toast } from '../components/ui';
 import { Backdrop, Particles, Scenery } from '../components/Scenery';
 
@@ -231,7 +232,7 @@ export function MapScreen() {
                           <circle cx="80" cy="84" r="44" fill="none" stroke="#000" strokeOpacity=".35" strokeWidth="4" />
                         </svg>
                         <div className="boss-face">
-                          {open ? <Art id={artIdForNode(n.id)} size={86} style={{ borderRadius: '50%' }} fallback={<Icon name={n.icon} size={54} color="#fff" />} /> : <Icon name="lock" size={54} color="#7a7368" />}
+                          {open ? <Art id={artIdForNode(n.id)} size={86} style={{ borderRadius: '50%' }} fallback={<Monster id={n.id} theme={w.theme} boss size={done ? 92 : 104} state={done ? 'dead' : 'idle'} />} /> : <Icon name="lock" size={54} color="#7a7368" />}
                         </div>
                         <div className="boss-tag">BOSS</div>
                       </div>
@@ -240,9 +241,14 @@ export function MapScreen() {
                         <div className="pnode-side" />
                         <div className="pnode-top">
                           <div className="pnode-inner">
-                            {open ? <Art id={artIdForNode(n.id)} size={52} fallback={<Icon name={n.icon} size={32} color="#fff" />} /> : <Icon name="lock" size={32} color="#7a7368" />}
+                            {done ? <Icon name="check" size={32} color="#fff" /> : open ? <Icon name="swords" size={28} color="#fff" /> : <Icon name="lock" size={32} color="#7a7368" />}
                           </div>
                         </div>
+                        {open && !done && (
+                          <div className="node-monster">
+                            <Art id={artIdForNode(n.id)} size={74} fallback={<Monster id={n.id} theme={w.theme} index={monsterIndex(n)} size={96} />} />
+                          </div>
+                        )}
                       </div>
                     )}
                     {n.kind !== 'chest' && done && <Stars n={st} size={n.kind === 'boss' ? 20 : 16} />}
@@ -282,8 +288,8 @@ export function MapScreen() {
       {sel && selWorld && sel.kind !== 'chest' && (
         <Sheet title={sel.kind === 'boss' ? 'BOSSKAMPF' : 'STATION'} onClose={() => setSel(null)}>
           <div className="row" style={{ gap: 16 }}>
-            <div className="station-ico" style={{ background: `${sel.kind === 'boss' ? '#ef4444' : selWorld.glow}22`, color: sel.kind === 'boss' ? '#ef4444' : selWorld.glow }}>
-              <Art id={artIdForNode(sel.id)} size={72} style={{ borderRadius: 20 }} fallback={<Icon name={sel.icon} size={40} />} />
+            <div className="station-monster" style={{ background: `${sel.kind === 'boss' ? '#ef4444' : selWorld.glow}1f` }}>
+              <Art id={artIdForNode(sel.id)} size={110} style={{ borderRadius: 16 }} fallback={<Monster id={sel.id} theme={selWorld.theme} index={monsterIndex(sel)} boss={sel.kind === 'boss'} size={112} />} />
             </div>
             <div style={{ flex: 1 }}>
               <div className="display" style={{ fontSize: 24 }}>{sel.name}</div>

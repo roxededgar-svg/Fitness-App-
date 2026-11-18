@@ -52,6 +52,7 @@ export const BADGE_STYLES: Record<string, BadgeStyle> = {
   earlybird: { shape: 'rosette', metal: 'bronze', colors: ['#fff3b0', '#fb923c', '#7c2d12'], accent: '#fde68a', pattern: 'rays' },
   nightowl: { shape: 'circle', metal: 'silver', colors: ['#a5b4fc', '#3730a3', '#0b0a26'], accent: '#fde68a', pattern: 'dots', ribbon: true },
   bosses3: { shape: 'pentagon', metal: 'gold', colors: ['#fca5a5', '#991b1b', '#170202'], accent: '#a3e635', pattern: 'chevrons', ribbon: true },
+  dragonslayer: { shape: 'shield', metal: 'onyx', colors: ['#ffb347', '#d1340f', '#2a0603'], accent: '#ffd23f', pattern: 'burst', ribbon: true },
   friend: { shape: 'roundsq', metal: 'rose', colors: ['#fbcfe8', '#db2777', '#3b0322'], accent: '#93c5fd', pattern: 'dots' },
 };
 

@@ -41,6 +41,14 @@ export const sfx = {
     buzz(25);
   },
   oppRep: () => tone(220, 0.05, 'square', 0.03),
+  roar() {
+    [110, 92, 78].forEach((f, i) => tone(f, 0.35, 'sawtooth', 0.09, i * 0.12));
+    buzz([40, 30, 80]);
+  },
+  slam() {
+    tone(60, 0.4, 'square', 0.14);
+    buzz(120);
+  },
   tick: () => tone(660, 0.1, 'sine', 0.12),
   go() {
     tone(990, 0.25, 'sawtooth', 0.12);

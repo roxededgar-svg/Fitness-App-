@@ -34,6 +34,7 @@ export const BADGES: Badge[] = [
   { id: 'earlybird', name: 'Frühaufsteher', desc: 'Trainiere vor 8 Uhr morgens', icon: 'sun', color: '#f59e0b', earned: (p) => p.sessions.some((s) => s.reps > 0 && new Date(s.ts).getHours() < 8) },
   { id: 'nightowl', name: 'Nachteule', desc: 'Trainiere nach 22 Uhr', icon: 'moon', color: '#6366f1', earned: (p) => p.sessions.some((s) => s.reps > 0 && new Date(s.ts).getHours() >= 22) },
   { id: 'bosses3', name: 'Bossjäger', desc: 'Besiege 3 verschiedene Bosse', icon: 'skull', color: '#dc2626', earned: (p) => p.dungeonsCleared.length >= 3 },
+  { id: 'dragonslayer', name: 'Drachentöter', desc: 'Besiege den Aschendrachen Vyrmax', icon: 'fire', color: '#ff6a2b', earned: (p) => p.dungeonsCleared.includes('drachenhort') },
   { id: 'friend', name: 'Rivalität', desc: 'Schließe ein Freundes-Duell ab', icon: 'rivals', color: '#ec4899', earned: (p) => p.sessions.some((s) => s.mode === 'ghost') },
 ];
 

@@ -8,8 +8,9 @@
 import { DUNGEONS, type Dungeon } from './dungeons';
 import { EXERCISES, type ExerciseId } from './exercises';
 import type { Profile } from './types';
+import { BESTIARY } from './bestiary';
 
-export type Theme = 'forest' | 'ice' | 'fire' | 'shadow' | 'sky' | 'abyss' | 'olymp';
+export type Theme = 'forest' | 'ice' | 'fire' | 'shadow' | 'sky' | 'abyss' | 'olymp' | 'dragon';
 export type NodeKind = 'fight' | 'chest' | 'boss';
 
 export interface PathNode {
@@ -56,6 +57,8 @@ const THEMES: Record<string, { theme: Theme; sky: string; ground: string; glow: 
     monsters: [['Windgeist', 'wind'], ['Donnervogel', 'bolt'], ['Wolkenreiter', 'storm'], ['Sturmsphinx', 'crown']], ex: ['jumpingjack', 'burpee', 'jumpingjack', 'mountainclimber'] },
   abyss: { theme: 'abyss', sky: '#042f3a', ground: '#021318', glow: '#22d3ee', tagline: 'Lichtlose Tiefe, uralte Wesen',
     monsters: [['Tiefseeaal', 'wind'], ['Korallenkrabbe', 'shield'], ['Laternenfisch', 'sun'], ['Krakenbrut', 'trident']], ex: ['mountainclimber', 'situp', 'plank', 'burpee'] },
+  drachenhort: { theme: 'dragon', sky: '#2a0d07', ground: '#0d0504', glow: '#ff6a2b', tagline: 'Hinter dem Aschenpass schläft der Drache',
+    monsters: [['Höhlengoblin', 'skull'], ['Bergtroll', 'shield'], ['Schattenreiter', 'ghost'], ['Flammendämon', 'fire']], ex: ['squat', 'pushup', 'burpee', 'mountainclimber'] },
   olymp: { theme: 'olymp', sky: '#3b2a05', ground: '#1a1203', glow: '#fcd34d', tagline: 'Der letzte Aufstieg zum Thron',
     monsters: [['Goldener Hüter', 'shield'], ['Titanenwache', 'swords'], ['Sonnenläufer', 'sun'], ['Schatten des Champions', 'ghost']], ex: ['pushup', 'burpee', 'squat', 'plank'] },
 };
@@ -86,6 +89,7 @@ function buildWorld(d: Dungeon, w: number): World {
     nodes.push({ id, worldId: d.id, index: i, kind: 'fight', name, icon, exercise: ex, durationS: dur, hp, xp: 40 + w * 25 + stage * 10, gold: 15 + w * 10 + stage * 4, gems: 0 });
     stage++;
   }
+  for (const n of nodes) n.name = BESTIARY[n.id]?.name ?? n.name;
   return { id: d.id, index: w, name: d.name, theme: t.theme, sky: t.sky, ground: t.ground, glow: t.glow, tagline: t.tagline, dungeon: d, nodes };
 }
 
@@ -120,3 +124,6 @@ export function worldStars(p: Profile, w: World) {
 }
 
 export const totalStars = (p: Profile) => WORLDS.reduce((a, w) => a + worldStars(p, w).got, 0);
+
+/** Monster-Platz innerhalb der Welt (0–3) für Aussehen/Typ */
+export const monsterIndex = (n: PathNode) => (n.index < 2 ? n.index : n.index - 1);

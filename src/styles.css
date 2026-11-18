@@ -877,3 +877,297 @@ button.mini { border-top-color: var(--blue); }
   .team-head { font-size: 14px; }
   .scores .n { font-size: 72px; }
 }
+
+/* ---------- Animierte Monster ---------- */
+.monster { position: relative; display: inline-block; pointer-events: none; }
+.monster svg { display: block; }
+.monster .m-rig { transform-origin: 100px 170px; }
+.monster * { transform-box: view-box; }
+/* Grundbewegungen je Typ */
+.m-idle .m-squish { animation: mSquish 1.6s ease-in-out infinite; animation-delay: var(--md); transform-origin: 100px 168px; }
+.m-idle .m-bob { animation: mBob 1.4s ease-in-out infinite; animation-delay: var(--md); }
+.m-idle .m-hop { animation: mHop 1.1s cubic-bezier(.3,.7,.4,1) infinite; animation-delay: var(--md); transform-origin: 100px 168px; }
+.m-idle .m-wiggle { animation: mWiggle 1.8s ease-in-out infinite; animation-delay: var(--md); transform-origin: 80px 160px; }
+.m-idle .m-stomp { animation: mStomp 2.2s ease-in-out infinite; animation-delay: var(--md); transform-origin: 100px 166px; }
+.m-idle .m-hover, .m-idle .m-float { animation: mFloat 2.4s ease-in-out infinite; animation-delay: var(--md); }
+.m-idle .m-swim { animation: mSwim 2.6s ease-in-out infinite; animation-delay: var(--md); }
+@keyframes mSquish { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.08, .92); } }
+@keyframes mBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+@keyframes mHop { 0%, 100% { transform: translateY(0) scale(1.06, .94); } 40% { transform: translateY(-16px) scale(.96, 1.05); } 70% { transform: translateY(0) scale(1.04, .96); } }
+@keyframes mWiggle { 0%, 100% { transform: rotate(-4deg); } 50% { transform: rotate(5deg); } }
+@keyframes mStomp { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-6px) rotate(-2deg); } 45% { transform: translateY(0) rotate(1deg); } }
+@keyframes mFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+@keyframes mSwim { 0%, 100% { transform: translate(0, 0) rotate(-2deg); } 50% { transform: translate(6px, -6px) rotate(3deg); } }
+/* Teile */
+.m-idle .m-eye { animation: mBlink 4.2s infinite; animation-delay: var(--md); }
+@keyframes mBlink { 0%, 93%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.1); } }
+.m-idle .m-pupil { animation: mLook 5s ease-in-out infinite; animation-delay: var(--md); }
+@keyframes mLook { 0%, 40%, 100% { transform: translateX(0); } 55%, 80% { transform: translateX(3px); } }
+.m-wing-l { transform-origin: 72px 106px; animation: mFlapL .45s ease-in-out infinite; }
+.m-wing-r { transform-origin: 128px 106px; animation: mFlapR .45s ease-in-out infinite; }
+@keyframes mFlapL { 50% { transform: rotate(18deg) scaleY(.8); } }
+@keyframes mFlapR { 50% { transform: rotate(-18deg) scaleY(.8); } }
+.m-tail { transform-origin: 140px 150px; animation: mTail 1.2s ease-in-out infinite; }
+.m-fish .m-tail { transform-origin: 40px 112px; animation: mTailFish .6s ease-in-out infinite; }
+@keyframes mTail { 50% { transform: rotate(12deg); } }
+@keyframes mTailFish { 50% { transform: scaleY(.7) rotate(8deg); } }
+.m-leg-l { animation: mStep .7s ease-in-out infinite; }
+.m-leg-r { animation: mStep .7s ease-in-out infinite reverse; }
+@keyframes mStep { 50% { transform: translateY(-3px); } }
+.m-arm-l { transform-origin: 56px 100px; animation: mArmL 1.6s ease-in-out infinite; }
+.m-arm-r { transform-origin: 144px 100px; animation: mArmR 1.6s ease-in-out infinite; }
+@keyframes mArmL { 50% { transform: rotate(-10deg); } }
+@keyframes mArmR { 50% { transform: rotate(10deg); } }
+.m-tentacle { animation: mTent 1.4s ease-in-out infinite; transform-origin: 100px 132px; }
+.m-t1, .m-t3 { animation-delay: -.4s; } .m-t2 { animation-delay: -.8s; } .m-t4 { animation-delay: -1.1s; }
+@keyframes mTent { 50% { transform: skewX(10deg); } }
+.m-antenna { transform-origin: 100px 60px; animation: mTail 1s ease-in-out infinite; }
+.m-glow { animation: mGlow 1.4s ease-in-out infinite; }
+@keyframes mGlow { 50% { opacity: .45; } }
+.m-aura { transform-origin: 100px 110px; animation: spinRing2 8s linear infinite; }
+.m-mouth { transform-origin: 100px 130px; }
+.m-idle .m-mouth { animation: mChomp 2.6s ease-in-out infinite; animation-delay: var(--md); }
+@keyframes mChomp { 0%, 80%, 100% { transform: scaleY(1); } 88% { transform: scaleY(1.35); } }
+.m-shadow { transform-origin: 100px 182px; }
+.m-idle .m-shadow { animation: mShadow 1.6s ease-in-out infinite; animation-delay: var(--md); }
+@keyframes mShadow { 50% { transform: scaleX(.85); opacity: .25; } }
+/* Getroffen: zusammenzucken + weiß aufblitzen */
+.m-hit .m-rig { animation: mHit .32s ease-out; }
+@keyframes mHit { 0% { transform: translateX(0) scale(1); filter: brightness(1); } 20% { transform: translateX(10px) scale(.94, 1.04) rotate(4deg); filter: brightness(2.6) saturate(.3); } 55% { transform: translateX(-6px) rotate(-2deg); filter: brightness(1.3); } 100% { transform: none; filter: none; } }
+/* Besiegt: umkippen und verblassen */
+.m-dead .m-rig { animation: mDead 1s ease-in forwards; }
+.m-dead .m-shadow { opacity: 0; transition: opacity .8s; }
+@keyframes mDead { 0% { transform: none; } 25% { transform: translateY(-14px) rotate(-6deg); filter: brightness(2); } 100% { transform: translateY(18px) rotate(88deg) scale(.85); opacity: 0; filter: grayscale(1); } }
+.m-dead .m-eye { transform: scaleY(.15); }
+@media (prefers-reduced-motion: reduce) { .monster *, .monster .m-rig { animation: none !important; } }
+
+/* Monster im Kampf */
+.battle-monster { position: absolute; right: 4%; bottom: 13%; z-index: 2; pointer-events: none; filter: drop-shadow(0 8px 0 rgba(0,0,0,.35)); }
+@media (max-width: 560px) { .battle-monster { right: 50%; transform: translateX(50%); bottom: 16%; } }
+.station-monster { width: 120px; height: 120px; display: grid; place-items: center; flex-shrink: 0; background: rgba(255,255,255,.04); border-radius: 18px; border: 2px solid var(--line); }
+.node-monster { position: absolute; left: 50%; bottom: 46px; transform: translateX(-50%); z-index: 3; pointer-events: none; }
+.pnode.current .node-monster { bottom: 52px; }
+.pnode.current .pnode-me { bottom: calc(100% + 64px); }
+.node-monster { bottom: 40px; }
+.pnode.current .pnode-me { bottom: calc(100% + 90px); }
+.pnode.current .node-monster { bottom: 44px; }
+.node-monster .monster { transform: scale(1.15); transform-origin: 50% 100%; }
+.battle-monster .monster { transform-origin: 50% 100%; }
+.pnode.current .pnode-me { bottom: auto; top: 50%; left: calc(100% + 6px); transform: translateY(-50%); flex-direction: row; animation: none; }
+.pnode.current .pnode-me span { white-space: nowrap; }
+
+/* ---------- Online-Räume ---------- */
+.online-cta { border-color: var(--blue) !important; }
+.room-code { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+.code-big { font-family: var(--display); font-weight: 900; font-style: italic; font-size: clamp(44px, 10vw, 64px); letter-spacing: .14em; color: var(--blue); -webkit-text-stroke: 2px var(--ink); paint-order: stroke fill; text-shadow: 4px 4px 0 var(--ink); line-height: 1.05; }
+.team-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+.team-col { border: 2.5px solid; border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 8px; background: var(--card); }
+.lobby-player { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 10px; background: var(--card2); min-height: 52px; }
+.lobby-player b { display: block; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lobby-player small { color: var(--muted); font-size: 12px; }
+.lobby-player.me { outline: 2px solid var(--blue); }
+.lobby-player.off { opacity: .45; }
+.lobby-player.empty-slot { justify-content: center; color: var(--dim); border: 2px dashed var(--line); background: transparent; font-size: 18px; }
+@media (max-width: 560px) { .team-cols { grid-template-columns: 1fr; } }
+.ol-cols > div { gap: 6px; }
+.ol-row { display: flex; align-items: center; gap: 8px; background: rgba(18,17,16,.82); border-radius: 10px; padding: 6px 10px; border: 2px solid transparent; }
+.ol-row.me { border-color: var(--blue); }
+.ol-row.off { opacity: .45; }
+.ol-main { flex: 1; min-width: 0; }
+.ol-name { font-weight: 700; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ol-name small { color: var(--muted); font-weight: 500; }
+.ol-bar { height: 7px; background: rgba(255,255,255,.1); border-radius: 4px; overflow: hidden; margin-top: 4px; }
+.ol-bar span { display: block; height: 100%; transition: width .3s; }
+.ol-row b { font-family: var(--display); font-style: italic; font-size: 24px; }
+.ol-cols > div:last-child .ol-row { flex-direction: row-reverse; text-align: right; }
+
+/* ---------- Epische Kreaturen: Ruhe-Animationen ---------- */
+.m-idle .m-sneak { animation: mSneak 1.3s ease-in-out infinite; animation-delay: var(--md); transform-origin: 100px 170px; }
+@keyframes mSneak { 0%, 100% { transform: translateX(0) rotate(0); } 30% { transform: translateX(-4px) rotate(-3deg); } 60% { transform: translateX(3px) rotate(2deg); } }
+.m-ear-l { transform-origin: 62px 94px; animation: mEarL 2.8s ease-in-out infinite; }
+.m-ear-r { transform-origin: 138px 94px; animation: mEarR 2.8s ease-in-out infinite; }
+@keyframes mEarL { 0%, 70%, 100% { transform: rotate(0); } 78% { transform: rotate(-14deg); } 86% { transform: rotate(4deg); } }
+@keyframes mEarR { 0%, 74%, 100% { transform: rotate(0); } 82% { transform: rotate(14deg); } 90% { transform: rotate(-4deg); } }
+.m-dagger { transform-origin: 130px 138px; animation: mDagger 2.4s ease-in-out infinite; }
+@keyframes mDagger { 0%, 60%, 100% { transform: rotate(0); } 70% { transform: rotate(-24deg); } 80% { transform: rotate(8deg); } }
+.m-club { transform-origin: 160px 120px; animation: mClubIdle 2.2s ease-in-out infinite; }
+@keyframes mClubIdle { 50% { transform: rotate(-8deg); } }
+.m-hem { transform-origin: 100px 30px; animation: mHem 1.6s ease-in-out infinite; }
+@keyframes mHem { 50% { transform: skewX(5deg) scaleX(1.03); } }
+.m-wisp { animation: mWisp 2s ease-in-out infinite; }
+@keyframes mWisp { 0%, 100% { opacity: .2; transform: translateY(6px); } 50% { opacity: .7; transform: translateY(-8px); } }
+.m-sword { transform-origin: 136px 122px; animation: mClubIdle 2.6s ease-in-out infinite; }
+.m-flame { transform-origin: 100px 70px; animation: mFlame .5s ease-in-out infinite alternate; }
+@keyframes mFlame { from { transform: scaleY(1) skewX(-3deg); } to { transform: scaleY(1.12) skewX(4deg); } }
+.m-whip { transform-origin: 150px 140px; animation: mWhipIdle 1.8s ease-in-out infinite; }
+@keyframes mWhipIdle { 50% { transform: rotate(8deg); } }
+.m-ember { animation: mEmber 1.8s ease-out infinite; }
+.m-e1 { animation-delay: -.45s; } .m-e2 { animation-delay: -.9s; } .m-e3 { animation-delay: -1.35s; }
+@keyframes mEmber { 0% { transform: translateY(20px); opacity: 0; } 30% { opacity: 1; } 100% { transform: translateY(-40px) translateX(8px); opacity: 0; } }
+.m-dragon .m-wing-l { transform-origin: 100px 100px; animation: mDragWingL 1.4s ease-in-out infinite; }
+.m-dragon .m-wing-r { transform-origin: 128px 98px; animation: mDragWingR 1.4s ease-in-out infinite; }
+@keyframes mDragWingL { 50% { transform: rotate(10deg) scaleY(.88); } }
+@keyframes mDragWingR { 50% { transform: rotate(-10deg) scaleY(.88); } }
+.m-neck { transform-origin: 104px 146px; animation: mNeck 3s ease-in-out infinite; }
+@keyframes mNeck { 50% { transform: rotate(-5deg); } }
+.m-dragon .m-tail { transform-origin: 160px 158px; animation: mTail 1.8s ease-in-out infinite; }
+.m-jaw { transform-origin: 80px 98px; }
+.m-smoke { animation: mSmoke 2.2s ease-out infinite; }
+.m-s1 { animation-delay: -1.1s; }
+@keyframes mSmoke { 0% { transform: translate(0, 0) scale(.4); opacity: 0; } 30% { opacity: .55; } 100% { transform: translate(-16px, -26px) scale(1.6); opacity: 0; } }
+.m-fire { opacity: 0; transform-origin: 20px 104px; }
+.m-dragon.m-idle .m-rig, .m-troll.m-idle .m-rig { animation: mBreath 3s ease-in-out infinite; }
+@keyframes mBreath { 50% { transform: scale(1.02, .98); } }
+
+/* ---------- Angriffe ---------- */
+.m-attack .m-rig { animation: mLunge .9s cubic-bezier(.3,.7,.3,1); }
+@keyframes mLunge { 0%, 100% { transform: none; } 30% { transform: translateX(10px) scale(.96, 1.04); } 55% { transform: translateX(-26px) scale(1.06, .95); } }
+.m-attack .m-dagger { animation: mStab .9s ease-out; }
+@keyframes mStab { 30% { transform: rotate(20deg); } 55% { transform: rotate(-60deg) translate(-10px, -6px); } }
+.m-troll.m-attack .m-rig { animation: mTrollSlam 1.1s ease-in; }
+.m-troll.m-attack .m-club { animation: mClubSlam 1.1s ease-in; }
+@keyframes mTrollSlam { 0%, 100% { transform: none; } 45% { transform: translateY(-8px) rotate(3deg); } 70% { transform: translateY(4px) scale(1.05, .95); } }
+@keyframes mClubSlam { 0% { transform: rotate(0); } 45% { transform: rotate(30deg); } 70% { transform: rotate(-110deg); } 100% { transform: rotate(0); } }
+.m-wraith.m-attack .m-rig { animation: mShriek 1s ease-out; }
+.m-wraith.m-attack .m-sword { animation: mSlash 1s ease-out; }
+@keyframes mShriek { 0%, 100% { transform: none; filter: none; } 40% { transform: scale(1.12) translateX(-10px); filter: drop-shadow(0 0 18px #9be7ff); } }
+@keyframes mSlash { 30% { transform: rotate(25deg); } 60% { transform: rotate(-95deg); } }
+.m-demon.m-attack .m-whip { animation: mWhipCrack 1s cubic-bezier(.2,.8,.2,1); }
+.m-demon.m-attack .m-flame { animation: mFlameBurst 1s ease-out; }
+@keyframes mWhipCrack { 0% { transform: rotate(0); } 35% { transform: rotate(40deg); } 60% { transform: rotate(-150deg) scale(1.2); } 100% { transform: rotate(0); } }
+@keyframes mFlameBurst { 40% { transform: scale(1.5, 1.8); filter: brightness(1.4); } }
+.m-dragon.m-attack .m-rig { animation: none; }
+.m-dragon.m-attack .m-neck { animation: mDragonRear 1.8s ease-in-out; }
+.m-dragon.m-attack .m-jaw { animation: mJaw 1.8s ease-in-out; }
+.m-dragon.m-attack .m-fire { animation: mFire 1.8s ease-out; }
+@keyframes mDragonRear { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(12deg); } 45%, 80% { transform: rotate(-10deg); } }
+@keyframes mJaw { 0%, 35%, 90%, 100% { transform: rotate(0); } 45%, 80% { transform: rotate(18deg); } }
+@keyframes mFire { 0%, 38% { opacity: 0; transform: scaleX(.1); } 50% { opacity: 1; transform: scaleX(1.1); } 70% { opacity: 1; transform: scaleX(1) scaleY(1.15); } 88% { opacity: .8; } 100% { opacity: 0; transform: scaleX(1.2); } }
+.m-attack .m-mouth { animation: mChomp .5s ease-in-out 2; }
+
+/* ---------- Auftritt im Kampf & Bildschirm-Effekte ---------- */
+.battle-monster { animation: mEnter 1s cubic-bezier(.2,.9,.3,1.2) both; }
+@keyframes mEnter { 0% { transform: translateY(60px) scale(.5); opacity: 0; filter: brightness(3); } 60% { opacity: 1; } 100% { transform: none; opacity: 1; filter: none; } }
+@media (max-width: 560px) { .battle-monster { animation-name: mEnterM; } @keyframes mEnterM { 0% { transform: translateX(50%) translateY(60px) scale(.5); opacity: 0; } 100% { transform: translateX(50%); opacity: 1; } } }
+.screen-flash { position: absolute; inset: 0; z-index: 2; pointer-events: none; animation: flashFire 1.8s ease-out forwards; }
+@keyframes flashFire { 0%, 40% { background: transparent; } 52% { background: radial-gradient(ellipse at 70% 60%, rgba(255,140,40,.55), rgba(255,60,20,.25) 50%, transparent 80%); } 100% { background: transparent; } }
+.battle.shake { animation: shake .45s ease-in-out; }
+@keyframes shake { 0%, 100% { transform: none; } 20% { transform: translate(-6px, 3px); } 40% { transform: translate(5px, -4px); } 60% { transform: translate(-4px, 2px); } 80% { transform: translate(3px, -1px); } }
+.roar { position: absolute; right: 8%; bottom: 46%; z-index: 3; font-family: var(--display); font-weight: 900; font-style: italic; font-size: 44px; color: var(--red); -webkit-text-stroke: 3px var(--ink); paint-order: stroke fill; text-shadow: 4px 4px 0 var(--ink); animation: pop 1.2s ease-out forwards; pointer-events: none; }
+@media (prefers-reduced-motion: reduce) { .battle-monster, .battle.shake, .screen-flash { animation: none !important; } }
+.pnode.boss .boss-plate { color: #fff; background: #b8261a; border-color: var(--ink) !important; }
+
+/* =====================================================================
+   Monster: schwer und bedrohlich statt cartoonhaft.
+   Gleichnamige Keyframes überschreiben die früheren Definitionen.
+   ===================================================================== */
+.monster .m-rig { filter: saturate(.85) contrast(1.08); }
+/* Ruhe: langsames, schweres Atmen und Lauern – kein Hüpfen, kein Gummi */
+@keyframes mSquish { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.015, 1.03); } }
+@keyframes mBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+@keyframes mHop { 0%, 100% { transform: translateX(0) rotate(0); } 50% { transform: translateX(-3px) rotate(-1.2deg); } }
+@keyframes mWiggle { 0%, 100% { transform: rotate(-1.5deg); } 50% { transform: rotate(1.5deg); } }
+@keyframes mStomp { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px) scale(1.01, 1.02); } }
+@keyframes mFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@keyframes mSwim { 0%, 100% { transform: translate(0, 0) rotate(-1deg); } 50% { transform: translate(4px, -3px) rotate(1deg); } }
+@keyframes mSneak { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(-3px) rotate(-1deg); } }
+@keyframes mBreath { 50% { transform: scale(1.012, 1.025); } }
+.m-idle .m-squish, .m-idle .m-bob, .m-idle .m-hop, .m-idle .m-wiggle, .m-idle .m-stomp, .m-idle .m-sneak { animation-duration: 3.4s; animation-timing-function: ease-in-out; }
+.m-idle .m-float, .m-idle .m-hover, .m-idle .m-swim { animation-duration: 4.2s; }
+/* Augen: selten blinzeln, glühen leicht pulsierend */
+@keyframes mBlink { 0%, 96%, 100% { transform: scaleY(1); } 97.5% { transform: scaleY(.15); } }
+.m-idle .m-eye { animation-duration: 7s; }
+.m-eyes { animation: mEyeGlow 3.2s ease-in-out infinite; }
+@keyframes mEyeGlow { 50% { opacity: .82; } }
+@keyframes mLook { 0%, 50%, 100% { transform: translateX(0); } 65%, 85% { transform: translateX(-2px); } }
+@keyframes mChomp { 0%, 88%, 100% { transform: scaleY(1); } 93% { transform: scaleY(1.15); } }
+/* Flügel/Schwanz/Tentakel: langsamer, kraftvoller */
+.m-wing-l, .m-wing-r { animation-duration: 1.6s !important; }
+@keyframes mFlapL { 50% { transform: rotate(12deg) scaleY(.85); } }
+@keyframes mFlapR { 50% { transform: rotate(-12deg) scaleY(.85); } }
+.m-tail { animation-duration: 2.6s !important; }
+.m-tentacle { animation-duration: 3s !important; }
+@keyframes mTent { 50% { transform: skewX(6deg); } }
+.m-leg-l, .m-leg-r { animation: none; }
+.m-ear-l, .m-ear-r { animation-duration: 5s; }
+/* Schatten ruhiger */
+@keyframes mShadow { 50% { transform: scaleX(.96); opacity: .3; } }
+/* Boss-Aura: rauchiges Glühen statt Strichkreis */
+.m-aura { animation: mAuraPulse 3.6s ease-in-out infinite; transform-origin: 100px 112px; }
+@keyframes mAuraPulse { 0%, 100% { opacity: .55; transform: scale(.94); } 50% { opacity: 1; transform: scale(1.05); } }
+
+/* Treffer: kurzes Zurückweichen, rot aufblitzen */
+@keyframes mHit {
+  0% { transform: none; filter: none; }
+  15% { transform: translateX(9px) rotate(2deg); filter: brightness(1.5) sepia(1) saturate(6) hue-rotate(-30deg); }
+  45% { transform: translateX(3px); filter: brightness(1.1); }
+  100% { transform: none; filter: none; }
+}
+.m-hit .m-rig { animation-duration: .38s; animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+
+/* Tod: zusammensacken und zu Staub zerfallen */
+@keyframes mDead {
+  0% { transform: none; filter: none; opacity: 1; }
+  20% { transform: translateY(-4px) rotate(-2deg); filter: brightness(1.8) sepia(1) saturate(4) hue-rotate(-30deg); }
+  55% { transform: translateY(10px) scale(1.02, .9); filter: brightness(.6) grayscale(.6); opacity: .9; }
+  100% { transform: translateY(16px) scale(1.08, .82); filter: grayscale(1) brightness(.35) blur(6px); opacity: 0; }
+}
+.m-dead .m-rig { animation-duration: 1.6s; animation-timing-function: ease-in; }
+
+/* Angriff: kurz ausholen, dann schnell zuschlagen */
+@keyframes mLunge { 0%, 100% { transform: none; } 35% { transform: translateX(8px) rotate(2deg); } 50% { transform: translateX(-30px) rotate(-3deg); } 62% { transform: translateX(-24px); } }
+.m-attack .m-rig { animation-timing-function: cubic-bezier(.6,0,.2,1); }
+
+/* Brüllen: roter Puls am Rand statt Comic-Text */
+.roar { display: none; }
+.roar-vignette { position: absolute; inset: 0; z-index: 2; pointer-events: none; box-shadow: inset 0 0 120px 30px rgba(180,10,10,.55); animation: roarPulse 1.2s ease-in-out infinite; }
+@keyframes roarPulse { 50% { box-shadow: inset 0 0 160px 50px rgba(200,15,15,.7); } }
+.hit { font-style: normal; color: #f2e6d0; -webkit-text-stroke: 2px #1a0505; text-shadow: 0 0 12px rgba(200,20,20,.8), 3px 3px 0 #000; }
+.hit.crit { color: #ffcf3a; }
+
+/* ---------- Echte Monster-Bilder (Bestiarium) ---------- */
+.monster-img { position: relative; display: inline-block; pointer-events: none; }
+.monster-img .mi-rig { position: absolute; inset: 0; display: flex; align-items: flex-end; justify-content: center; transform-origin: 50% 100%; }
+.monster-img img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; user-select: none; -webkit-user-drag: none; filter: none; }
+.monster-img .mi-shadow { position: absolute; left: 14%; right: 14%; bottom: -4%; height: 10%; border-radius: 50%; background: radial-gradient(ellipse, rgba(0,0,0,.65), transparent 70%); }
+.monster-img .mi-aura { position: absolute; inset: -12% -8% 0; border-radius: 50%; background: radial-gradient(circle at 50% 60%, rgba(196,22,28,.5), rgba(90,10,8,.22) 45%, transparent 70%); animation: mAuraPulse 3.6s ease-in-out infinite; }
+/* Ruhe: schweres Atmen + leichtes Lauern */
+.mi-idle .mi-rig, .mi-attack .mi-rig { animation: miBreath 3.6s ease-in-out infinite; animation-delay: var(--md); }
+@keyframes miBreath { 0%, 100% { transform: scale(1, 1) translateX(0); } 50% { transform: scale(1.012, 1.03) translateX(-1.5px); } }
+.mi-idle .mi-shadow { animation: mShadow 3.6s ease-in-out infinite; animation-delay: var(--md); }
+/* Treffer: zurückweichen und rot aufblitzen */
+.mi-hit .mi-rig { animation: miHit .42s cubic-bezier(.2,.8,.3,1); }
+@keyframes miHit {
+  0% { transform: none; filter: none; }
+  15% { transform: translateX(14px) rotate(2.5deg) scale(.98); filter: brightness(1.7) sepia(1) saturate(7) hue-rotate(-35deg); }
+  45% { transform: translateX(4px) rotate(.5deg); filter: brightness(1.15); }
+  100% { transform: none; filter: none; }
+}
+/* Angriff: ausholen, dann nach vorne stoßen */
+.mi-attack .mi-rig { animation: miLunge 1s cubic-bezier(.6,0,.2,1); }
+@keyframes miLunge { 0%, 100% { transform: none; } 35% { transform: translateX(12px) scale(.97, 1.03) rotate(2deg); } 52% { transform: translateX(-38px) scale(1.08) rotate(-3deg); filter: brightness(1.15) drop-shadow(0 0 18px rgba(255,60,30,.55)); } 68% { transform: translateX(-28px) scale(1.05); } }
+/* Besiegt: zusammensacken und zu Asche zerfallen */
+.mi-dead .mi-rig { animation: miDead 1.8s ease-in forwards; }
+@keyframes miDead {
+  0% { transform: none; filter: none; opacity: 1; }
+  18% { transform: translateY(-4px); filter: brightness(1.9) sepia(1) saturate(5) hue-rotate(-30deg); }
+  55% { transform: translateY(8px) scale(1.02, .9); filter: brightness(.55) grayscale(.7); opacity: .9; }
+  100% { transform: translateY(14px) scale(1.1, .78); filter: grayscale(1) brightness(.3) blur(8px); opacity: 0; }
+}
+.mi-dead .mi-shadow { opacity: 0; transition: opacity 1.4s; }
+.mi-dust { position: absolute; left: 10%; right: 10%; bottom: 0; height: 70%; pointer-events: none;
+  background-image: radial-gradient(circle, rgba(120,110,100,.7) 1.5px, transparent 2px), radial-gradient(circle, rgba(90,80,70,.6) 1px, transparent 1.5px);
+  background-size: 18px 22px, 11px 14px; animation: miDust 1.8s ease-out forwards; opacity: 0; }
+@keyframes miDust { 0%, 30% { opacity: 0; transform: translateY(0); } 55% { opacity: .9; } 100% { opacity: 0; transform: translateY(-40px) scale(1.15); } }
+/* Auf dem Pfad: besiegte Bosse liegen dunkel in der Höhle */
+.boss-face .monster-img.mi-dead .mi-rig { animation: none; filter: grayscale(1) brightness(.35); transform: translateY(6px) scale(1, .9); opacity: .8; }
+@media (prefers-reduced-motion: reduce) { .monster-img *, .monster-img .mi-rig { animation: none !important; } }
+.avatar-monster { width: 58px; height: 58px; border-radius: 50%; overflow: hidden; display: grid; place-items: end center; background: #1d1b18; }
+.avatar-monster .monster-img .mi-shadow, .avatar-monster .monster-img .mi-aura { display: none; }
+.battle-monster .monster-img { max-width: 44vw; max-height: 52vh; }
+@media (max-width: 560px) { .battle-monster .monster-img { width: 78vw !important; height: 44vh !important; } }
+.fire-breath { position: absolute; right: 22%; bottom: 30%; width: 62%; height: 26%; z-index: 2; pointer-events: none; transform-origin: 100% 50%;
+  background: radial-gradient(ellipse at 100% 50%, #fff6c8 0%, #ffcf3a 14%, #ff7a1a 34%, rgba(220,40,10,.75) 55%, transparent 72%);
+  clip-path: polygon(100% 42%, 0 0, 8% 30%, 0 50%, 8% 70%, 0 100%, 100% 58%); filter: blur(2px); animation: breath 1.8s ease-out forwards; mix-blend-mode: screen; }
+@keyframes breath { 0%, 30% { opacity: 0; transform: scaleX(.05); } 45% { opacity: 1; transform: scaleX(1.05); } 70% { opacity: .95; transform: scaleX(1) scaleY(1.2); } 100% { opacity: 0; transform: scaleX(1.15) scaleY(1.3); } }
+@media (max-width: 560px) { .fire-breath { right: 30%; bottom: 34%; width: 70%; } }
