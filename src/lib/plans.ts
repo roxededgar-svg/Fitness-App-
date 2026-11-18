@@ -17,9 +17,9 @@ export interface Plan {
 }
 
 export const PLANS: Plan[] = [
-  { id: 'push100', name: '100 Liegestütze', exercise: 'pushup', goal: 100, desc: 'In 6 Wochen zu 100 Liegestützen in einer Einheit', rest: 75, color: '#3f7bfa', icon: 'dumbbell' },
+  { id: 'push100', name: '100 Liegestütze', exercise: 'pushup', goal: 100, desc: 'In 6 Wochen zu 100 Liegestützen in einer Einheit', rest: 75, color: '#D7FF3B', icon: 'dumbbell' },
   { id: 'squat200', name: '200 Kniebeugen', exercise: 'squat', goal: 200, desc: 'Beinkraft und Ausdauer für die Arena', rest: 60, color: '#22c55e', icon: 'bolt' },
-  { id: 'core', name: 'Core-Stärke', exercise: 'situp', goal: 120, desc: 'Stabiler Rumpf mit Sit-ups', rest: 60, color: '#a855f7', icon: 'target' },
+  { id: 'core', name: 'Core-Stärke', exercise: 'situp', goal: 120, desc: 'Stabiler Rumpf mit Sit-ups', rest: 60, color: '#FF8A3D', icon: 'target' },
   { id: 'plank3', name: '3 Minuten Plank', exercise: 'plank', goal: 180, desc: 'Haltekraft für Liegestütze und Burpees', rest: 60, color: '#f5a524', icon: 'stopwatch' },
 ];
 

@@ -37,7 +37,7 @@ export function DuelScreen() {
         </div>
         <div className="big-vs">VS</div>
         <div className="side r">
-          <Avatar name={duel.n} size={110} color="#a855f7" ring="var(--red)" />
+          <Avatar name={duel.n} size={110} color="#FF8A3D" ring="var(--red)" />
           <div className="display red" style={{ fontSize: 20 }}><Flag cc={duel.co} /> {duel.n}</div>
           <div className="muted" style={{ fontSize: 13 }}>{rankLabel(duel.a)} · {duel.a} Trophäen</div>
         </div>
@@ -63,7 +63,7 @@ export function DuelScreen() {
                 durationS: duel.d,
                 ranked: true,
                 duelCode: code,
-                opponent: { id: duel.c, name: duel.n, country: duel.co, elo: duel.e, arenaPoints: duel.a, level: duel.l, wins: 0, losses: 0, kind: 'ghost', color: '#a855f7', timeline: duel.timeline },
+                opponent: { id: duel.c, name: duel.n, country: duel.co, elo: duel.e, arenaPoints: duel.a, level: duel.l, wins: 0, losses: 0, kind: 'ghost', color: '#FF8A3D', timeline: duel.timeline },
               });
               nav('/battle', { replace: true });
             }}

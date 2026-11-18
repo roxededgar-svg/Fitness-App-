@@ -10,6 +10,8 @@ import { sfx, unlockAudio } from '../lib/feedback';
 import { Avatar, MyAvatar, TugBar } from '../components/ui';
 import { applyRegen, applyRep, comboWindowMs, createBoss, type BossState } from '../lib/boss';
 import { Icon } from '../components/Icon';
+import { Art } from '../components/Art';
+import { artIdForNode } from '../lib/art';
 import { RankEmblem } from '../components/RankEmblem';
 
 type Phase = 'setup' | 'countdown' | 'live' | 'done';
@@ -207,7 +209,7 @@ function Battle() {
     const leader = myReps > oppReps ? 'me' : oppReps > myReps ? 'opp' : null;
     if (leader && leader !== leaderRef.current && myReps + oppReps > 1) {
       if (leader === 'me') {
-        setFlash({ text: 'FÜHRUNG!', color: 'var(--blue)', id: Date.now() });
+        setFlash({ text: 'VORNE!', color: 'var(--blue)', id: Date.now() });
         sfx.lead();
       } else setFlash({ text: `${opp.name} führt!`, color: 'var(--red)', id: Date.now() });
     }
@@ -256,7 +258,7 @@ function Battle() {
             <div className="player right">
               <div className="av-ring" style={{ background: 'var(--red)' }}>
                 {opp.kind === 'boss' ? (
-                  <div className="avatar" style={{ width: 58, height: 58, background: `${opp.color ?? '#ef4444'}26` }}><Icon name={opp.icon ?? 'skull'} size={32} color={opp.color ?? 'var(--red)'} /></div>
+                  <div className="avatar" style={{ width: 58, height: 58, background: `${opp.color ?? '#ef4444'}26` }}><Art id={artIdForNode(config.pathNodeId)} size={58} style={{ borderRadius: '50%' }} fallback={<Icon name={opp.icon ?? 'skull'} size={32} color={opp.color ?? 'var(--red)'} />} /></div>
                 ) : (
                   <Avatar src={opp.avatar} name={opp.name} size={58} color={opp.color} />
                 )}
@@ -264,7 +266,7 @@ function Battle() {
               </div>
               <div style={{ minWidth: 0 }}>
                 <div className="pname red">{opp.name}</div>
-                <div className="ptier" style={{ color: '#c7cad8' }}>{opp.tier ?? oppRank?.tier.name}</div>
+                <div className="ptier" style={{ color: '#d8d1c4' }}>{opp.tier ?? oppRank?.tier.name}</div>
                 <div className="ptroph ico-inline" style={{ justifyContent: 'flex-end' }}>{isBoss ? <><Icon name="heart" size={15} color="var(--red)" /> {Math.ceil(boss.hp)}</> : opp.elo > 0 ? <><Icon name="trophy" size={15} /> {opp.arenaPoints}</> : <Icon name="robot" size={18} />}</div>
               </div>
             </div>
@@ -347,7 +349,7 @@ function Battle() {
             )}
             {camOk && (
               <>
-                <div className="display" style={{ fontSize: 22 }}>{tracker.frame.tracking ? <span className="ico-inline green"><Icon name="check" size={22} /> <span style={{ color: 'var(--text)' }}>Körper erkannt – gleich geht’s los!</span></span> : 'Positioniere dich'}</div>
+                <div className="display" style={{ fontSize: 22 }}>{tracker.frame.tracking ? <span className="ico-inline green"><Icon name="check" size={22} /> <span style={{ color: 'var(--text)' }}>Hab dich! Gleich geht’s los.</span></span> : 'Stell dich so hin, dass ich dich ganz sehe'}</div>
                 <div className="muted" style={{ margin: '10px 0 16px', fontSize: 15 }}>{ex.setup}</div>
               </>
             )}

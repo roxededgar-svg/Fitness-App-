@@ -102,27 +102,27 @@ export function HomeScreen() {
         <div className="week-goal">{Array.from({ length: perWeek }, (_, i) => <span key={i} className={i < weekDays ? 'on' : ''} />)}</div>
       </div>
 
-      <Section title="Spielen">
+      <Section title="Worauf hast du Lust?">
         <div className="tiles">
           <button className="tile primary" onClick={() => nav('/matchmaking?q=ranked')}>
             <div className="t-ico"><Icon name="shield" size={24} /></div>
             <div>
               <div className="t-title">Ranked</div>
-              <div className="t-sub">Um Trophäen kämpfen</div>
+              <div className="t-sub">Hol dir Trophäen</div>
             </div>
           </button>
           <button className="tile" onClick={() => nav('/matchmaking?q=casual')}>
-            <div className="t-ico" style={{ background: '#221d3a', color: 'var(--purple)' }}><Icon name="bolt" size={24} /></div>
+            <div className="t-ico" style={{ background: '#2e2216', color: 'var(--purple)' }}><Icon name="bolt" size={24} /></div>
             <div>
               <div className="t-title">Schnellkampf</div>
-              <div className="t-sub">1 vs 1 ohne Trophäen</div>
+              <div className="t-sub">Kurz, ohne Druck</div>
             </div>
           </button>
           <button className="tile" onClick={() => nav('/training')}>
             <div className="t-ico" style={{ background: '#2a2108', color: 'var(--gold)' }}><Icon name="dumbbell" size={24} /></div>
             <div>
               <div className="t-title">Training</div>
-              <div className="t-sub">Frei üben, mit Test-Bot</div>
+              <div className="t-sub">Allein, im eigenen Tempo</div>
             </div>
           </button>
           <button className="tile" onClick={() => nav('/map')}>
@@ -140,7 +140,7 @@ export function HomeScreen() {
           <button className="card plan-cta" onClick={() => nav('/plans')}>
             <Icon name="calendar" size={26} color="var(--blue)" />
             <div style={{ textAlign: 'left' }}>
-              <div className="display" style={{ fontSize: 17 }}>Starte einen 6-Wochen-Plan</div>
+              <div className="display" style={{ fontSize: 20 }}>Sechs Wochen. Ein Ziel. Fang an.</div>
               <div className="muted" style={{ fontSize: 13 }}>100 Liegestütze, 200 Kniebeugen, Core oder 3 Minuten Plank</div>
             </div>
           </button>
@@ -160,7 +160,7 @@ export function HomeScreen() {
         )}
       </Section>
 
-      <Section title="Tägliche Missionen" action={<span className="display purple" style={{ fontSize: 16 }}>{claimed}/3</span>}>
+      <Section title="Heute zu tun" action={<span className="display purple" style={{ fontSize: 16 }}>{claimed}/3</span>}>
         <div className="stack" style={{ gap: 10 }}>
           {missions.map((m) => (
             <div key={m.id} className={`card mission ${m.done ? 'done' : ''}`}>
@@ -179,18 +179,18 @@ export function HomeScreen() {
                 disabled={!m.done || m.claimed}
                 onClick={() => { claim(m.id); toast(`+${m.xp} XP · +${m.gold} Gold eingefordert!`); }}
               >
-                {m.claimed ? <Icon name="check" size={18} /> : 'Einfordern'}
+                {m.claimed ? <Icon name="check" size={18} /> : 'Abholen'}
               </button>
             </div>
           ))}
         </div>
       </Section>
 
-      <Section title="Aktivität">
+      <Section title="Deine Woche">
         <WeekChart data={weekStats(me.sessions)} />
       </Section>
 
-      <Section title="Statistik">
+      <Section title="Bisher geschafft">
         <div className="stat-grid four">
           <div className="mini"><div className="l"><Icon name="repeat" size={14} color="var(--blue)" />Gesamt Wdh.</div><div className="v blue">{t.reps}</div></div>
           <div className="mini"><div className="l"><Icon name="trophy" size={14} color="var(--purple)" />Bester Satz</div><div className="v purple">{t.best}</div></div>
@@ -206,7 +206,7 @@ export function HomeScreen() {
             <div className="display" style={{ fontSize: 22 }}>Höchster Rang: {seasonEnd.tierName}</div>
             <div className="row" style={{ gap: 18, fontFamily: 'var(--display)', fontWeight: 900, fontSize: 20 }}>
               <span className="ico-inline gold"><Gold size={20} /> +{seasonEnd.gold}</span>
-              <span className="ico-inline" style={{ color: '#60a5fa' }}><Gems size={20} /> +{seasonEnd.gems}</span>
+              <span className="ico-inline" style={{ color: '#4CC9F0' }}><Gems size={20} /> +{seasonEnd.gems}</span>
             </div>
             <div className="muted" style={{ fontSize: 14 }}>Neue Saison: Deine Trophäen gehen von {seasonEnd.before} auf {seasonEnd.after}. Steig wieder auf!</div>
             <button className="btn btn-primary solid" onClick={() => setSeasonEnd(null)}>Los geht's</button>

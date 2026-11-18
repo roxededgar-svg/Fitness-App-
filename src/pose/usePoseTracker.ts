@@ -130,7 +130,7 @@ function draw(
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   if (!show || !lms) return;
   const W = canvas.width, H = canvas.height;
-  const color = tracking ? '#4f86ff' : '#f59e0b';
+  const color = tracking ? '#D7FF3B' : '#f59e0b';
   ctx.lineWidth = Math.max(3, W / 220);
   ctx.lineCap = 'round';
   ctx.strokeStyle = color;

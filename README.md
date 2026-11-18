@@ -17,6 +17,13 @@ Tritt 1 gegen 1 an – der Tauziehen-Balken verschiebt sich live mit jeder Wiede
 | **Daten** | Lokal gespeichert, Speicher als „dauerhaft“ angefragt. Sicherung als Datei exportieren/importieren (Einstellungen → Datensicherung). |
 | **App** | Installierbar (PNG-Icons für iOS), offline nutzbar per Service Worker, Einführung für neue Spieler. |
 
+## Design „Tinte & Volt“
+
+- **Farben:** warmes Schwarz `#121110`, Papier `#FFF8E7`, eine Signalfarbe **Volt** `#D7FF3B`, dazu Orange `#FF8A3D` und Rot `#FF4D3D` (Gegner). Tokens in `src/styles.css` (`:root`).
+- **Schriften:** Barlow Condensed (Titel, Anzeigetafel-Zahlen), Barlow (Text), Patrick Hand (Flux & persönliche Notizen).
+- **Stil:** Comic-Konturen und harte Schatten statt Neon-Leuchten, Papier-Körnung, Abzeichen als Sticker, Kampf als Anzeigetafel.
+- **Echte Illustrationen & Fotos:** Bilder in `public/art/` legen und in `public/art/manifest.json` eintragen – sie ersetzen automatisch die gezeichneten Grafiken. Alle Bild-Namen, Formate und ein Briefing für Illustrator:innen: [`docs/ILLUSTRATIONEN.md`](docs/ILLUSTRATIONEN.md).
+
 ## Starten
 
 ```bash

@@ -43,7 +43,7 @@ export function ShopScreen() {
         <div className="display" style={{ fontSize: 16 }}>{item.name}</div>
         <div className="muted" style={{ fontSize: 12, minHeight: 32 }}>{item.desc}</div>
         {locked ? (
-          <div className="pill ico-inline" style={{ background: '#1d2236', color: '#9aa0b8', justifyContent: 'center' }}><Icon name="lock" size={12} /> Ab Level {item.minLevel}</div>
+          <div className="pill ico-inline" style={{ background: '#24211d', color: '#a39b8f', justifyContent: 'center' }}><Icon name="lock" size={12} /> Ab Level {item.minLevel}</div>
         ) : has ? (
           <button className={`btn btn-sm ${on ? 'btn-ghost' : 'btn-primary solid'}`} onClick={() => equip(item.kind as 'frame' | 'title', on ? undefined : item.id)}>
             {on ? 'Ablegen' : 'Ausrüsten'}

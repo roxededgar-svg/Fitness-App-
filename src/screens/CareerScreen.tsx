@@ -84,14 +84,14 @@ export function CareerScreen() {
           )}
           {itemById(me.equipped?.title) && <div className="player-title" style={{ fontSize: 14 }}>„{itemById(me.equipped?.title)!.name}“</div>}
           <div className="chips">
-            <span className="pill ico-inline" style={{ background: '#1d2236', color: '#c7cad8' }}><Icon name="star" size={13} /> LVL {lv}</span>
-            <span className="pill ico-inline" style={{ background: '#1d2236', color: '#c7cad8' }}><Icon name="calendar" size={13} /> Seit {joined}</span>
-            <span className="pill ico-inline" style={{ background: '#1d2236', color: 'var(--gold)' }}><Gold size={13} /> {me.gold}</span>
-            <span className="pill ico-inline" style={{ background: '#1d2236', color: 'var(--blue)' }}><Gems size={13} /> {me.gems}</span>
+            <span className="pill ico-inline" style={{ background: '#24211d', color: '#d8d1c4' }}><Icon name="star" size={13} /> LVL {lv}</span>
+            <span className="pill ico-inline" style={{ background: '#24211d', color: '#d8d1c4' }}><Icon name="calendar" size={13} /> Seit {joined}</span>
+            <span className="pill ico-inline" style={{ background: '#24211d', color: 'var(--gold)' }}><Gold size={13} /> {me.gold}</span>
+            <span className="pill ico-inline" style={{ background: '#24211d', color: 'var(--blue)' }}><Gems size={13} /> {me.gems}</span>
           </div>
           <button className="row" style={{ marginTop: 14, gap: 10 }} onClick={() => { navigator.clipboard?.writeText(me.code); toast('Spieler-Code kopiert'); }}>
             <span className="caps muted" style={{ fontSize: 11 }}>Spieler-Code</span>
-            <span className="display blue" style={{ fontSize: 22, letterSpacing: '.18em' }}>{me.code}</span>
+            <span className="display blue" style={{ fontSize: 22, letterSpacing: '.04em' }}>{me.code}</span>
             <Icon name="copy" size={16} color="var(--muted)" />
           </button>
         </div>
@@ -117,7 +117,7 @@ export function CareerScreen() {
         </button>
         <button className="tile" style={{ minHeight: 170 }} onClick={() => setBadgesOpen(true)}>
           <div className="row" style={{ gap: 12 }}>
-            <div className="t-ico" style={{ background: '#221d3a', color: 'var(--purple)' }}><Icon name="medal" size={26} /></div>
+            <div className="t-ico" style={{ background: '#2e2216', color: 'var(--purple)' }}><Icon name="medal" size={26} /></div>
             <div>
               <div className="caps purple" style={{ fontSize: 11 }}>Abzeichen</div>
               <div className="t-title" style={{ fontSize: 18 }}>{earned.length} / {BADGES.length}</div>
@@ -166,10 +166,10 @@ export function CareerScreen() {
 
       <Section title="Letzte Aktivitäten">
         <div className="card">
-          {recent.length === 0 && <div className="muted">Noch keine Einheiten. Leg los!</div>}
+          {recent.length === 0 && <div className="muted">Hier steht noch nichts. Zeit, das zu ändern.</div>}
           {recent.map((s) => (
             <div className="history-row" key={s.id}>
-              <span className="pill" style={{ minWidth: 92, textAlign: 'center', background: s.result === 'win' ? '#10301e' : s.result === 'loss' ? '#3a1414' : '#1d2236', color: s.result === 'win' ? 'var(--green)' : s.result === 'loss' ? 'var(--red)' : '#c7cad8' }}>
+              <span className="pill" style={{ minWidth: 92, textAlign: 'center', background: s.result === 'win' ? '#14301c' : s.result === 'loss' ? '#3a1612' : '#24211d', color: s.result === 'win' ? 'var(--green)' : s.result === 'loss' ? 'var(--red)' : '#d8d1c4' }}>
                 {activityLabel(s)}
               </span>
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -244,9 +244,9 @@ export function CareerScreen() {
             key={b.id}
             front={<BadgeFront badge={b} earned={has} />}
             back={<BadgeBack badge={b} earnedAt={has ? at ?? Date.now() : undefined} />}
-            edge={has ? METALS[styleFor(b.id).metal][2] : '#3a3e52'}
+            edge={has ? METALS[styleFor(b.id).metal][2] : '#4a443b'}
             clip={cssClip(styleFor(b.id).shape)}
-            color={has ? styleFor(b.id).colors[1] : '#4b4f63'}
+            color={has ? styleFor(b.id).colors[1] : '#5c564d'}
             title={b.name}
             subtitle={has ? <>{b.desc}<br />Erhalten am {new Date(at ?? Date.now()).toLocaleDateString('de-DE')}</> : <>Noch gesperrt · {b.desc}</>}
             actions={has && (

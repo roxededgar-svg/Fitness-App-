@@ -78,6 +78,14 @@ export function ResultScreen() {
   let title = 'TRAINING BEENDET';
   let color = 'var(--blue)';
   const isPathFight = !!rec.pathNodeId && !rec.dungeonId;
+  const QUIPS = {
+    win: ['Sauber. Das war deins.', 'So sieht das aus, wenn man es will.', 'Kein Glück. Pure Arbeit.'],
+    loss: ['Knapp daneben ist auch daneben. Revanche?', 'Heute nicht. Morgen schon.', 'Nächstes Mal ein paar mehr – du kannst das.'],
+    draw: ['Gleichstand. Das schreit nach Revanche.', 'Keiner gibt nach. Respekt.'],
+    none: ['Erledigt. Dein zukünftiges Ich sagt danke.', 'Wieder eine Einheit mehr auf dem Konto.', 'Gut gemacht. Wirklich.'],
+  } as const;
+  const qs = QUIPS[r ?? 'none'];
+  const quip = qs[rec.reps % qs.length];
   if (r === 'win') { title = config.mode === 'dungeon' ? (isPathFight ? 'BESIEGT' : 'BOSS BESIEGT') : 'SIEG'; color = 'var(--green)'; }
   if (r === 'loss') { title = config.mode === 'dungeon' ? (isPathFight ? 'ENTKOMMEN' : 'BOSS ENTKOMMEN') : 'NIEDERLAGE'; color = 'var(--red)'; }
   if (r === 'draw') { title = 'UNENTSCHIEDEN'; color = 'var(--gold)'; }
@@ -103,6 +111,7 @@ export function ResultScreen() {
   return (
     <div className={`result ${r === 'loss' ? 'lose' : r === 'win' ? 'win' : ''}`}>
       <h1 style={{ color }}>{title}</h1>
+      <div className="hand" style={{ textAlign: 'center', fontSize: 24, color: 'var(--text)', marginTop: 4 }}>{quip}</div>
       <div className="score">{rec.reps}{rec.oppReps != null && <> <span style={{ color: 'var(--muted)' }}>·</span> {rec.oppReps}</>}</div>
       <div className="muted" style={{ textAlign: 'center', marginBottom: 26, fontSize: 17 }}>
         {rec.oppName ? `vs ${rec.oppName}` : `${ex.name} · ${rec.durationS}s`}
@@ -163,7 +172,7 @@ export function ResultScreen() {
           <div className="result-stars">
             {[0, 1, 2].map((i) => (
               <svg key={i} width={i === 1 ? 64 : 50} height={i === 1 ? 64 : 50} viewBox="0 0 24 24" style={{ animationDelay: `${0.3 + i * 0.25}s` }} className={i < (rec.stars ?? 0) ? 'on' : ''}>
-                <path d="M12 2l3 7h7l-5.5 4.5 2 7.5L12 17l-6.5 4 2-7.5L2 9h7z" fill={i < (rec.stars ?? 0) ? '#ffd23f' : '#2a2d3a'} stroke={i < (rec.stars ?? 0) ? '#8a5a00' : '#3d4152'} strokeWidth="1" />
+                <path d="M12 2l3 7h7l-5.5 4.5 2 7.5L12 17l-6.5 4 2-7.5L2 9h7z" fill={i < (rec.stars ?? 0) ? '#ffd23f' : '#34302a'} stroke={i < (rec.stars ?? 0) ? '#8a5a00' : '#4a443b'} strokeWidth="1" />
               </svg>
             ))}
           </div>
@@ -189,7 +198,7 @@ export function ResultScreen() {
       )}
 
       {duelCode && (
-        <div className="card" style={{ marginTop: 16, borderColor: '#3b2a6b' }}>
+        <div className="card" style={{ marginTop: 16, borderColor: '#5a4320' }}>
           <div className="display purple ico-inline" style={{ fontSize: 18 }}><Icon name="swords" size={20} /> Fordere Freunde heraus</div>
           <div className="muted" style={{ margin: '6px 0 14px', fontSize: 14 }}>Dein Lauf wird zum Gegner: Wer den Link öffnet, tritt live gegen deine {rec.reps} {ex.unit} an.</div>
           <button className="btn btn-purple" onClick={() => shareOrCopy(`${me.name} fordert dich zu ${ex.name} heraus! ${rec.reps} in ${rec.durationS}s – schlägst du das?`, duelUrl(duelCode))}>

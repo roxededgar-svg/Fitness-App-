@@ -36,7 +36,7 @@ export function FriendsScreen() {
             <button key={m.id} className={`onb-opt friend-mode ${mode === m.id ? 'on' : ''}`} onClick={() => setMode(m.id)}>
               <span className="onb-opt-ico"><Icon name={m.icon} size={22} /></span>
               <span style={{ flex: 1 }}><b>{m.title}</b><small>{m.sub}</small></span>
-              <span className="pill" style={{ background: '#1d2236', color: '#9aa0b8', whiteSpace: 'nowrap' }}>{m.badge}</span>
+              <span className="pill" style={{ background: '#24211d', color: '#a39b8f', whiteSpace: 'nowrap' }}>{m.badge}</span>
             </button>
           ))}
         </div>
