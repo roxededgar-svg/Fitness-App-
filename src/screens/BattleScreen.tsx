@@ -11,6 +11,8 @@ import { Avatar, MyAvatar, TugBar } from '../components/ui';
 import { applyRegen, applyRep, comboWindowMs, createBoss, type BossState } from '../lib/boss';
 import { Icon } from '../components/Icon';
 import { Art } from '../components/Art';
+import { Monster } from '../components/Monster';
+import { monsterIndex, nodeById, WORLDS } from '../lib/path';
 import { artIdForNode } from '../lib/art';
 import { RankEmblem } from '../components/RankEmblem';
 
@@ -61,6 +63,9 @@ function Battle() {
   const [boss, setBoss] = useState<BossState>(bossRef.current);
   const [hits, setHits] = useState<{ id: number; dmg: number; crit: boolean; x: number }[]>([]);
   const maxComboRef = useRef(0);
+  const pathNode = config.pathNodeId ? nodeById(config.pathNodeId) : undefined;
+  const pathWorld = pathNode ? WORLDS.find((w) => w.id === pathNode.worldId) : undefined;
+  const [hitCount, setHitCount] = useState(0);
   const windowMs = comboWindowMs(ex.baseRpm);
 
   const onRep = useCallback(() => {
@@ -75,6 +80,7 @@ function Battle() {
       setBoss(state);
       const id = Math.random();
       setHits((h) => [...h.slice(-5), { id, dmg: hit.dmg, crit: hit.crit, x: 30 + Math.random() * 40 }]);
+      setHitCount((c) => c + 1);
       if (hit.crit) sfx.lead();
     }
   }, [isBoss, windowMs]);
@@ -313,6 +319,14 @@ function Battle() {
 
       {phase === 'live' && !useTap && camOk && <div className="depth-meter"><span style={{ height: `${tracker.frame.depth * 100}%` }} /></div>}
 
+      {isBoss && pathNode && pathWorld && (
+        <div className="battle-monster">
+          <Art id={artIdForNode(pathNode.id)} size={220} fallback={
+            <Monster key={boss.hp <= 0 ? 'dead' : `h${hitCount}`} id={pathNode.id} theme={pathWorld.theme} index={monsterIndex(pathNode)} boss={pathNode.kind === 'boss'}
+              size={pathNode.kind === 'boss' ? 250 : 210} state={boss.hp <= 0 ? 'dead' : hitCount > 0 ? 'hit' : 'idle'} />
+          } />
+        </div>
+      )}
       {isBoss && (
         <div className="hit-layer">
           {hits.map((h) => (

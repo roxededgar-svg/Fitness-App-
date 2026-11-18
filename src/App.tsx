@@ -21,6 +21,9 @@ import { FriendsScreen } from './screens/FriendsScreen';
 import { TeamBattleScreen } from './screens/TeamBattleScreen';
 import { TeamResultScreen } from './screens/TeamResultScreen';
 import { TeamLinkScreen } from './screens/TeamLinkScreen';
+import { MonsterGallery } from './screens/MonsterGallery';
+import { OnlineLobbyScreen } from './screens/OnlineLobbyScreen';
+import { OnlineBattleScreen } from './screens/OnlineBattleScreen';
 
 const NAV = [
   { to: '/', label: 'Start', icon: 'home' },
@@ -28,7 +31,7 @@ const NAV = [
   { to: '/arena', label: 'Arena', icon: 'bolt' },
   { to: '/career', label: 'Karriere', icon: 'user' },
 ];
-const FULLSCREEN = ['/battle', '/matchmaking', '/result', '/training', '/settings', '/workout', '/shop', '/plans', '/friends', '/teambattle', '/teamresult', '/team'];
+const FULLSCREEN = ['/battle', '/matchmaking', '/result', '/training', '/settings', '/workout', '/shop', '/plans', '/friends', '/teambattle', '/teamresult', '/team', '/online', '/onlinebattle'];
 
 function Shell() {
   const me = useMe();
@@ -36,12 +39,12 @@ function Shell() {
   const nav = useNavigate();
   if (!me) {
     // Duell-Links merken, bis eingeloggt
-    if (loc.pathname === '/duel' || loc.pathname === '/team') sessionStorage.setItem('pendingDuel', loc.pathname + loc.search);
+    if (loc.pathname === '/duel' || loc.pathname === '/team' || loc.pathname === '/online') sessionStorage.setItem('pendingDuel', loc.pathname + loc.search);
     return <AuthScreen />;
   }
   if (me.onboarded === false) return <OnboardingScreen />;
   const pending = sessionStorage.getItem('pendingDuel');
-  if (pending && loc.pathname !== '/duel' && loc.pathname !== '/team') {
+  if (pending && loc.pathname !== '/duel' && loc.pathname !== '/team' && loc.pathname !== '/online') {
     sessionStorage.removeItem('pendingDuel');
     // ältere Einträge enthielten nur den Suchteil
     return <Navigate to={pending.startsWith('/') ? pending : `/duel${pending}`} replace />;
@@ -65,6 +68,9 @@ function Shell() {
         <Route path="/teambattle" element={<TeamBattleScreen />} />
         <Route path="/teamresult" element={<TeamResultScreen />} />
         <Route path="/team" element={<TeamLinkScreen />} />
+        <Route path="/monsters" element={<MonsterGallery />} />
+        <Route path="/online" element={<OnlineLobbyScreen />} />
+        <Route path="/onlinebattle" element={<OnlineBattleScreen />} />
         <Route path="/plans" element={<PlansScreen />} />
         <Route path="/workout" element={<WorkoutScreen />} />
         <Route path="*" element={<Navigate to="/" replace />} />

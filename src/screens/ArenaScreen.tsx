@@ -113,11 +113,20 @@ export function ArenaScreen() {
       </Section>
 
       <Section title="Mit Freunden">
+        <button className="card plan-cta friends-cta online-cta" onClick={() => nav('/online')}>
+          <div className="t-ico" style={{ width: 56, height: 56, background: 'var(--blue)', color: 'var(--ink)' }}><Icon name="globe" size={28} /></div>
+          <div style={{ flex: 1 }}>
+            <div className="display" style={{ fontSize: 20 }}>Online zusammen spielen</div>
+            <div className="muted" style={{ fontSize: 13 }}>Jeder an seinem Gerät · live die Balken der anderen · bis 2 gegen 2</div>
+          </div>
+          <Icon name="back" size={18} style={{ transform: 'rotate(180deg)' }} />
+        </button>
+        <div style={{ height: 10 }} />
         <button className="card plan-cta friends-cta" onClick={() => nav('/friends')}>
           <div className="t-ico" style={{ width: 56, height: 56, background: 'linear-gradient(135deg, #D7FF3B33, #ef444433)', color: '#fff' }}><Icon name="users" size={28} /></div>
           <div style={{ flex: 1 }}>
-            <div className="display" style={{ fontSize: 18 }}>Gegeneinander oder im Team</div>
-            <div className="muted" style={{ fontSize: 13 }}>1 vs 1 oder 2 vs 2 – zu zweit an einem Gerät oder per Team-Link</div>
+            <div className="display" style={{ fontSize: 18 }}>Zu zweit an einem Gerät</div>
+            <div className="muted" style={{ fontSize: 13 }}>Beide vor einer Kamera, oder zeitversetzt per Team-Link</div>
           </div>
           <Icon name="back" size={18} style={{ transform: 'rotate(180deg)' }} />
         </button>

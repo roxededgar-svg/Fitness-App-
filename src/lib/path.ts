@@ -120,3 +120,6 @@ export function worldStars(p: Profile, w: World) {
 }
 
 export const totalStars = (p: Profile) => WORLDS.reduce((a, w) => a + worldStars(p, w).got, 0);
+
+/** Monster-Platz innerhalb der Welt (0–3) für Aussehen/Typ */
+export const monsterIndex = (n: PathNode) => (n.index < 2 ? n.index : n.index - 1);
