@@ -3,7 +3,7 @@
  * - App-Dateien (assets/ mit Hash im Namen): cache-first
  * - Seite selbst: network-first, offline aus dem Cache
  */
-const VERSION = 'vitalis-v1';
+const VERSION = 'vitalis-v2';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg', './apple-touch-icon.png', './icon-192.png'];
 const HEAVY = ['./models/pose_landmarker_lite.task', './mediapipe/wasm/vision_wasm_internal.js', './mediapipe/wasm/vision_wasm_internal.wasm'];
 
@@ -36,7 +36,7 @@ self.addEventListener('fetch', (e) => {
     );
     return;
   }
-  if (heavy || (sameOrigin && /\/assets\//.test(url.pathname)) || (sameOrigin && /\.(png|svg|webmanifest)$/.test(url.pathname)) || url.hostname.endsWith('fonts.gstatic.com') || url.hostname.endsWith('fonts.googleapis.com')) {
+  if (heavy || (sameOrigin && /\/assets\//.test(url.pathname)) || (sameOrigin && /\.(png|svg|webp|webmanifest)$/.test(url.pathname)) || url.hostname.endsWith('fonts.gstatic.com') || url.hostname.endsWith('fonts.googleapis.com')) {
     e.respondWith(
       caches.match(req).then((hit) => hit || fetch(req).then((r) => {
         if (r.ok || r.type === 'opaque') { const copy = r.clone(); caches.open(VERSION).then((c) => c.put(req, copy)); }

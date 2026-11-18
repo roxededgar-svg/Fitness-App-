@@ -1124,3 +1124,50 @@ button.mini { border-top-color: var(--blue); }
 @keyframes roarPulse { 50% { box-shadow: inset 0 0 160px 50px rgba(200,15,15,.7); } }
 .hit { font-style: normal; color: #f2e6d0; -webkit-text-stroke: 2px #1a0505; text-shadow: 0 0 12px rgba(200,20,20,.8), 3px 3px 0 #000; }
 .hit.crit { color: #ffcf3a; }
+
+/* ---------- Echte Monster-Bilder (Bestiarium) ---------- */
+.monster-img { position: relative; display: inline-block; pointer-events: none; }
+.monster-img .mi-rig { position: absolute; inset: 0; display: flex; align-items: flex-end; justify-content: center; transform-origin: 50% 100%; }
+.monster-img img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; user-select: none; -webkit-user-drag: none; filter: none; }
+.monster-img .mi-shadow { position: absolute; left: 14%; right: 14%; bottom: -4%; height: 10%; border-radius: 50%; background: radial-gradient(ellipse, rgba(0,0,0,.65), transparent 70%); }
+.monster-img .mi-aura { position: absolute; inset: -12% -8% 0; border-radius: 50%; background: radial-gradient(circle at 50% 60%, rgba(196,22,28,.5), rgba(90,10,8,.22) 45%, transparent 70%); animation: mAuraPulse 3.6s ease-in-out infinite; }
+/* Ruhe: schweres Atmen + leichtes Lauern */
+.mi-idle .mi-rig, .mi-attack .mi-rig { animation: miBreath 3.6s ease-in-out infinite; animation-delay: var(--md); }
+@keyframes miBreath { 0%, 100% { transform: scale(1, 1) translateX(0); } 50% { transform: scale(1.012, 1.03) translateX(-1.5px); } }
+.mi-idle .mi-shadow { animation: mShadow 3.6s ease-in-out infinite; animation-delay: var(--md); }
+/* Treffer: zurückweichen und rot aufblitzen */
+.mi-hit .mi-rig { animation: miHit .42s cubic-bezier(.2,.8,.3,1); }
+@keyframes miHit {
+  0% { transform: none; filter: none; }
+  15% { transform: translateX(14px) rotate(2.5deg) scale(.98); filter: brightness(1.7) sepia(1) saturate(7) hue-rotate(-35deg); }
+  45% { transform: translateX(4px) rotate(.5deg); filter: brightness(1.15); }
+  100% { transform: none; filter: none; }
+}
+/* Angriff: ausholen, dann nach vorne stoßen */
+.mi-attack .mi-rig { animation: miLunge 1s cubic-bezier(.6,0,.2,1); }
+@keyframes miLunge { 0%, 100% { transform: none; } 35% { transform: translateX(12px) scale(.97, 1.03) rotate(2deg); } 52% { transform: translateX(-38px) scale(1.08) rotate(-3deg); filter: brightness(1.15) drop-shadow(0 0 18px rgba(255,60,30,.55)); } 68% { transform: translateX(-28px) scale(1.05); } }
+/* Besiegt: zusammensacken und zu Asche zerfallen */
+.mi-dead .mi-rig { animation: miDead 1.8s ease-in forwards; }
+@keyframes miDead {
+  0% { transform: none; filter: none; opacity: 1; }
+  18% { transform: translateY(-4px); filter: brightness(1.9) sepia(1) saturate(5) hue-rotate(-30deg); }
+  55% { transform: translateY(8px) scale(1.02, .9); filter: brightness(.55) grayscale(.7); opacity: .9; }
+  100% { transform: translateY(14px) scale(1.1, .78); filter: grayscale(1) brightness(.3) blur(8px); opacity: 0; }
+}
+.mi-dead .mi-shadow { opacity: 0; transition: opacity 1.4s; }
+.mi-dust { position: absolute; left: 10%; right: 10%; bottom: 0; height: 70%; pointer-events: none;
+  background-image: radial-gradient(circle, rgba(120,110,100,.7) 1.5px, transparent 2px), radial-gradient(circle, rgba(90,80,70,.6) 1px, transparent 1.5px);
+  background-size: 18px 22px, 11px 14px; animation: miDust 1.8s ease-out forwards; opacity: 0; }
+@keyframes miDust { 0%, 30% { opacity: 0; transform: translateY(0); } 55% { opacity: .9; } 100% { opacity: 0; transform: translateY(-40px) scale(1.15); } }
+/* Auf dem Pfad: besiegte Bosse liegen dunkel in der Höhle */
+.boss-face .monster-img.mi-dead .mi-rig { animation: none; filter: grayscale(1) brightness(.35); transform: translateY(6px) scale(1, .9); opacity: .8; }
+@media (prefers-reduced-motion: reduce) { .monster-img *, .monster-img .mi-rig { animation: none !important; } }
+.avatar-monster { width: 58px; height: 58px; border-radius: 50%; overflow: hidden; display: grid; place-items: end center; background: #1d1b18; }
+.avatar-monster .monster-img .mi-shadow, .avatar-monster .monster-img .mi-aura { display: none; }
+.battle-monster .monster-img { max-width: 44vw; max-height: 52vh; }
+@media (max-width: 560px) { .battle-monster .monster-img { width: 78vw !important; height: 44vh !important; } }
+.fire-breath { position: absolute; right: 22%; bottom: 30%; width: 62%; height: 26%; z-index: 2; pointer-events: none; transform-origin: 100% 50%;
+  background: radial-gradient(ellipse at 100% 50%, #fff6c8 0%, #ffcf3a 14%, #ff7a1a 34%, rgba(220,40,10,.75) 55%, transparent 72%);
+  clip-path: polygon(100% 42%, 0 0, 8% 30%, 0 50%, 8% 70%, 0 100%, 100% 58%); filter: blur(2px); animation: breath 1.8s ease-out forwards; mix-blend-mode: screen; }
+@keyframes breath { 0%, 30% { opacity: 0; transform: scaleX(.05); } 45% { opacity: 1; transform: scaleX(1.05); } 70% { opacity: .95; transform: scaleX(1) scaleY(1.2); } 100% { opacity: 0; transform: scaleX(1.15) scaleY(1.3); } }
+@media (max-width: 560px) { .fire-breath { right: 30%; bottom: 34%; width: 70%; } }

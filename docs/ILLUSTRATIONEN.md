@@ -3,6 +3,10 @@
 Die App ist so gebaut, dass **echte Bilder die gezeichneten Platzhalter automatisch ersetzen**.
 Fehlt ein Bild, bleibt einfach die bisherige Grafik – man kann also nach und nach austauschen.
 
+## Bestiarium (aktuell im Einsatz)
+
+Die Monster des Trainingspfads stammen aus dem Monster-Bogen (25 Figuren) und liegen freigestellt in `public/art/bestiary/01.webp` … `25.webp`. Welche Figur an welcher Station steht (inkl. Farbvarianten), steht in `src/lib/bestiary.ts`. Neue/bessere Figuren einfach mit gleicher Nummer ersetzen.
+
 ## So kommt ein Bild in die App
 
 1. Datei mit dem **exakten Namen** aus den Tabellen unten in den Ordner `public/art/` legen, z. B. `public/art/boss-feuer.png`.

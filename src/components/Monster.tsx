@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import { hashStr, rng } from '../lib/rng';
 import type { Theme } from '../lib/path';
+import { BESTIARY, beastUrl } from '../lib/bestiary';
 
 /**
  * Animierte Monster im Comic-Stil. Jedes Monster wird aus Bauteilen gezeichnet
@@ -436,6 +437,20 @@ function Body({ l }: { l: Look }) {
 }
 
 function MonsterSvg({ id, theme, index = 0, boss = false, size = 120, state = 'idle' }: { id: string; theme: Theme; index?: number; boss?: boolean; size?: number; state?: MonsterState }) {
+  const beast = BESTIARY[id];
+  if (beast) {
+    const cls = state === 'hit' ? 'mi-idle mi-hit' : state === 'attack' ? 'mi-idle mi-attack' : `mi-${state}`;
+    return (
+      <div className={`monster-img ${cls} ${boss ? 'mi-boss' : ''}`} style={{ width: size, height: size, ['--md' as string]: `${-(hashStr(id) % 3000) / 1000}s` }}>
+        {boss && <div className="mi-aura" />}
+        <div className="mi-shadow" />
+        <div className="mi-rig">
+          <img src={beastUrl(beast.img)} alt={beast.name} draggable={false} style={{ filter: beast.filter }} />
+        </div>
+        {state === 'dead' && <div className="mi-dust" />}
+      </div>
+    );
+  }
   const l = monsterLook(id, theme, index, boss);
   const delay = `${-(hashStr(id) % 2000) / 1000}s`;
   const fid = `${id}-${size}`.replace(/[^a-z0-9-]/gi, '');

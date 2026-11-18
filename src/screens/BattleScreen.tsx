@@ -288,7 +288,7 @@ function Battle() {
             <div className="player right">
               <div className="av-ring" style={{ background: 'var(--red)' }}>
                 {opp.kind === 'boss' ? (
-                  <div className="avatar" style={{ width: 58, height: 58, background: `${opp.color ?? '#ef4444'}26` }}><Art id={artIdForNode(config.pathNodeId)} size={58} style={{ borderRadius: '50%' }} fallback={<Icon name={opp.icon ?? 'skull'} size={32} color={opp.color ?? 'var(--red)'} />} /></div>
+                  <div className="avatar" style={{ width: 58, height: 58, background: `${opp.color ?? '#ef4444'}26` }}><Art id={artIdForNode(config.pathNodeId)} size={58} style={{ borderRadius: '50%' }} fallback={pathNode && pathWorld ? <div className="avatar-monster"><Monster id={pathNode.id} theme={pathWorld.theme} index={monsterIndex(pathNode)} size={56} /></div> : <Icon name={opp.icon ?? 'skull'} size={32} color={opp.color ?? 'var(--red)'} />} /></div>
                 ) : (
                   <Avatar src={opp.avatar} name={opp.name} size={58} color={opp.color} />
                 )}
@@ -347,11 +347,12 @@ function Battle() {
         <div className="battle-monster">
           <Art id={artIdForNode(pathNode.id)} size={220} fallback={
             <Monster key={boss.hp <= 0 ? 'dead' : attacking ? `a${attackN}` : `h${hitCount}`} id={pathNode.id} theme={pathWorld.theme} index={monsterIndex(pathNode)} boss={pathNode.kind === 'boss'}
-              size={pathNode.kind === 'boss' ? 250 : 210} state={boss.hp <= 0 ? 'dead' : attacking ? 'attack' : hitCount > 0 ? 'hit' : 'idle'} />
+              size={pathNode.kind === 'boss' ? 420 : 340} state={boss.hp <= 0 ? 'dead' : attacking ? 'attack' : hitCount > 0 ? 'hit' : 'idle'} />
           } />
         </div>
       )}
       {attacking && (pathKind === 'dragon' || pathKind === 'demon') && <div key={`f${attackN}`} className="screen-flash" />}
+      {attacking && pathKind === 'dragon' && <div key={`b${attackN}`} className="fire-breath" />}
       {regen && <div className="roar-vignette" />}
       {isBoss && (
         <div className="hit-layer">

@@ -8,6 +8,7 @@
 import { DUNGEONS, type Dungeon } from './dungeons';
 import { EXERCISES, type ExerciseId } from './exercises';
 import type { Profile } from './types';
+import { BESTIARY } from './bestiary';
 
 export type Theme = 'forest' | 'ice' | 'fire' | 'shadow' | 'sky' | 'abyss' | 'olymp' | 'dragon';
 export type NodeKind = 'fight' | 'chest' | 'boss';
@@ -88,6 +89,7 @@ function buildWorld(d: Dungeon, w: number): World {
     nodes.push({ id, worldId: d.id, index: i, kind: 'fight', name, icon, exercise: ex, durationS: dur, hp, xp: 40 + w * 25 + stage * 10, gold: 15 + w * 10 + stage * 4, gems: 0 });
     stage++;
   }
+  for (const n of nodes) n.name = BESTIARY[n.id]?.name ?? n.name;
   return { id: d.id, index: w, name: d.name, theme: t.theme, sky: t.sky, ground: t.ground, glow: t.glow, tagline: t.tagline, dungeon: d, nodes };
 }
 
